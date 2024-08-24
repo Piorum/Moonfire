@@ -27,7 +27,7 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
                 await SendMessage(message.Channel, $"{_help}");
                 break;
             case $"{prefix}start":{
-                var _tmsg = await SendMessage(message.Channel, "**[Starting]**", true);
+                var _tmsg = await SendMessage(message.Channel, "[Starting]", true);
                 stopwatch.Restart();
                 await _server.StartServer();
                 stopwatch.Stop();
@@ -35,7 +35,7 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
                 break;
             }
             case $"{prefix}stop":{
-                var _tmsg = await SendMessage(message.Channel, "**[Stopping]**", true);
+                var _tmsg = await SendMessage(message.Channel, "[Stopping]", true);
                 stopwatch.Restart();
                 await _server.StopServer();
                 stopwatch.Stop();
