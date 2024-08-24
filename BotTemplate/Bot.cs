@@ -30,7 +30,8 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
                 await StopSCPServer(message);
                 break;
             case $"{prefix}console":
-                await _server.SendConsoleInput(parts[1]); //safe because all inputs are caught by the scp server!
+                //safe because all inputs are caught by the scp server!
+                await _server.SendConsoleInput(message.Content[(message.Content.IndexOf(' ') + 1)..]);
                 break;
             default:
                 return false;
