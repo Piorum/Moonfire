@@ -2,6 +2,8 @@ namespace SCDisc;
 
 public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
 {
+    private readonly SCPProcessInterface _server = new();
+
     protected override async Task MessageRecievedHandler(SocketMessage message){  
         if (message.Author.IsBot) return;
         if (message.Content[0] == prefix[0]){
@@ -20,6 +22,12 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
                 break;
             case $"{prefix}example":
                 await SendMessage(message.Channel, "Hello World!");
+                break;
+            case $"{prefix}start":
+                await _server.StartServer();
+                break;
+            case $"{prefix}stop":
+                await _server.StopServer();
                 break;
             default:
                 return false;
