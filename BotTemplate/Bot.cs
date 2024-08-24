@@ -52,11 +52,13 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
     }
 
     private static async Task PrintHelp(SocketMessage message){
-        string _help = "";
-        _help += $"[{prefix}start   - starts the server              #Admin]\n";
-        _help += $"[{prefix}stop    - stops the server               #Admin]\n";
-        _help += $"[{prefix}console - sends remaining args to server #Admin]\n";
-        await SendMessage(message.Channel, $"**{_help}**");
+        static string format(string content) => $"[{prefix}{content}]\n";
+        string help = string.Join(
+            format("start   - starts the server              #Admin"),
+            format("stop    - stops the server               #Admin"),
+            format("console - sends remaining args to server #Admin"),
+        );
+        await SendMessage(message.Channel, $"**{help}**");
     }
 
     private async Task StartSCPServer(SocketMessage message) =>
