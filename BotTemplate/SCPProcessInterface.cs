@@ -46,7 +46,7 @@ public class SCPProcessInterface
                     string? output = await _process.StandardOutput.ReadLineAsync();
                     if(output!=null) {
                         Console.WriteLine(output);
-                        if(output.Contains("Received first heartbeat. Silent crash detection is now active.")) _heartbeatReceived.TrySetResult(true);
+                        if(output.Contains("Received first heartbeat.")) _heartbeatReceived.TrySetResult(true);
                     }
                 }
             });
