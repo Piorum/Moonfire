@@ -19,33 +19,28 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
 
     private async Task<bool> CommandHandler(SocketMessage message){
         string[] parts = message.Content.Split(' ');
-        if(await CheckAdmin(message.Author.Id)){
-            switch(parts[0]){
-                case $"{prefix}start":
-                    await StartSCPServer(message);
-                    return true;
-                case $"{prefix}stop":
-                    await StopSCPServer(message);
-                    return true;
-                case $"{prefix}console":
-                    //safe because all inputs are caught by the scp server!
-                    await SendConsoleInput(message);
-                    return true;
-            }
-        } else {
-            await SendMessage(message.Channel, "**[You are not an admin.]**");
-        }
         switch(parts[0]){
             case helpCmd:
                 await PrintHelp(message);
-                return true;
+                break;
+            case $"{prefix}start":
+                await AdminFunction(message, () => StartSCPServer(message));
+                break;
+            case $"{prefix}stop":
+                await AdminFunction(message, () => StopSCPServer(message));
+                break;
+            case $"{prefix}console":
+                await AdminFunction(message, () => SendConsoleInput(message));
+                break;
+            default:
+                return false;
         }
-        return false;
+        return true;
     }
 
-    private static Task<bool> CheckAdmin(ulong id){
-        if(adminIds.Contains(id)) return Task.FromResult(true);
-        return Task.FromResult(false);
+    private async static Task AdminFunction(SocketMessage message, Func<Task> function){
+        var task = adminIds.Contains(message.Author.Id) ? function() : SendMessage(message.Channel, "**[You are not an admin.]**");
+        await task;
     }
 
     private static async Task TimeFunction(SocketMessage message, string start, Func<Task> function, string end, string warning, Func<TimeSpan, bool> warningCondition){
