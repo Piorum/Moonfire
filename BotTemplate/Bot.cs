@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace SCDisc;
 
 public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
@@ -15,6 +17,7 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
     }
 
     private async Task<bool> CommandHandler(SocketMessage message){
+        var stopwatch = Stopwatch.StartNew();
         switch(message.Content)
         {
             case helpCmd:
@@ -24,19 +27,22 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
                 await SendMessage(message.Channel, $"{_help}");
                 break;
             case $"{prefix}start":
-                await SendMessage(message.Channel, "[Starting]");
+                await SendMessage(message.Channel, "**[Starting]**");
+                stopwatch.Restart();
                 await _server.StartServer();
-                await SendMessage(message.Channel, "[Started]");
+                stopwatch.Stop();
+                await SendMessage(message.Channel, $"**[Started - {stopwatch.Elapsed.Seconds}{stopwatch.Elapsed.Milliseconds:D3}ms]**");
                 break;
             case $"{prefix}stop":
-                await SendMessage(message.Channel, "[Stopping]");
+                await SendMessage(message.Channel, "**[Stopping]**");
+                stopwatch.Restart();
                 await _server.StopServer();
-                await SendMessage(message.Channel, "[Stopped]");
+                stopwatch.Stop();
+                await SendMessage(message.Channel, $"**[Stopped - {stopwatch.Elapsed.Seconds}{stopwatch.Elapsed.Milliseconds:D3}ms]**");
                 break;
             default:
                 return false;
         }
         return true;
     }
-
 }
