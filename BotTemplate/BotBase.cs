@@ -5,7 +5,7 @@ public abstract class BotBase{
     protected const string prefix = ".";
     protected const string helpCmd = $"{prefix}help";
     private readonly DiscordSocketClient _client;
-    private string _token;
+    private readonly string _token;
 
     public BotBase(string t,DiscordSocketConfig c){
         //Client Creation
