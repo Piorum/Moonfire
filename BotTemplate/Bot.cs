@@ -18,16 +18,21 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
         switch(message.Content)
         {
             case helpCmd:
-                await SendMessage(message.Channel, "<Not Implemented>");
+                string _help = "";
+                _help += $"[{prefix}start - starts the server ]";
+                _help += $"[{prefix}stop  - stops the server  ]";
+                await SendMessage(message.Channel, $"{_help}");
                 break;
             case $"{prefix}example":
                 await SendMessage(message.Channel, "Hello World!");
                 break;
             case $"{prefix}start":
-                await _server.StartServer();
+                _server.StartServer();
+                await SendMessage(message.Channel, "Started!");
                 break;
             case $"{prefix}stop":
-                await _server.StopServer();
+                _server.StopServer();
+                await SendMessage(message.Channel, "Stopped!");
                 break;
             default:
                 return false;
