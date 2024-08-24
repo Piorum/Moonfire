@@ -8,7 +8,7 @@ public class SCPProcessInterface
     private const string processName = "LocalAdmin"; // This shouldn't change
     private const string port = "7777"; // Will be passed to server
     private readonly Process _process;
-    private bool _started;
+    private bool _started = false;
 
     public SCPProcessInterface(){
         string documentsDir = Environment.GetFolderPath(Environment.SpecialFolder.Personal); //Documents Path -Cross Platform Implementation
@@ -60,7 +60,7 @@ public class SCPProcessInterface
     }
 
     public async Task StopServer(){
-        if (_process != null && !_process.HasExited){
+        if (_started){
             //Attempts to exit
             await SendConsoleInput("exit");
             bool exited = _process.WaitForExit(5000);
@@ -76,9 +76,9 @@ public class SCPProcessInterface
     }
 
     //safe because all inputs are caught by the scp server!
-    public async Task SendConsoleInput(string input)
-    {
-        if (_process != null && !_process.HasExited){
+    public async Task SendConsoleInput(string input){   
+        if(input=="stop") await StopServer();
+        if (_started){
             await _process.StandardInput.WriteLineAsync(input);
         } else{
             Console.WriteLine($"Process is not started!!! Attemped Input: {input}");

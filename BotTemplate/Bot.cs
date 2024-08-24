@@ -29,7 +29,7 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
                     return true;
                 case $"{prefix}console":
                     //safe because all inputs are caught by the scp server!
-                    await _server.SendConsoleInput(message.Content[(message.Content.IndexOf(' ') + 1)..]);
+                    await SendConsoleInput(message);
                     return true;
             }
         } else {
@@ -94,6 +94,18 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
             "Stopped",
             "Unusually fast, server likely already stopped or error occured.",
             elapsed => elapsed.Milliseconds < 10
+        );
+    }
+
+    private async Task SendConsoleInput(SocketMessage message){
+        string input = message.Content[(message.Content.IndexOf(' ') + 1)..];
+        await TimeFunction(
+            message,
+            "Sending",
+            () => _server.SendConsoleInput(input),
+            $"Sent \"{input}\"",
+            "Unusually fast, server likely stopped or error occured.",
+            elapsed => elapsed.Milliseconds < 0
         );
     }
 }
