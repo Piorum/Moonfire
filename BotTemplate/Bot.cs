@@ -26,20 +26,22 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
                 _help += $"[{prefix}stop  - stops the server  ]\n";
                 await SendMessage(message.Channel, $"{_help}");
                 break;
-            case $"{prefix}start":
-                await SendMessage(message.Channel, "**[Starting]**");
+            case $"{prefix}start":{
+                var _tmsg = await SendMessage(message.Channel, "**[Starting]**", true);
                 stopwatch.Restart();
                 await _server.StartServer();
                 stopwatch.Stop();
-                await SendMessage(message.Channel, $"**[Started - {stopwatch.Elapsed.Seconds}{stopwatch.Elapsed.Milliseconds:D3}ms]**");
+                await ModifyMessage(_tmsg, $"**[Started - {stopwatch.Elapsed.Seconds}{stopwatch.Elapsed.Milliseconds:D3}ms]**");
                 break;
-            case $"{prefix}stop":
-                await SendMessage(message.Channel, "**[Stopping]**");
+            }
+            case $"{prefix}stop":{
+                var _tmsg = await SendMessage(message.Channel, "**[Stopping]**", true);
                 stopwatch.Restart();
                 await _server.StopServer();
                 stopwatch.Stop();
-                await SendMessage(message.Channel, $"**[Stopped - {stopwatch.Elapsed.Seconds}{stopwatch.Elapsed.Milliseconds:D3}ms]**");
+                await ModifyMessage(_tmsg, $"**[Stopped - {stopwatch.Elapsed.Seconds}{stopwatch.Elapsed.Milliseconds:D3}ms]**");
                 break;
+            }
             default:
                 return false;
         }
