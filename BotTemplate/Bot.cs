@@ -29,8 +29,9 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
                 await SendMessage(message.Channel, "[Started]");
                 break;
             case $"{prefix}stop":
-                _ = _server.StopServer();
-                await SendMessage(message.Channel, "[Stopping - Please wait at least 5 seconds.]");
+                await SendMessage(message.Channel, "[Stopping]");
+                await _server.StopServer();
+                await SendMessage(message.Channel, "[Stopped]");
                 break;
             default:
                 return false;
