@@ -13,8 +13,7 @@ public class SCPProcessInterface
     public SCPProcessInterface(){
         string documentsDir = Environment.GetFolderPath(Environment.SpecialFolder.Personal); //Documents Path -Cross Platform Implementation
 
-        ProcessStartInfo startInfo = new()
-        {
+        ProcessStartInfo startInfo = new(){
             FileName = Path.Combine(documentsDir, serverDirectory, processName), //Process requires full path to executeable
             Arguments = port,
             WorkingDirectory = Path.Combine(documentsDir, serverDirectory), //SCP Server requires working enviroment be the same as the containing folder
@@ -25,8 +24,7 @@ public class SCPProcessInterface
             CreateNoWindow = true
         };
 
-        _process = new Process
-        {
+        _process = new Process{
             StartInfo = startInfo
         };
     }
@@ -38,49 +36,41 @@ public class SCPProcessInterface
             TaskCompletionSource<bool> _heartbeatReceived = new();
 
             //Read the output asynchronously to console
-            _ = Task.Run(async () => 
-            {
-                while (!_process.StandardOutput.EndOfStream)
-                {
+            _ = Task.Run(async () => {
+                while(!_process.StandardOutput.EndOfStream){
                     string? output = await _process.StandardOutput.ReadLineAsync();
-                    if(output!=null) {
+                    if(output!=null){
                         Console.WriteLine(output);
                         if(output.Contains("Received first heartbeat.")) _heartbeatReceived.TrySetResult(true);
                     }
                 }
             });
 
-            //Waits for heartbeat report to end
+            //Waits for heartbeat report to continue
             await _heartbeatReceived.Task;
             _started = true;
 
-        } else {
+        }else{
             Console.WriteLine("Process should already be started.");
         }
     }
 
     public async Task StopServer(){
-        if (_started){
-            //Attempts to exit
+        if(_started){
             await SendConsoleInput("exit");
-            bool exited = _process.WaitForExit(5000);
-            //Kills after 5 seconds of waiting
-            if (!exited)
-            {
-                _process.Kill();
-            }
+            if(_process.WaitForExit(5000)) _process.Kill();
             _started = false;
-        } else {
+        }else{
             Console.WriteLine("Process should already be dead.");
         }
     }
 
-    //safe because all inputs are caught by the scp server!
     public async Task SendConsoleInput(string input){   
-        if(input=="stop") await StopServer();
-        if (_started){
+        if(input=="stop"){
+            await StopServer();
+        }else if(_started){
             await _process.StandardInput.WriteLineAsync(input);
-        } else{
+        }else{
             Console.WriteLine($"Process is not started!!! Attemped Input: {input}");
         }
     }

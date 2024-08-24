@@ -14,7 +14,10 @@ public abstract class BotBase{
 
         //Define Handlers
         _client.MessageReceived += MessageRecievedHandler;
-        _client.Log += LogHandler;
+        _client.Log += message => {
+            Console.WriteLine(message);
+            return Task.CompletedTask;
+        };
     }
 
     public async Task StartBotAsync(){
@@ -28,27 +31,15 @@ public abstract class BotBase{
         await Task.Delay(-1);
     }
 
-    protected static async Task SendMessage(ISocketMessageChannel channel, string content){
+    protected static async Task SendMessage(ISocketMessageChannel channel, string content) =>
         await channel.SendMessageAsync(content);
-    }
 
     //Overloaded function, use to get IUserMessage return for messages that will need to be modified
-    protected static async Task<IUserMessage> SendMessage(ISocketMessageChannel channel, string content, bool _){
-        return await channel.SendMessageAsync(content);
-    }
+    protected static async Task<IUserMessage> SendMessage(ISocketMessageChannel channel, string content, bool _) =>
+        await channel.SendMessageAsync(content);
 
-    protected static async Task ModifyMessage(IUserMessage message, string newContent){
-        if(message!=null){
-            await message.ModifyAsync(msg => msg.Content = newContent);
-        } else {
-            Console.WriteLine("No last message found to modify.");
-        }
-    }
-
-    protected static Task LogHandler(LogMessage message){
-        Console.WriteLine(message.ToString());
-        return Task.CompletedTask;
-    }
+    protected static async Task ModifyMessage(IUserMessage message, string newContent) =>
+        await message.ModifyAsync(msg => msg.Content = newContent);
 
     protected abstract Task MessageRecievedHandler(SocketMessage message);
     
