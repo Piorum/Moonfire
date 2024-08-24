@@ -69,9 +69,9 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
 
     private static async Task PrintHelp(SocketMessage message){
         string _help = "";
-        _help += $"[{prefix}start - starts the server                  #Admin]\n";
-        _help += $"[{prefix}stop  - stops the server                   #Admin]\n";
-        _help += $"[{prefix}console  - sends remaining args to server  #Admin]\n";
+        _help += $"[{prefix}start   - starts the server              #Admin]\n";
+        _help += $"[{prefix}stop    - stops the server               #Admin]\n";
+        _help += $"[{prefix}console - sends remaining args to server #Admin]\n";
         await SendMessage(message.Channel, $"**{_help}**");
     }
 
