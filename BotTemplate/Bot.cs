@@ -27,11 +27,11 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
                 await SendMessage(message.Channel, "Hello World!");
                 break;
             case $"{prefix}start":
-                _server.StartServer();
+                _ = _server.StartServer();
                 await SendMessage(message.Channel, "Started!");
                 break;
             case $"{prefix}stop":
-                _server.StopServer();
+                _ = _server.StopServer();
                 await SendMessage(message.Channel, "Stopped!");
                 break;
             default:
