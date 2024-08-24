@@ -4,7 +4,7 @@ namespace SCDisc;
 
 public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
 {
-    private static readonly List<ulong> adminIds = [208430103384948737, 739176967064256542];
+    private static readonly List<ulong> adminIds = [208430103384948737, 739176967064256542]; //Discord UserIds, @piorum, @crownsofstars
     private readonly SCPProcessInterface _server = new();
 
     protected override async Task MessageRecievedHandler(SocketMessage message){  
