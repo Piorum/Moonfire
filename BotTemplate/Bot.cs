@@ -24,13 +24,22 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
                 await PrintHelp(message);
                 break;
             case $"{prefix}start":
-                await AdminFunction(message, () => StartSCPServer(message));
+                await RequireAdmin(
+                    message,
+                    () => StartSCPServer(message)
+                );
                 break;
             case $"{prefix}stop":
-                await AdminFunction(message, () => StopSCPServer(message));
+                await RequireAdmin(
+                    message,
+                    () => StopSCPServer(message)
+                );
                 break;
             case $"{prefix}console":
-                await AdminFunction(message, () => SendConsoleInput(message));
+                await RequireAdmin(
+                    message,
+                    () => SendConsoleInput(message)
+                );
                 break;
             default:
                 return false;
@@ -38,7 +47,8 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
         return true;
     }
 
-    private async static Task AdminFunction(SocketMessage message, Func<Task> function){
+    private async static Task RequireAdmin(SocketMessage message, Func<Task> function){
+        //if id is in admins list runs the function, if not sends error
         var task = adminIds.Contains(message.Author.Id) ? function() : SendMessage(message.Channel, "**[You are not an admin.]**");
         await task;
     }
