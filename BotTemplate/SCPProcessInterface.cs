@@ -75,6 +75,7 @@ public class SCPProcessInterface
         }
     }
 
+    //safe because all inputs are caught by the scp server!
     public async Task SendConsoleInput(string input)
     {
         if (_process != null && !_process.HasExited){

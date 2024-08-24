@@ -17,34 +17,72 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
     }
 
     private async Task<bool> CommandHandler(SocketMessage message){
-        var stopwatch = Stopwatch.StartNew();
-        switch(message.Content)
+        string[] parts = message.Content.Split(' ');
+        switch(parts[0])
         {
             case helpCmd:
-                string _help = "";
-                _help += $"[{prefix}start - starts the server ]\n";
-                _help += $"[{prefix}stop  - stops the server  ]\n";
-                await SendMessage(message.Channel, $"{_help}");
+                await PrintHelp(message);
                 break;
-            case $"{prefix}start":{
-                var _tmsg = await SendMessage(message.Channel, "[Starting]", true);
-                stopwatch.Restart();
-                await _server.StartServer();
-                stopwatch.Stop();
-                await ModifyMessage(_tmsg, $"**[Started - {stopwatch.Elapsed.Seconds}{stopwatch.Elapsed.Milliseconds:D3}ms]**");
+            case $"{prefix}start":
+                await StartSCPServer(message);
                 break;
-            }
-            case $"{prefix}stop":{
-                var _tmsg = await SendMessage(message.Channel, "[Stopping]", true);
-                stopwatch.Restart();
-                await _server.StopServer();
-                stopwatch.Stop();
-                await ModifyMessage(_tmsg, $"**[Stopped - {stopwatch.Elapsed.Seconds}{stopwatch.Elapsed.Milliseconds:D3}ms]**");
+            case $"{prefix}stop":
+                await StopSCPServer(message);
                 break;
-            }
+            case $"{prefix}console":
+                await _server.SendConsoleInput(parts[1]); //safe because all inputs are caught by the scp server!
+                break;
             default:
                 return false;
         }
         return true;
+    }
+
+    private static async Task TimeFunction(SocketMessage message, string start, Func<Task> function, string end, string warning, Func<TimeSpan, bool> warningCondition){
+        //Store message and send start message
+        //Start timer
+        //Run function
+        //Stop timer
+        //Update message
+        var _tmsg = await SendMessage(message.Channel, $"**[{start}]**", true);
+        var stopwatch = Stopwatch.StartNew();
+        await function();
+        stopwatch.Stop();
+        await ModifyMessage(_tmsg, $"**[{end} - {stopwatch.ElapsedMilliseconds:D3}]**");
+
+        //Time based error check
+        //elapsed => elapsed.Unit(seconds/milliseconds etc...) < x(int value)
+        if(warningCondition(stopwatch.Elapsed)){
+            await ModifyMessage(_tmsg, $"**[{warning}]**");
+        }
+    }
+
+    private static async Task PrintHelp(SocketMessage message){
+        string _help = "";
+        _help += $"[{prefix}start - starts the server ]\n";
+        _help += $"[{prefix}stop  - stops the server  ]\n";
+        await SendMessage(message.Channel, $"{_help}");
+    }
+
+    private async Task StartSCPServer(SocketMessage message){
+        await TimeFunction(
+            message,
+            "Starting",
+            _server.StartServer,
+            "Started",
+            "Unusually fast, server likley already started or error occured.",
+            elapsed => elapsed.Seconds < 1
+        );
+    }
+
+    private async Task StopSCPServer(SocketMessage message){
+        await TimeFunction(
+            message,
+            "Stopping",
+            _server.StopServer,
+            "Stopped",
+            "Unusually fast, server likely already stopped or error occured.",
+            elapsed => elapsed.Milliseconds < 10
+        );
     }
 }
