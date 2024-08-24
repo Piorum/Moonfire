@@ -18,8 +18,8 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
     }
 
     private async Task<bool> CommandHandler(SocketMessage message){
-        string[] parts = message.Content.Split(' ');
-        return parts[0] switch{ //This method ensures functions must be setup correctly to be used as commands
+        string[] args = message.Content.Split(' ');
+        return args[0] switch{ //This method ensures functions must be setup correctly to be used as commands
             helpCmd            => await RunTask(              () => PrintHelp(message)),
             $"{prefix}start"   => await RequireAdmin(message, () => StartSCPServer(message)),
             $"{prefix}stop"    => await RequireAdmin(message, () => StopSCPServer(message)),
@@ -56,7 +56,7 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
         string help = string.Join(
             _f("start   - starts the server              #Admin"),
             _f("stop    - stops the server               #Admin"),
-            _f("console - sends remaining args to server #Admin"),
+            _f("console - sends remaining args to server #Admin")
         );
         await SendMessage(message.Channel, $"**{help}**");
     }
