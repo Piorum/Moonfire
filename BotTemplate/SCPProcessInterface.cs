@@ -12,11 +12,13 @@ public class SCPProcessInterface
     private bool _started;
 
     public SCPProcessInterface(){
+        string userDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
         ProcessStartInfo startInfo = new()
         {
-            FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), serverDirectory, processName),
+            FileName = Path.Combine(userDir, serverDirectory, processName), //Process requires full path to executeable
             Arguments = port,
-            WorkingDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), serverDirectory),
+            WorkingDirectory = Path.Combine(userDir, serverDirectory), //SCP Server requires working enviroment be the same as the containing folder
             RedirectStandardInput = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
