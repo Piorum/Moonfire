@@ -5,20 +5,20 @@ namespace SCDisc;
 
 public class SCPProcessInterface
 {   
-    private const string serverDirectory = @"Documents/SCP/"; // ~/ implied
+    private const string serverDirectory = @"SCP/"; // *Directory inside documents folder
     private const string processName = "LocalAdmin"; // This shouldn't change
     private const string port = "7777"; // Will be passed to server
     private readonly Process _process;
     private bool _started;
 
     public SCPProcessInterface(){
-        string userDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        string documentsDir = Environment.GetFolderPath(Environment.SpecialFolder.Personal); //Documents Path -Cross Platform Implementation
 
         ProcessStartInfo startInfo = new()
         {
-            FileName = Path.Combine(userDir, serverDirectory, processName), //Process requires full path to executeable
+            FileName = Path.Combine(documentsDir, serverDirectory, processName), //Process requires full path to executeable
             Arguments = port,
-            WorkingDirectory = Path.Combine(userDir, serverDirectory), //SCP Server requires working enviroment be the same as the containing folder
+            WorkingDirectory = Path.Combine(documentsDir, serverDirectory), //SCP Server requires working enviroment be the same as the containing folder
             RedirectStandardInput = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,

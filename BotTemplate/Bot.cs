@@ -19,8 +19,8 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
         {
             case helpCmd:
                 string _help = "";
-                _help += $"[{prefix}start - starts the server ]";
-                _help += $"[{prefix}stop  - stops the server  ]";
+                _help += $"[{prefix}start - starts the server ]\n";
+                _help += $"[{prefix}stop  - stops the server  ]\n";
                 await SendMessage(message.Channel, $"{_help}");
                 break;
             case $"{prefix}start":
