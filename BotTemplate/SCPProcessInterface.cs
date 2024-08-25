@@ -9,6 +9,8 @@ public class SCPProcessInterface
     private const string port = "7777"; // Will be passed to server
     private readonly Process _process;
     private bool _started = false;
+    private string? ip;
+    public string PublicIp => _started ? ip ?? "Not Found" : "Server Not Started";
 
     public SCPProcessInterface(){
         string documentsDir = Environment.GetFolderPath(Environment.SpecialFolder.Personal); //Documents Path -Cross Platform Implementation
@@ -41,6 +43,7 @@ public class SCPProcessInterface
                     string? output = await _process.StandardOutput.ReadLineAsync();
                     if(output!=null){
                         Console.WriteLine(output);
+                        if(output.Contains("IP address is")) ip = $"{output.Split(' ')[9]}:{port}";
                         if(output.Contains("Received first heartbeat.")) _heartbeatReceived.TrySetResult(true);
                     }
                 }

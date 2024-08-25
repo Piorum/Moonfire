@@ -7,7 +7,7 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
     private static readonly List<ulong> adminIds = [208430103384948737, 739176967064256542]; //Discord UserIds, @piorum, @crownsofstars
     private readonly SCPProcessInterface _server = new();
 
-    protected override async Task MessageRecievedHandler(SocketMessage message){   
+    protected override async Task MessageRecievedHandler(SocketMessage message){
         if (message.Author.IsBot) return;
         if (message.Content[0] == prefix[0]){
             if (await CommandHandler(message)) return; // Ends if handled
@@ -39,12 +39,21 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
         return true;
     }
 
-    private static async Task TimeFunction(SocketMessage message, string start, Func<Task> function, string end, string warning, Func<TimeSpan, bool> warningCondition){
-        var _tmsg = await SendMessage(message.Channel, $"**[{start}]**", true);
+    //This function overload allows you to send start/end/warning as string functions
+    //This is useful for compiling information into the string after timed function is run
+    private static async Task TimeFunction(SocketMessage message, object start, Func<Task> function, object end, object warning, Func<TimeSpan, bool> warningCondition){
+        Func<string> startFunc = start is string j ? () => j : (Func<string>)start;
+        Func<string> endFunc = end is string k ? () => k : (Func<string>)end;
+        Func<string> warningFunc = warning is string l ? () => l : (Func<string>)warning;
+        await TimeFunction(message, startFunc, function, endFunc, warningFunc, warningCondition);
+    }
+
+    private static async Task TimeFunction(SocketMessage message, Func<string> start, Func<Task> function, Func<string> end, Func<string> warning, Func<TimeSpan, bool> warningCondition){
+        var _tmsg = await SendMessage(message.Channel, $"**[{start()}]**", true);
         var stopwatch = Stopwatch.StartNew();
         await function();
         stopwatch.Stop();
-        await ModifyMessage(_tmsg, $"**[{end} - {stopwatch.ElapsedMilliseconds:D3}ms]**");
+        await ModifyMessage(_tmsg, $"**[{end()} - {stopwatch.ElapsedMilliseconds:D3}ms]**");
 
         if(warningCondition(stopwatch.Elapsed)){
             await ModifyMessage(_tmsg, $"**[{warning}]**");
@@ -66,7 +75,7 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
             message,
             "Starting",
             _server.StartServer,
-            "Started",
+            () => $"Started @{_server.PublicIp}",
             "Unusually fast, server likley already started or error occured.",
             elapsed => elapsed.Seconds < 1
         );
