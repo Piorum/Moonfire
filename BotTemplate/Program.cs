@@ -1,7 +1,8 @@
 ﻿namespace SCDisc;
 
 public class Program{
-        
+    
+    //entry point
     public static async Task Main(){
         var token = File.ReadAllText("token.txt");
         var config = new DiscordSocketConfig{
