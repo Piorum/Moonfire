@@ -2,24 +2,7 @@ using System.Diagnostics;
 
 namespace SCDisc.Utility;
 
-/*
-Task example(){
-    Console.WriteLine("Task!");
-    return Task.CompletedTask;
-}
-Task sendMessage(string a){
-    Console.WriteLine(a);
-    return Task.CompletedTask;
-}
-await FunctionTimer.Time(
-    sendMessage,
-    example,
-    "start",
-    "end"
-);
-*/
-
-public static class FunctionTimer
+public static class FuncExt
 {
     public static async Task Time(
         Func<Task> function,

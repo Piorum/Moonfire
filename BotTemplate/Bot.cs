@@ -29,7 +29,7 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
                     PrintHelp(sendMessage)),
             $"{prefix}start" => 
                 await RequireAdmin(message.Author.Id, sendMessage, () => 
-                    FunctionTimer.Time(
+                    FuncExt.Time(
                         sendMessage,
                         modifyMessage,
                         _server.StartServer,
@@ -39,7 +39,7 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
                         elapsed => elapsed.Seconds < 1)),
             $"{prefix}stop" => 
                 await RequireAdmin(message.Author.Id, sendMessage, () => 
-                    FunctionTimer.Time(
+                    FuncExt.Time(
                         sendMessage,
                         modifyMessage,
                         _server.StopServer,
@@ -49,7 +49,7 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
                         elapsed => elapsed.Milliseconds < 10)),
             $"{prefix}console" =>
                 await RequireAdmin(message.Author.Id, sendMessage, () =>
-                    FunctionTimer.Time(
+                    FuncExt.Time(
                         sendMessage,
                         modifyMessage,
                         () => _server.SendConsoleInput(message.Content[(message.Content.IndexOf(' ') + 1)..]),
