@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace SCDisc;
+namespace SCDisc.Utility;
 
 /*
 Task example(){
