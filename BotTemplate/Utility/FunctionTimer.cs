@@ -22,6 +22,17 @@ await FunctionTimer.Time(
 public static class FunctionTimer
 {
     public static async Task Time(
+        Func<Task> function,
+        object start,
+        object end,
+        object? warning = null,
+        Func<TimeSpan, bool>? warningCondition = null
+    ) =>
+        await Time(
+            (a) => {Console.WriteLine(a);return Task.CompletedTask;},
+            function, start, end, warning, warningCondition);
+
+    public static async Task Time(
         Func<string, Task> sendMessage,
         Func<Task> function,
         object start,
