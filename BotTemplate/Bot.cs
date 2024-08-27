@@ -19,8 +19,8 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
     }
 
     private async Task<bool> MessageCommandHandler(SocketMessage message){
-        Task<IUserMessage> sendMessage(string a) => SendMessage(message.Channel, $"**[{a}]**", true);
-        static Task modifyMessage(IUserMessage a, string b) => ModifyMessage(a, $"**[{b}]**");
+        async Task<IUserMessage> sendMessage   (string a)                 => await SendMessage   (message.Channel, $"**[{a}]**", true);
+        async Task               modifyMessage (IUserMessage a, string b) => await ModifyMessage (a, $"**[{b}]**");
         string[] args = message.Content.Split(' ');
         
         return args[0] switch{
