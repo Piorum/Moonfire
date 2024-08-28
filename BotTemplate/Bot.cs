@@ -5,107 +5,93 @@ namespace SCDisc;
 
 public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
 {
-    private static readonly ImmutableList<ulong> adminIds = [208430103384948737, 739176967064256542]; //Discord UserIds, @piorum, @crownsofstars
+    private static readonly ImmutableList<ulong> adminIds = [208430103384948737, 739176967064256542]; //<Discord UserIds>, @piorum, @crownsofstars
     private readonly SCPProcessInterface _server = new();
 
-    protected override async Task MessageRecievedHandler(SocketMessage message){
-        if (message.Author.IsBot) return;
-        if (message.Content[0] == prefix[0]){
-            if (await MessageCommandHandler(message)) return; // Ends if handled
-        }else{
-            // Do something else with the message
-            return;
-        }
-    }
+    protected override Task SlashCommandHandler(SocketSlashCommand command){
+        async Task sendMessage (string a) => await command.RespondAsync($"**[{a}]**", ephemeral: true);
+        async Task followUpMessage (string a) => await command.FollowupAsync($"**[{a}]**", ephemeral: true);
+        Task run(Func<string, Task> a, Func<string, Task> b, Func<Task> c, object d, object e, object? f = default, Func<TimeSpan, bool>? g = default){
+            return Task.Run(async () => await FuncExt.Time(a, b, c, d, e, f, g));}
 
-    private async Task<bool> MessageCommandHandler(SocketMessage message){
-        async Task<IUserMessage> sendMessage   (string a)                 => await SendMessage   (message.Channel, $"**[{a}]**", true);
-        async Task               modifyMessage (IUserMessage a, string b) => await ModifyMessage (a, $"**[{b}]**");
-        string[] args = message.Content.Split(' ');
+
+        //user commands
+        switch (command.Data.Name){
+            case helpCmd:
+                Task.Run(async () => await PrintHelp(sendMessage));
+                break;
+            default:
+                break;
+        }
         
-        return args[0] switch{
-            helpCmd =>
-                await RunTask(() => 
-                    PrintHelp(sendMessage)),
-            $"{prefix}start" => 
-                await RequireAdmin(message.Author.Id, sendMessage, () => 
-                    FuncExt.Time(
-                        sendMessage,
-                        modifyMessage,
-                        _server.StartServer,
-                        "Starting",
-                        () => $"Started @{_server.PublicIp}",
-                        "Unusually fast, server likely already started or error occurred.",
-                        elapsed => elapsed.Seconds < 1)),
-            $"{prefix}stop" => 
-                await RequireAdmin(message.Author.Id, sendMessage, () => 
-                    FuncExt.Time(
-                        sendMessage,
-                        modifyMessage,
-                        _server.StopServer,
-                        "Stopping",
-                        "Stopped",
-                        "Unusually fast, server likely already stopped or error occured.",
-                        elapsed => elapsed.Milliseconds < 10)),
-            $"{prefix}console" =>
-                await RequireAdmin(message.Author.Id, sendMessage, () =>
-                    FuncExt.Time(
-                        sendMessage,
-                        modifyMessage,
-                        () => _server.SendConsoleInput(message.Content[(message.Content.IndexOf(' ') + 1)..]),
-                        "Sending",
-                        $"Sent \"{message.Content[(message.Content.IndexOf(' ') + 1)..]}\"")),
-            $"{prefix}populate" =>
-                await RunTask(() => 
-                        PopulateCommands(sendMessage)),
-            $"{prefix}unregister" =>
-                await RunTask(() => 
-                        Unregister(sendMessage)),
-            _ => false,
-        };
-    }
-
-    private async static Task<bool> RequireAdmin(ulong id, Func<string, Task> _SendMessage, Func<Task> function){
-        var task = adminIds.Contains(id) ? function() : _SendMessage("**[You are not an admin.]**");
-        await task;
-        return true;
-    }
-
-    private async static Task<bool> RunTask(Func<Task> function){
-        await function();
-        return true;
-    }
-
-    private async Task PopulateCommands(Func<string, Task> _SendMessage){
-        foreach(var guild in await GetGuilds()){
-            await PopulateCommand("help", "Prints help information", guild);
+        //admin commands
+        if(!adminIds.Contains(command.User.Id)){
+            _ = sendMessage("You are not an admin");
+            return Task.CompletedTask;
         }
-        await _SendMessage("Commands Built");
-    }
-
-    private async Task PopulateCommand(string name, string description, SocketGuild guild){
-        var command = new SlashCommandBuilder();
-        command.WithName(name);
-        command.WithDescription(description);
-
-        await guild.CreateApplicationCommandAsync(command.Build());
-    }
-
-    private async Task Unregister(Func<string, Task> _SendMessage){
-        foreach(var guild in await GetGuilds()){
-            await guild.DeleteApplicationCommandsAsync();
+        switch(command.Data.Name){
+            case "start":
+                run(
+                    sendMessage,
+                    followUpMessage,
+                    _server.StartServer,
+                    "Starting",
+                    () => $"Started @{_server.PublicIp}",
+                    "Unusually fast, server likely already started or error occurred.",
+                    elapsed => elapsed.Seconds < 1);
+                break;
+            case "stop":
+                run(
+                    sendMessage,
+                    followUpMessage,
+                    _server.StopServer,
+                    "Stopping",
+                    "Stopped",
+                    "Unusually fast, server likely already stopped or error occured.",
+                    elapsed => elapsed.Milliseconds < 10);
+                break;
+            case "console":
+                run(
+                    sendMessage,
+                    followUpMessage,
+                    () => _server.SendConsoleInput((string)command.Data.Options.First().Value),
+                    "Sending",
+                    $"Sent \"{(string)command.Data.Options.First().Value}\"");
+                break;
+            case "repopulate":
+                run(
+                    sendMessage,
+                    followUpMessage,
+                    async () => {await UnregisterCommands(); await PopulateCommands();},
+                    "Starting Task",
+                    "Commands Repopulated");
+                break;
+            default:
+                break;
         }
-        await _SendMessage("Commands Removed");
+        return Task.CompletedTask;
     }
 
     private static async Task PrintHelp(Func<string, Task> _SendMessage){
-        static string _f(string content) => $"[{prefix}{content}]\n";
-        string help = string.Join(
-            _f("start   - starts the server              #Admin"),
-            _f("stop    - stops the server               #Admin"),
-            _f("console - sends remaining args to server #Admin")
-        );
-        await _SendMessage($"**{help}**");
+        string help = //Leave out start/end bracket and end \n
+            " start   - starts the server              #Admin]\n" +
+            "[stop    - stops the server               #Admin]\n" +
+            "[console - sends remaining args to server #Admin   " ;
+        await _SendMessage(help);
+    }
+    
+    //There is probably a better way to do this
+    private async Task PopulateCommands(){
+        //Add all commands to all guilds
+        foreach(var guild in _client.Guilds){
+            await PopulateCommand("help", "Prints help information", guild);
+            await PopulateCommand("start", "#Admin - Starts the server", guild);
+            await PopulateCommand("stop", "#Admin - Stops the server", guild);
+            await PopulateCommand("repopulate", "#Admin - Refreshes bot commands", guild);
+            await PopulateCommand("console", "#Admin - Sends input to the server process", guild,
+                "input", default, "Input sent to the console", true);
+        }
+        Console.WriteLine("All Commands Registered");
     }
     
 }

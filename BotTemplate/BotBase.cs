@@ -1,10 +1,8 @@
 namespace SCDisc;
 
 public abstract class BotBase{
-
-    protected const string prefix = ".";
-    protected const string helpCmd = $"{prefix}help";
-    private readonly DiscordSocketClient _client;
+    protected const string helpCmd = $"help";
+    protected readonly DiscordSocketClient _client;
     private readonly string _token;
 
     public BotBase(string t,DiscordSocketConfig c){
@@ -13,38 +11,46 @@ public abstract class BotBase{
         _client = new DiscordSocketClient(c);
 
         //Define Handlers
-        _client.MessageReceived += MessageRecievedHandler;
+        _client.SlashCommandExecuted += SlashCommandHandler;
         _client.Log += message => {
             Console.WriteLine(message);
             return Task.CompletedTask;
         };
-
-
     }
 
     public async Task StartBotAsync(){
         //Starting Bot
         await _client.LoginAsync(TokenType.Bot, _token);
         await _client.StartAsync();
-        await _client.SetActivityAsync(new Game(helpCmd, ActivityType.Watching));
+        await _client.SetActivityAsync(new Game($"/{helpCmd}", ActivityType.Watching));
 
         //Block this task until program is closed
         await Task.Delay(-1);
     }
 
-    protected Task<IReadOnlyCollection<SocketGuild>> GetGuilds() =>
-        Task.FromResult(_client.Guilds);
+    protected virtual Task SlashCommandHandler(SocketSlashCommand command){return Task.CompletedTask;}
 
-    protected static async Task SendMessage(ISocketMessageChannel channel, string content) =>
-        await channel.SendMessageAsync(content);
+    //Registered command with a guild, extra values for option
+    //Replace option params with a single list of addoption function pointers, iterate through them
+    protected static async Task PopulateCommand(string name, string description, SocketGuild guild, 
+    string? optionName = null, ApplicationCommandOptionType optionType = ApplicationCommandOptionType.String, string? optionDescription = null, bool optionRequirment = false){
+        var command = new SlashCommandBuilder();
+        command.WithName(name.ToLower());
+        command.WithDescription(description);
+        if(optionName != null && optionDescription != null) 
+            command.AddOption(optionName.ToLower(), ApplicationCommandOptionType.String, optionDescription, isRequired: optionRequirment);
 
-    //Overloaded function, use to get IUserMessage return for messages that will need to be modified
-    protected static async Task<IUserMessage> SendMessage(ISocketMessageChannel channel, string content, bool _) =>
-        await channel.SendMessageAsync(content);
+        await guild.CreateApplicationCommandAsync(command.Build());
 
-    protected static async Task ModifyMessage(IUserMessage message, string newContent) =>
-        await message.ModifyAsync(msg => msg.Content = newContent);
+        Console.WriteLine($"Command {name} registered at {guild.Id}");
+    }
 
-    protected virtual Task MessageRecievedHandler(SocketMessage message){return Task.CompletedTask;}
+    protected async Task UnregisterCommands(){
+        //deletes every command from every guild
+        foreach(var guild in _client.Guilds){
+            await guild.DeleteApplicationCommandsAsync();
+        }
+        Console.WriteLine("Commands Unregistered");
+    }
     
 }
