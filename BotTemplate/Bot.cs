@@ -11,14 +11,17 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
     protected override Task SlashCommandHandler(SocketSlashCommand command){
         async Task sendMessage (string a) => await command.RespondAsync($"**[{a}]**", ephemeral: true);
         async Task followUpMessage (string a) => await command.FollowupAsync($"**[{a}]**", ephemeral: true);
-        Task run(Func<string, Task> a, Func<string, Task> b, Func<Task> c, object d, object e, object? f = default, Func<TimeSpan, bool>? g = default){
-            return Task.Run(async () => await FuncExt.Time(a, b, c, d, e, f, g));}
+        Task run(Task a){
+            return Task.Run(async () => await a);}
+        Task runT(Func<Task> a, object b, object c, object? d = default, Func<TimeSpan, bool>? e = default){
+            return run(FuncExt.Time(sendMessage, followUpMessage, a, b, c, d, e));}
 
 
         //user commands
         switch (command.Data.Name){
             case helpCmd:
-                Task.Run(async () => await PrintHelp(sendMessage));
+                run(
+                    PrintHelp(sendMessage));
                 break;
             default:
                 break;
@@ -26,14 +29,13 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
         
         //admin commands
         if(!adminIds.Contains(command.User.Id)){
-            _ = sendMessage("You are not an admin");
+            run(
+                sendMessage("You are not an admin"));
             return Task.CompletedTask;
         }
         switch(command.Data.Name){
             case "start":
-                run(
-                    sendMessage,
-                    followUpMessage,
+                runT(
                     _server.StartServer,
                     "Starting",
                     () => $"Started @{_server.PublicIp}",
@@ -41,9 +43,7 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
                     elapsed => elapsed.Seconds < 1);
                 break;
             case "stop":
-                run(
-                    sendMessage,
-                    followUpMessage,
+                runT(
                     _server.StopServer,
                     "Stopping",
                     "Stopped",
@@ -51,17 +51,13 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
                     elapsed => elapsed.Milliseconds < 10);
                 break;
             case "console":
-                run(
-                    sendMessage,
-                    followUpMessage,
+                runT(
                     () => _server.SendConsoleInput((string)command.Data.Options.First().Value),
                     "Sending",
                     $"Sent \"{(string)command.Data.Options.First().Value}\"");
                 break;
             case "repopulate":
-                run(
-                    sendMessage,
-                    followUpMessage,
+                runT(
                     async () => {await UnregisterCommands(); await PopulateCommands();},
                     "Starting Task",
                     "Commands Repopulated");
@@ -74,9 +70,9 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
 
     private static async Task PrintHelp(Func<string, Task> _SendMessage){
         string help = //Leave out start/end bracket and end \n
-            " start   - starts the server              #Admin]\n" +
+             "start   - starts the server              #Admin]\n" +
             "[stop    - stops the server               #Admin]\n" +
-            "[console - sends remaining args to server #Admin   " ;
+            "[console - sends remaining args to server #Admin"    ;
         await _SendMessage(help);
     }
     
