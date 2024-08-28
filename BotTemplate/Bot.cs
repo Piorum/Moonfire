@@ -3,7 +3,7 @@ using SCDisc.Utility;
 
 namespace SCDisc;
 
-public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
+public class Bot(string t, DiscordSocketConfig? c = null) : BotBase(t,c)
 {
     private static readonly ImmutableList<ulong> adminIds = [208430103384948737, 739176967064256542]; //<Discord UserIds>, @piorum, @crownsofstars
     private readonly SCPProcessInterface _server = new();

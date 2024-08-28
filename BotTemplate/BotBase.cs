@@ -5,10 +5,14 @@ public abstract class BotBase{
     protected readonly DiscordSocketClient _client;
     private readonly string _token;
 
-    public BotBase(string t,DiscordSocketConfig c){
+    public BotBase(string t,DiscordSocketConfig? c = null){
         //Client Creation
         _token = t;
-        _client = new DiscordSocketClient(c);
+        if(c!=null){
+            _client = new DiscordSocketClient(c);
+        } else { 
+            _client = new DiscordSocketClient();
+        }
 
         //Define Handlers
         _client.SlashCommandExecuted += SlashCommandHandler;
