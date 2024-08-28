@@ -6,6 +6,13 @@ public static class FuncExt
 {
     public static async Task Time(
         Func<Task> function,
+        object? warning = null,
+        Func<TimeSpan, bool>? warningCondition = null
+    ) =>
+        await Time(function, "start", "end", warning, warningCondition);
+        
+    public static async Task Time(
+        Func<Task> function,
         object start,
         object end,
         object? warning = null,
