@@ -55,6 +55,12 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
                         () => _server.SendConsoleInput(message.Content[(message.Content.IndexOf(' ') + 1)..]),
                         "Sending",
                         $"Sent \"{message.Content[(message.Content.IndexOf(' ') + 1)..]}\"")),
+            $"{prefix}populate" =>
+                await RunTask(() => 
+                        PopulateCommands(sendMessage)),
+            $"{prefix}unregister" =>
+                await RunTask(() => 
+                        Unregister(sendMessage)),
             _ => false,
         };
     }
@@ -68,6 +74,28 @@ public class Bot(string t, DiscordSocketConfig c) : BotBase(t,c)
     private async static Task<bool> RunTask(Func<Task> function){
         await function();
         return true;
+    }
+
+    private async Task PopulateCommands(Func<string, Task> _SendMessage){
+        foreach(var guild in await GetGuilds()){
+            await PopulateCommand("help", "Prints help information", guild);
+        }
+        await _SendMessage("Commands Built");
+    }
+
+    private async Task PopulateCommand(string name, string description, SocketGuild guild){
+        var command = new SlashCommandBuilder();
+        command.WithName(name);
+        command.WithDescription(description);
+
+        await guild.CreateApplicationCommandAsync(command.Build());
+    }
+
+    private async Task Unregister(Func<string, Task> _SendMessage){
+        foreach(var guild in await GetGuilds()){
+            await guild.DeleteApplicationCommandsAsync();
+        }
+        await _SendMessage("Commands Removed");
     }
 
     private static async Task PrintHelp(Func<string, Task> _SendMessage){

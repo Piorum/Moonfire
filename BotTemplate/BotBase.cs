@@ -18,6 +18,8 @@ public abstract class BotBase{
             Console.WriteLine(message);
             return Task.CompletedTask;
         };
+
+
     }
 
     public async Task StartBotAsync(){
@@ -26,10 +28,12 @@ public abstract class BotBase{
         await _client.StartAsync();
         await _client.SetActivityAsync(new Game(helpCmd, ActivityType.Watching));
 
-
         //Block this task until program is closed
         await Task.Delay(-1);
     }
+
+    protected Task<IReadOnlyCollection<SocketGuild>> GetGuilds() =>
+        Task.FromResult(_client.Guilds);
 
     protected static async Task SendMessage(ISocketMessageChannel channel, string content) =>
         await channel.SendMessageAsync(content);
@@ -41,6 +45,6 @@ public abstract class BotBase{
     protected static async Task ModifyMessage(IUserMessage message, string newContent) =>
         await message.ModifyAsync(msg => msg.Content = newContent);
 
-    protected abstract Task MessageRecievedHandler(SocketMessage message);
+    protected virtual Task MessageRecievedHandler(SocketMessage message){return Task.CompletedTask;}
     
 }
