@@ -85,7 +85,7 @@ public class Bot(string t, DiscordSocketConfig? c = null) : BotBase(t,c)
             await PopulateCommand("stop", "#Admin - Stops the server", guild);
             await PopulateCommand("repopulate", "#Admin - Refreshes bot commands", guild);
             await PopulateCommand("console", "#Admin - Sends input to the server process", guild,
-                "input", default, "Input sent to the console", true);
+                [new(name: "input", description: "Input sent to the console", isRequired: true)]);
         }
         Console.WriteLine("All Commands Registered");
     }

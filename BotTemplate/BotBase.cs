@@ -34,15 +34,13 @@ public abstract class BotBase{
 
     protected virtual Task SlashCommandHandler(SocketSlashCommand command){return Task.CompletedTask;}
 
-    //Registered command with a guild, extra values for option
-    //Replace option params with a single list of addoption function pointers, iterate through them
-    protected static async Task PopulateCommand(string name, string description, SocketGuild guild, 
-    string? optionName = null, ApplicationCommandOptionType optionType = ApplicationCommandOptionType.String, string? optionDescription = null, bool optionRequirment = false){
-        var command = new SlashCommandBuilder();
-        command.WithName(name.ToLower());
-        command.WithDescription(description);
-        if(optionName != null && optionDescription != null) 
-            command.AddOption(optionName.ToLower(), ApplicationCommandOptionType.String, optionDescription, isRequired: optionRequirment);
+    //Registered command with a guild, optional options arg
+    protected static async Task PopulateCommand(string name, string description, SocketGuild guild, CommandOption[]? options = null){
+        var command = new SlashCommandBuilder().WithName(name.ToLower()).WithDescription(description);
+        
+        if(options != null)
+            foreach(var option in options)
+                command.AddOption(option.Name.ToLower(), option.Type, option.Description, isRequired: option.IsRequired);
 
         await guild.CreateApplicationCommandAsync(command.Build());
 
