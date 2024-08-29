@@ -35,16 +35,16 @@ public abstract class BotBase{
     protected virtual Task SlashCommandHandler(SocketSlashCommand command){return Task.CompletedTask;}
 
     //Registered command with a guild, optional options arg
-    protected static async Task PopulateCommand(string name, string description, SocketGuild guild, CommandOption[]? options = null){
-        var command = new SlashCommandBuilder().WithName(name.ToLower()).WithDescription(description);
+    protected static async Task PopulateCommand(Command _command, CommandOption[]? _options = null){
+        var command = new SlashCommandBuilder().WithName(_command.Name.ToLower()).WithDescription(_command.Description);
         
-        if(options != null)
-            foreach(var option in options)
+        if(_options != null)
+            foreach(var option in _options)
                 command.AddOption(option.Name.ToLower(), option.Type, option.Description, isRequired: option.IsRequired);
 
-        await guild.CreateApplicationCommandAsync(command.Build());
+        await _command.Guild.CreateApplicationCommandAsync(command.Build());
 
-        Console.WriteLine($"Command {name} registered at {guild.Id}");
+        Console.WriteLine($"Command {_command.Name} registered at {_command.Guild.Id}");
     }
 
     protected async Task UnregisterCommands(){

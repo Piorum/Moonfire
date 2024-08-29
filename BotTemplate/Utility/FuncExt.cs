@@ -79,6 +79,7 @@ public static class FuncExt
         stopwatch.Stop();
         await modifyMessage(tmp, endFunc() + $" - {stopwatch.ElapsedMilliseconds:D3}ms");
         if(warningCondition==null || warningFunc == null) return;
+        await Task.Delay(500); //small delay because async is being weird
         if(warningCondition(stopwatch.Elapsed)) await modifyMessage(tmp, warningFunc());
     }
 
