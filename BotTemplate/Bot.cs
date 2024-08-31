@@ -117,23 +117,42 @@ public class Bot(string t, DiscordSocketConfig? c = null) : BotBase(t,c)
         await _SendMessage(help);
     }
     
-    //Better way to do this?
-    private async Task PopulateCommands(){
 
-        //Add all user/admin commands to all guilds
-        foreach(var guild in _client.Guilds){
-            await PopulateCommand(new("help", "Prints help information", guild));
-            await PopulateCommand(new("start", "#Admin - Starts the server", guild));
-            await PopulateCommand(new("stop", "#Admin - Stops the server", guild));
-            await PopulateCommand(new("console", "#Admin - Sends input to the server process", guild),
-                [new(name: "input", description: "Input sent to the console", isRequired: true)]);
+    // Tried refactoring the PopulateCommandsAsync to have less redundancy
+    // Let me know if this does not end up working - Jarod 8/30/24 7:17PM
+private async Task PopulateCommandsAsync()
+{
+    // Define the commands and their options
+    var adminCommands = new List<(string Name, string Description)>
+    {
+        ("help", "Prints help information"),
+        ("start", "#Admin - Starts the server"),
+        ("stop", "#Admin - Stops the server"),
+        ("console", "#Admin - Sends input to the server process")
+    };
+
+    foreach (var guild in _client.Guilds)
+    {
+        foreach (var command in adminCommands)
+        {
+            var options = command.Name == "console"
+                ? new[] { new { Name = "input", Description = "Input sent to the console", IsRequired = true } }
+                : Array.Empty<object>();
+
+            await PopulateCommandAsync(command.Name, command.Description, guild, options);
         }
-
-        //adds owner commands only to specified server
-        var ownerGuild = _client.GetGuild(ownerServerId);
-        await PopulateCommand(new("repopulate", "#Owner - Refreshes bot commands", ownerGuild));
-
-        Console.WriteLine("All Commands Registered");
     }
-    
+
+    // Register owner commands for a specified server
+    var ownerGuild = _client.GetGuild(ownerServerId);
+    await PopulateCommandAsync("repopulate", "#Owner - Refreshes bot commands", ownerGuild, Array.Empty<object>());
+
+    Console.WriteLine("All Commands Registered");
+}
+
+// Updated method to handle command parameters and options as separate arguments
+private async Task PopulateCommandAsync(string name, string description, IGuild guild, object[] options = null)
+{
+    // Implementation to populate the command
+    // Use name, description, guild, and options to set up the command
 }
