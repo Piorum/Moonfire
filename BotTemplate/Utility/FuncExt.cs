@@ -3,14 +3,16 @@ using System.Diagnostics;
 namespace SCDisc.Utility;
 
 public static class FuncExt
-{
+{   
+    //option for default start/end message
     public static async Task Time(
         Func<Task> function,
         object? warning = null,
         Func<TimeSpan, bool>? warningCondition = null
     ) =>
         await Time(function, "start", "end", warning, warningCondition);
-        
+    
+    //option for default output method, console
     public static async Task Time(
         Func<Task> function,
         object start,
@@ -22,6 +24,7 @@ public static class FuncExt
             (a) => {Console.WriteLine(a);return Task.CompletedTask;},
             function, start, end, warning, warningCondition);
 
+    //option for no modifymessage
     public static async Task Time(
         Func<string, Task> sendMessage,
         Func<Task> function,
@@ -35,6 +38,7 @@ public static class FuncExt
             a => { sendMessage(a); return Task.CompletedTask; },
             function,start,end,warning,warningCondition);
 
+    //option for modifymessage that doesn't need a return from sendmessage
     public static async Task Time(
         Func<string, Task> sendMessage,
         Func<string, Task> modifyMessage,
@@ -49,6 +53,7 @@ public static class FuncExt
             (a, b) => {modifyMessage(b); return Task.CompletedTask;}, 
             function, start, end, warning, warningCondition);
         
+    //Main Time Function
     public static async Task Time<T>(
         Func<string, Task<T>> sendMessage,
         Func<T, string, Task> modifyMessage,
@@ -58,12 +63,14 @@ public static class FuncExt
         object? warning = null,
         Func<TimeSpan, bool>? warningCondition = null
     ){
+        //makes strings into string functions, nulls other objects
         Func<string>? Transform(object? input) => input switch {
             string a => () => a,
             Func<string> b => b,
             _ => null
         };
 
+        //ensure strings are string funcs and other objects are nulled
         var startFunc = Transform(start);
         var endFunc = Transform(end);
         var warningFunc = Transform(warning);
@@ -79,7 +86,7 @@ public static class FuncExt
         stopwatch.Stop();
         await modifyMessage(tmp, endFunc() + $" - {stopwatch.ElapsedMilliseconds:D3}ms");
         if(warningCondition==null || warningFunc == null) return;
-        await Task.Delay(500); //small delay because async is being weird
+        await Task.Delay(1000); //small delay because async is being weird
         if(warningCondition(stopwatch.Elapsed)) await modifyMessage(tmp, warningFunc());
     }
 

@@ -31,7 +31,7 @@ public class SCPProcessInterface
         };
     }
 
-    public async Task StartServer(){
+    public async Task StartServerAsync(){
         if(!_started){
             _process.Start();
 
@@ -58,9 +58,9 @@ public class SCPProcessInterface
         }
     }
 
-    public async Task StopServer(){
+    public async Task StopServerAsync(){
         if(_started){
-            await SendConsoleInput("exit");
+            await SendConsoleInputAsync("exit", true);
             if(_process.WaitForExit(5000)) _process.Kill();
             _started = false;
         }else{
@@ -68,9 +68,11 @@ public class SCPProcessInterface
         }
     }
 
-    public async Task SendConsoleInput(string input){   
-        if(input=="stop"){
-            await StopServer();
+    public async Task SendConsoleInputAsync(string input, bool bypass = false){   
+        if((input.Contains("stop", StringComparison.CurrentCultureIgnoreCase) || input.Contains("exit", StringComparison.CurrentCultureIgnoreCase))
+            && !bypass)
+        {
+            await StopServerAsync();
         }else if(_started){
             await _process.StandardInput.WriteLineAsync(input);
         }else{

@@ -3,9 +3,10 @@ namespace SCDisc;
 public abstract class BotBase{
     protected const string helpCmd = $"help";
     protected readonly DiscordSocketClient _client;
+    protected readonly List<Command> commands;
     private readonly string _token;
 
-    public BotBase(string t,DiscordSocketConfig? c = null){
+    public BotBase(string t,DiscordSocketConfig? c = null, List<Command>? _commands = null){
         //Client Creation
         _token = t;
         if(c!=null){
@@ -20,6 +21,9 @@ public abstract class BotBase{
             Console.WriteLine(message);
             return Task.CompletedTask;
         };
+
+        //Ensure commands is not null
+        commands = _commands ?? [];
     }
 
     public async Task StartBotAsync(){
@@ -34,20 +38,34 @@ public abstract class BotBase{
 
     protected virtual Task SlashCommandHandler(SocketSlashCommand command){return Task.CompletedTask;}
 
-    //Registered command with a guild, optional options arg
-    protected static async Task PopulateCommand(Command _command, CommandOption[]? _options = null){
-        var command = new SlashCommandBuilder().WithName(_command.Name.ToLower()).WithDescription(_command.Description);
-        
-        if(_options != null)
-            foreach(var option in _options)
-                command.AddOption(option.Name.ToLower(), option.Type, option.Description, isRequired: option.IsRequired);
+    // Tried refactoring the PopulateCommandsAsync to have less redundancy
+    // Let me know if this does not end up working - Jarod 8/30/24 7:17PM
+    // It didn't really work but it gave me some good ideas - Piorum 8/31/24 02:05:44AM
+    // Should now be callable in main to accomplish initial population of commands
+    public async Task PopulateCommandsAsync(ulong ownerServer){
+        foreach (var guild in _client.Guilds)
+            foreach (var command in commands.Where(p => p.Rank == Rank.User || p.Rank == Rank.Admin).ToList())
+                await PopulateCommandAsync(command, guild);
 
-        await _command.Guild.CreateApplicationCommandAsync(command.Build());
+        // Register owner commands for a specified server
+        foreach (var command in commands.Where(p => p.Rank == Rank.Owner).ToList())
+            await PopulateCommandAsync(command, _client.GetGuild(ownerServer));
 
-        Console.WriteLine($"Command {_command.Name} registered at {_command.Guild.Id}");
+        Console.WriteLine("All Commands Registered");
     }
 
-    protected async Task UnregisterCommands(){
+    private static async Task PopulateCommandAsync(Command _command, SocketGuild guild){
+        var command = new SlashCommandBuilder().WithName(_command.Name.ToLower()).WithDescription(_command.Description);
+        
+        foreach(var option in _command.Options)
+            command.AddOption(option.Name.ToLower(), option.Type, option.Description, isRequired: option.IsRequired);
+
+        await guild.CreateApplicationCommandAsync(command.Build());
+
+        Console.WriteLine($"Command {_command.Name} registered at {guild.Id}");
+    }
+
+    protected async Task UnregisterCommandsAsync(){
         //deletes every command from every guild
         foreach(var guild in _client.Guilds){
             await guild.DeleteApplicationCommandsAsync();
