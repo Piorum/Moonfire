@@ -41,8 +41,7 @@ public abstract class BotBase{
     // Tried refactoring the PopulateCommandsAsync to have less redundancy
     // Let me know if this does not end up working - Jarod 8/30/24 7:17PM
     // It didn't really work but it gave me some good ideas - Piorum 8/31/24 02:05:44AM
-    // Should now be callable in main to accomplish initial population of commands
-    public async Task PopulateCommandsAsync(ulong ownerServer){
+    protected async Task PopulateCommandsAsync(ulong ownerServer){
         foreach (var guild in _client.Guilds)
             foreach (var command in commands.Where(p => p.Rank == Rank.User || p.Rank == Rank.Admin).ToList())
                 await PopulateCommandAsync(command, guild);
