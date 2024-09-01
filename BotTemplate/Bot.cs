@@ -8,6 +8,12 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
     private const ulong ownerServerId = 581787007144165386; //<Discord ServerId>, --
     private readonly SCPProcessInterface _server = new();
 
+    // Uncomment to do initial population of commands
+    /*protected async override Task ClientReadyHandler(){
+        await PopulateCommandsAsync(ownerServerId);
+        return;
+    }*/
+
     protected override Task SlashCommandHandler(SocketSlashCommand command){
         //Local Functions
         //MessgeSenders/Formatters

@@ -1,3 +1,4 @@
+
 namespace SCDisc;
 
 public abstract class BotBase{
@@ -16,6 +17,7 @@ public abstract class BotBase{
         }
 
         //Define Handlers
+        _client.Ready += ClientReadyHandler;
         _client.SlashCommandExecuted += SlashCommandHandler;
         _client.Log += message => {
             Console.WriteLine(message);
@@ -35,6 +37,8 @@ public abstract class BotBase{
         //Block this task until program is closed
         await Task.Delay(-1);
     }
+
+    protected virtual Task ClientReadyHandler(){return Task.CompletedTask;}
 
     protected virtual Task SlashCommandHandler(SocketSlashCommand command){return Task.CompletedTask;}
 
