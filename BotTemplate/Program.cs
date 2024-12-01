@@ -11,8 +11,6 @@ public class Program{
             Environment.SetEnvironmentVariable(line[0..line.IndexOf('=')],line[(line.IndexOf('=')+2)..line.LastIndexOf('"')],EnvironmentVariableTarget.Process);
         }
 
-        AzureVM _vm = new();
-
         var token = Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN") ?? "";
         var config = new DiscordSocketConfig{
             GatewayIntents = GatewayIntents.None | GatewayIntents.Guilds
