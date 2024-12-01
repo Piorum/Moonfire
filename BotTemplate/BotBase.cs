@@ -10,8 +10,8 @@ public abstract class BotBase{
     private readonly string _token;
 
     public BotBase(string t,DiscordSocketConfig? c = null, List<Command>? _commands = null){
-        ownerId = ulong.Parse(File.ReadAllText("ownerId.txt"));
-        ownerServerId = ulong.Parse(File.ReadAllText("ownerServerId.txt"));
+        ownerId = ulong.Parse(Environment.GetEnvironmentVariable("BOT_OWNER_ID") ?? "0");
+        ownerServerId = ulong.Parse(Environment.GetEnvironmentVariable("BOT_OWNER_SERVER_ID") ?? "0");
 
         //Client Creation
         _token = t;

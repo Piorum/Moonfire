@@ -2,8 +2,9 @@ using SCDisc.Utility;
 
 namespace SCDisc;
 
-public class Bot(string token, DiscordSocketConfig? config = null, List<Command>? _commands = null) : BotBase(token,config,_commands)
+public class Bot(string token, AzureVM _vm, DiscordSocketConfig? config = null, List<Command>? _commands = null) : BotBase(token,config,_commands)
 {
+    private readonly AzureVM vm = _vm;
     private readonly SCPProcessInterface _server = new();
 
     // Uncomment to do initial population of commands
@@ -104,6 +105,18 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
                         async () => {await UnregisterCommandsAsync(); await PopulateCommandsAsync(ownerServerId);},
                         "Starting Task",
                         "Commands Repopulated");
+                    break;
+                case "poweronazure":
+                    runTimed(
+                        vm.Start,
+                        "Starting Azure VM",
+                        "Azure VM Started");
+                    break;
+                case "poweroffazure":
+                    runTimed(
+                        vm.Stop,
+                        "Stopping Azure VM",
+                        "Azure VM Stopped");
                     break;
                 default:
                     break;

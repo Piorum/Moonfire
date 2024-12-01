@@ -3,13 +3,14 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.Compute;
 using Azure.ResourceManager.Compute.Models;
 using Azure.ResourceManager.Resources;
-using SCDisc.Utility;
 
 namespace SCDisc;
 
-public static class AzureVM
+public class AzureVM
 {
-    public static async Task StartVM(){
+    private readonly VirtualMachineResource vm;
+    public readonly string name = "Ubuntu-Server-1";
+    public AzureVM(){
         var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
         var clientSecret = Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET");
         var tenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
@@ -17,14 +18,17 @@ public static class AzureVM
         ClientSecretCredential credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
         ArmClient client = new ArmClient(credential, subscription);
 
-        Azure.Core.ResourceIdentifier rgName = new($"/subscriptions/{subscription}/resourceGroups/VMs");
-        string vmName = "Ubuntu-Server-1";
+        Azure.Core.ResourceIdentifier rgName = new($"/subscriptions/{subscription}/resourceGroups/Moonfire-VM-1");
         ResourceGroupResource resourceGroup = client.GetResourceGroupResource(rgName);
         VirtualMachineCollection vmCollection = resourceGroup.GetVirtualMachines();
-        VirtualMachineResource vm = await vmCollection.GetAsync(vmName);
+        vm = vmCollection.Get(name);
+    }
+    public async Task Start(){
+        await vm.PowerOnAsync(Azure.WaitUntil.Completed);
+    }
 
-        //Attempt to start the VM
-        await FuncExt.Time(async () => await vm.PowerOnAsync(Azure.WaitUntil.Completed), $"Starting '{vmName}'", $"'{vmName}' Started");
+    public async Task Stop(){
+        await vm.DeallocateAsync(Azure.WaitUntil.Completed);
     }
 
 }
