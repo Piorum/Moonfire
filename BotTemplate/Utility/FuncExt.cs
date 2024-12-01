@@ -10,7 +10,7 @@ public static class FuncExt
         object? warning = null,
         Func<TimeSpan, bool>? warningCondition = null
     ) =>
-        await Time(function, "start", "end", warning, warningCondition);
+        await Time(function, "FuncExt.Time Started", "FuncExt.Time Ended", warning, warningCondition);
     
     //option for default output method, console
     public static async Task Time(
