@@ -30,7 +30,7 @@ public class Program{
             new("poweroffazure", "#Owner - Stops Azure Virtual Machine", Rank.Owner)
         };
 
-        var _application = new Bot(token,new(),config,commands);
+        var _application = new Bot(token,config,commands);
         await _application.StartBotAsync();
     }
 }

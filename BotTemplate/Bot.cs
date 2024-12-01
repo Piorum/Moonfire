@@ -2,9 +2,9 @@ using SCDisc.Utility;
 
 namespace SCDisc;
 
-public class Bot(string token, AzureVM _vm, DiscordSocketConfig? config = null, List<Command>? _commands = null) : BotBase(token,config,_commands)
+public class Bot(string token, DiscordSocketConfig? config = null, List<Command>? _commands = null) : BotBase(token,config,_commands)
 {
-    private readonly AzureVM vm = _vm;
+    private readonly AzureVM vm = new();
     private readonly SCPProcessInterface _server = new();
 
     // Uncomment to do initial population of commands
