@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SCDisc")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5a68747cb8de0bdaa48e564ac7ef8d4f1d7878c5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9a728575ee631c2318f77f54176dfdc39d91c9c3")]
 [assembly: System.Reflection.AssemblyProductAttribute("SCDisc")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SCDisc")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
