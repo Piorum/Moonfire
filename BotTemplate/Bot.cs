@@ -4,8 +4,6 @@ namespace SCDisc;
 
 public class Bot(string token, DiscordSocketConfig? config = null, List<Command>? _commands = null) : BotBase(token,config,_commands)
 {
-    private const ulong ownerId = 208430103384948737; //<Discord UserId>, @piorum
-    private const ulong ownerServerId = 581787007144165386; //<Discord ServerId>, --
     private readonly SCPProcessInterface _server = new();
 
     // Uncomment to do initial population of commands

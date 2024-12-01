@@ -5,9 +5,14 @@ public abstract class BotBase{
     protected const string helpCmd = $"help";
     protected readonly DiscordSocketClient _client;
     protected readonly List<Command> commands;
+    protected ulong ownerId;
+    protected ulong ownerServerId;
     private readonly string _token;
 
     public BotBase(string t,DiscordSocketConfig? c = null, List<Command>? _commands = null){
+        ownerId = ulong.Parse(File.ReadAllText("ownerId.txt"));
+        ownerServerId = ulong.Parse(File.ReadAllText("ownerServerId.txt"));
+
         //Client Creation
         _token = t;
         if(c!=null){
@@ -60,8 +65,20 @@ public abstract class BotBase{
     private static async Task PopulateCommandAsync(Command _command, SocketGuild guild){
         var command = new SlashCommandBuilder().WithName(_command.Name.ToLower()).WithDescription(_command.Description);
         
-        foreach(var option in _command.Options)
-            command.AddOption(option.Name.ToLower(), option.Type, option.Description, isRequired: option.IsRequired);
+        foreach(var option in _command.Options){
+            var optionBuilder = new SlashCommandOptionBuilder();
+            optionBuilder.WithName(option.Name.ToLower());
+            optionBuilder.WithDescription(option.Description);
+            optionBuilder.WithType(option.Type);
+            optionBuilder.WithRequired(option.IsRequired);
+            int i = 1;
+            foreach(var choice in option.Choices){
+                optionBuilder.AddChoice(choice, i.ToString());
+                i++;
+            }
+            command.AddOption(optionBuilder);
+        }
+
 
         await guild.CreateApplicationCommandAsync(command.Build());
 

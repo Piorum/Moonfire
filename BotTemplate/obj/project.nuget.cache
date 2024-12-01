@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "0wXSJCWWXISj+9nHwCozGVIiuirk1ZTO0fEDw3iQNPvj5Hx1AFKf/hw4jydE9Dsx0dEhdsu9dN6Z9O+kKEUiHw==",
+  "dgSpecHash": "X/ncyWEN93to/LPi2jA7OB8qRDGJpdn0Ss9uyEK1re1qd6+WrCtByhYRvfR4yKpToO+naOqebgcPju21GG7UZQ==",
   "success": true,
   "projectFilePath": "/home/username/Documents/SCDisc/BotTemplate/SCDisc.csproj",
   "expectedPackageFiles": [
@@ -20,7 +20,7 @@
     "/home/username/.nuget/packages/system.reactive/6.0.0/system.reactive.6.0.0.nupkg.sha512",
     "/home/username/.nuget/packages/system.runtime.compilerservices.unsafe/6.0.0/system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512",
     "/home/username/.nuget/packages/system.valuetuple/4.5.0/system.valuetuple.4.5.0.nupkg.sha512",
-    "/home/username/.nuget/packages/microsoft.aspnetcore.app.ref/8.0.7/microsoft.aspnetcore.app.ref.8.0.7.nupkg.sha512"
+    "/home/username/.nuget/packages/microsoft.aspnetcore.app.ref/8.0.10/microsoft.aspnetcore.app.ref.8.0.10.nupkg.sha512"
   ],
   "logs": []
 }

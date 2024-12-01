@@ -12,8 +12,9 @@ public class Program{
         //Need to match SlashCommandHandler switch cases to be caught
         var commands = new List<Command>{
             new("help", "Prints help information", Rank.User),
-            new("start", "#Admin - Starts the server", Rank.Admin),
-            new("stop", "#Admin - Stops the server", Rank.Admin),
+            new("start", "#Admin - Starts a server", Rank.Admin,
+                [new(name: "game", description: "select game", isRequired: true, choices: ["SCP", "GMOD"])]),
+            new("stop", "#Admin - Stops a server", Rank.Admin),
             new("console", "#Admin - Sends input to the server process", Rank.Admin, 
                 [new(name: "input", description: "Input sent to the console", isRequired: true )]),
             new("repopulate", "#Owner - Refreshes bot commands", Rank.Owner)
