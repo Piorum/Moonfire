@@ -69,7 +69,7 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
                             runTimed(
                                 () => _server.StartServerAsync(vm),
                                 "Starting",
-                                () => $"Started @{_server.PublicIp}",
+                                () => $"Started at '{_server.PublicIp}'",
                                 "Unusually fast, server started?",
                                 elapsed => elapsed.Seconds < 1);
                             break;

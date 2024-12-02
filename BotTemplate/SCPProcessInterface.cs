@@ -11,9 +11,9 @@ public class SCPProcessInterface
     public async Task StartServerAsync(AzureVM vm){
         if(!_started){
             Console.WriteLine($"{vm.name}: Starting SCP Server");
-            await vm.ConsoleDirect(@"mkdir -p ~/.config/SCP\ Secret\ Laboratory/config/7777/");
-            await vm.ConsoleDirect(@"cp /datadrive/config/* ~/.config/SCP\ Secret\ Laboratory/config/7777/");
+            await vm.ConsoleDirect(@"cp -R /datadrive/config/ ~/.config/SCP\ Secret\ Laboratory/");
             await vm.ConsoleDirect(@"cd /datadrive/Steam/steamapps/common/SCP\ Secret\ Laboratory\ Dedicated\ Server/");
+            await Task.Delay(200);
             await vm.ConsoleDirect(@"./LocalAdmin 7777");
 
             TaskCompletionSource<bool> _heartbeatReceived = new();
