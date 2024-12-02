@@ -47,6 +47,7 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
                         PrintHelpAsync(SendSlashReply));
                     break;
                 default:
+                    run(SendSlashReply($"Caught {command.Data.Name} by user but found no command"));
                     break;
             }
             return Task.CompletedTask;
@@ -63,28 +64,31 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
             //Admin commands switch
             switch(command.Data.Name){
                 case "start":
-                    runTimed(
-                        _server.StartServerAsync,
-                        "Starting",
-                        () => $"Started @{_server.PublicIp}",
-                        "Unusually fast, server started?",
-                        elapsed => elapsed.Seconds < 1);
+                    switch((string)command.Data.Options.First().Value){
+                        case "1": //SCP
+                            runTimed(
+                                () => _server.StartServerAsync(vm),
+                                "Starting",
+                                () => $"Started @{_server.PublicIp}",
+                                "Unusually fast, server started?",
+                                elapsed => elapsed.Seconds < 1);
+                            break;
+                        case "2": //GMOD
+                            run(SendSlashReply("GMOD not available"));
+                            break;
+                        default:
+                            run(SendSlashReply($"Caught {command.Data.Options.First().Value} by start command but found no game"));
+                            break;
+                    }
                     break;
                 case "stop":
                     runTimed(
-                        _server.StopServerAsync,
-                        "Stopping",
-                        "Stopped",
-                        "Unusually fast, server stopped?",
-                        elapsed => elapsed.Milliseconds < 10);
-                    break;
-                case "console":
-                    runTimed(
-                        () => _server.SendConsoleInputAsync((string)command.Data.Options.First().Value),
-                        "Sending",
-                        $"Sent \"{(string)command.Data.Options.First().Value}\"");
+                        vm.Stop,
+                        "Stopping VM",
+                        "VM Stopped");
                     break;
                 default:
+                    run(SendSlashReply($"Caught {command.Data.Name} by admin but found no command"));
                     break;
             }
             return Task.CompletedTask;
@@ -106,19 +110,20 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
                         "Starting Task",
                         "Commands Repopulated");
                     break;
+                case "console":
+                    runTimed(
+                        () => vm.ConsoleDirect((string)command.Data.Options.First().Value),
+                        "Sending",
+                        $"Sent \"{(string)command.Data.Options.First().Value}\"");
+                    break;
                 case "poweronazure":
                     runTimed(
                         vm.Start,
                         "Starting Azure VM",
                         "Azure VM Started");
                     break;
-                case "poweroffazure":
-                    runTimed(
-                        vm.Stop,
-                        "Stopping Azure VM",
-                        "Azure VM Stopped");
-                    break;
                 default:
+                    run(SendSlashReply($"Caught {command.Data.Name} by owner but found no command"));
                     break;
             }
             return Task.CompletedTask;
@@ -136,7 +141,7 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
         foreach(var command in commands.Where(p => p.Rank == Rank.User || p.Rank == Rank.Admin).ToList())
             help += $"[{command.Name} - {command.Description}]\n";
         //to reduce code this removes the first/last bracket and last newline to match expected formatting
-        await _SendMessage(help[(help.IndexOf('[')+1)..(help.LastIndexOf(']')-1)]);
+        await _SendMessage(help[(help.IndexOf('[')+1)..(help.LastIndexOf(']'))]);
     }
     
 }

@@ -4,46 +4,26 @@ namespace SCDisc;
 
 public class SCPProcessInterface
 {   
-    private const string serverDirectory = @"SCP/"; // *Directory inside documents folder
-    private const string processName = "LocalAdmin"; // This shouldn't change
-    private const string port = "7777"; // Will be passed to server
-    private readonly Process _process;
     private bool _started = false;
     private string? ip;
     public string PublicIp => _started ? ip ?? "Not Found" : "Server Not Started";
 
-    public SCPProcessInterface(){
-        string documentsDir = Environment.GetFolderPath(Environment.SpecialFolder.Personal); //Documents Path -Cross Platform Implementation
-
-        ProcessStartInfo startInfo = new(){
-            FileName = Path.Combine(documentsDir, serverDirectory, processName), //Process requires full path to executeable
-            Arguments = port,
-            WorkingDirectory = Path.Combine(documentsDir, serverDirectory), //SCP Server requires working enviroment be the same as the containing folder
-            RedirectStandardInput = true,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
-
-        _process = new Process{
-            StartInfo = startInfo
-        };
-    }
-
-    public async Task StartServerAsync(){
+    public async Task StartServerAsync(AzureVM vm){
         if(!_started){
-            _process.Start();
+            Console.WriteLine($"{vm.name}: Starting SCP Server");
+            await vm.ConsoleDirect(@"mkdir -p ~/.config/SCP\ Secret\ Laboratory/config/7777/");
+            await vm.ConsoleDirect(@"cp /datadrive/config/* ~/.config/SCP\ Secret\ Laboratory/config/7777/");
+            await vm.ConsoleDirect(@"cd /datadrive/Steam/steamapps/common/SCP\ Secret\ Laboratory\ Dedicated\ Server/");
+            await vm.ConsoleDirect(@"./LocalAdmin 7777");
 
             TaskCompletionSource<bool> _heartbeatReceived = new();
 
             //Read the output asynchronously to console
             _ = Task.Run(async () => {
-                while(!_process.StandardOutput.EndOfStream){
-                    string? output = await _process.StandardOutput.ReadLineAsync();
+                while(!vm.sshClient.StandardOutput.EndOfStream){
+                    string? output = await vm.sshClient.StandardOutput.ReadLineAsync();
                     if(output!=null){
-                        Console.WriteLine(output);
-                        if(output.Contains("IP address is")) ip = $"{output.Split(' ')[9]}:{port}";
+                        if(output.Contains("IP address is")) ip = $"{output.Split(' ')[9]}:7777";
                         if(output.Contains("Received first heartbeat.")) _heartbeatReceived.TrySetResult(true);
                     }
                 }
@@ -57,27 +37,4 @@ public class SCPProcessInterface
             Console.WriteLine("Process should already be started.");
         }
     }
-
-    public async Task StopServerAsync(){
-        if(_started){
-            await SendConsoleInputAsync("exit", true);
-            if(_process.WaitForExit(5000)) _process.Kill();
-            _started = false;
-        }else{
-            Console.WriteLine("Process should already be dead.");
-        }
-    }
-
-    public async Task SendConsoleInputAsync(string input, bool bypass = false){   
-        if((input.Contains("stop", StringComparison.CurrentCultureIgnoreCase) || input.Contains("exit", StringComparison.CurrentCultureIgnoreCase))
-            && !bypass)
-        {
-            await StopServerAsync();
-        }else if(_started){
-            await _process.StandardInput.WriteLineAsync(input);
-        }else{
-            Console.WriteLine($"Process is not started!!! Attemped Input: {input}");
-        }
-    }
-
 }

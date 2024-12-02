@@ -51,8 +51,8 @@ public abstract class BotBase{
     // Let me know if this does not end up working - Jarod 8/30/24 7:17PM
     // It didn't really work but it gave me some good ideas - Piorum 8/31/24 02:05:44AM
     protected async Task PopulateCommandsAsync(ulong ownerServer){
-        foreach (var guild in _client.Guilds)
-            foreach (var command in commands.Where(p => p.Rank == Rank.User || p.Rank == Rank.Admin).ToList())
+        foreach (var command in commands.Where(p => p.Rank == Rank.User || p.Rank == Rank.Admin).ToList())
+            foreach (var guild in _client.Guilds)
                 await PopulateCommandAsync(command, guild);
 
         // Register owner commands for a specified server
