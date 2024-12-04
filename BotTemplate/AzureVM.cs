@@ -11,7 +11,7 @@ public class AzureVM
 {
     private readonly VirtualMachineResource vm;
     private bool started;
-    private bool connected = false;
+    private bool connected;
     public readonly string name;
     public readonly string ip;
     public readonly string group;
@@ -22,10 +22,11 @@ public class AzureVM
         group = _group;
 
         //credential setup
-        var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
-        var clientSecret = Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET");
-        var tenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
-        var subscription = Environment.GetEnvironmentVariable("AZURE_SUBSCRIPTION_ID");
+        //strongly defined to avoid nullable string
+        string clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID") ?? "";
+        string clientSecret = Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET") ?? "";
+        string tenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID") ?? "";
+        string subscription = Environment.GetEnvironmentVariable("AZURE_SUBSCRIPTION_ID") ?? "";
         ClientSecretCredential credential = new(tenantId, clientId, clientSecret);
         ArmClient client = new(credential, subscription);
 
@@ -38,6 +39,7 @@ public class AzureVM
         //check initial VM power state
         started = "VM running" == vm.InstanceView().Value.Statuses.FirstOrDefault(status => status.Code.StartsWith("PowerState/"))?.DisplayStatus;
         Console.WriteLine($"VM: {name} is Started: {started}");
+        connected = false;
     }
 
     public async Task Start(){

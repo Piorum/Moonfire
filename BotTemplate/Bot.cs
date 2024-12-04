@@ -33,9 +33,6 @@ public class Bot(string token, AzureVM vm, DiscordSocketConfig? config = null, L
             return run(FuncExt.Time(SendSlashReply, ModifySlashReply, a, b, c, d, e));
         }
 
-
-        // Maybe we should move respective switch to their own functions? but... 
-        // We will need to move all MessageSenders/Formatters and TaskRunners and pass command
         // Checks if any user commands match name of caught command
         if(commands.Any(p => p.Name == command.Data.Name && p.Rank == Rank.User)){
 
