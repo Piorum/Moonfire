@@ -66,8 +66,8 @@ public class Bot(string token, AzureVM vm, DiscordSocketConfig? config = null, L
                                 () => _server.StartServerAsync(vm),
                                 "Starting",
                                 () => $"Started at '{_server.PublicIp}'",
-                                "Unusually fast, server started?",
-                                elapsed => elapsed.Seconds < 1);
+                                "You shouldn't be here - Bot.cs start command case",
+                                elapsed => false);
                             break;
                         case "2": //GMOD
                             run(SendSlashReply("GMOD not available"));
@@ -78,10 +78,22 @@ public class Bot(string token, AzureVM vm, DiscordSocketConfig? config = null, L
                     }
                     break;
                 case "stop":
-                    runTimed(
-                        vm.Stop,
-                        "Stopping VM",
-                        "VM Stopped");
+                    switch((string)command.Data.Options.First().Value){
+                        case "1": //SCP
+                            runTimed(
+                                () => _server.StopServerAsync(vm),
+                                "Stopping",
+                                () => $"Stopping SCP Server'",
+                                "You shouldn't be here - Bot.cs stop command case",
+                                elapsed => false);
+                            break;
+                        case "2": //GMOD
+                            run(SendSlashReply("GMOD not available"));
+                            break;
+                        default:
+                            run(SendSlashReply($"Caught {command.Data.Options.First().Value} by stop command but found no game"));
+                            break;
+                    }
                     break;
                 default:
                     run(SendSlashReply($"Caught {command.Data.Name} by admin but found no command"));
@@ -114,6 +126,12 @@ public class Bot(string token, AzureVM vm, DiscordSocketConfig? config = null, L
                         vm.Start,
                         "Starting Azure VM",
                         "Azure VM Started");
+                    break;
+                case "poweroffazure":
+                    runTimed(
+                        vm.Stop,
+                        "Stopping Azure VM",
+                        "Azure VM Stopped");
                     break;
                 default:
                     run(SendSlashReply($"Caught {command.Data.Name} by owner but found no command"));

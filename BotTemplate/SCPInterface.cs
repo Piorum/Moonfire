@@ -5,13 +5,14 @@ namespace SCDisc;
 public class SCPInterface
 {   
     private bool _started = false;
-    private string? ip;
+    private readonly string? ip;
     public string PublicIp => _started ? ip ?? "Not Found" : "Server Not Started";
     private readonly Process sshClient;
     private readonly AzureVM vm;
 
     public SCPInterface(AzureVM _vm){
         vm = _vm;
+        ip = vm.ip;
 
         sshClient = new()
         {
@@ -43,9 +44,10 @@ public class SCPInterface
                     string? output = await sshClient.StandardOutput.ReadLineAsync();
                     if(output!=null){
                         Console.WriteLine(output);
-                        if(output.Contains("IP address is")) {ip = $"{output.Split(' ')[9]}:7777"; _heartbeatReceived.TrySetResult(true);}
+                        if(output.Contains("Received first heartbeat")) _heartbeatReceived.TrySetResult(true);
                     }
                 }
+                Console.WriteLine($"{vm.name}: SCPInterface: sshClient EndOfStream encountered or halted");
             });
 
             //Waits for heartbeat report to continue
@@ -55,6 +57,22 @@ public class SCPInterface
 
         }else{
             Console.WriteLine("Process should already be started.");
+        }
+    }
+
+    public async Task StopServerAsync(AzureVM vm){
+        if(_started){
+            await vm.ConsoleDirect(@"stop",sshClient);
+            Console.WriteLine($"{vm.name}: SCP Server Stopped");
+
+            await vm.ConsoleDirect(@"exit",sshClient);
+            sshClient.Close();
+            
+            await vm.Stop();
+            _started = false;
+            Console.WriteLine($"{vm.name}: SCPInterface Reset");
+        }else{
+            Console.WriteLine("Process should already be dead.");
         }
     }
 }

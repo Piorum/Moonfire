@@ -11,7 +11,7 @@ public class AzureVM
 {
     private readonly VirtualMachineResource vm;
     private bool started;
-    private bool connected;
+    private bool connected = false;
     public readonly string name;
     public readonly string ip;
     public readonly string group;
@@ -37,20 +37,15 @@ public class AzureVM
         vm = vmCollection.Get(name);
 
         //check initial VM power state
-        started = "VM running" == vm.InstanceView().Value.Statuses.FirstOrDefault(status => status.Code.StartsWith("PowerState/"))?.DisplayStatus;
-        Console.WriteLine($"VM: {name} is Started: {started}");
-        connected = false;
+        CheckStarted();
+        Console.WriteLine($"{name} is Started: {started}");
     }
 
     public async Task Start(){
-        CheckStarted();
-        if(!started){
-            await StartVM();
-        }
+        if(!started) await StartVM();
     }
 
     public async Task Stop(){
-        CheckStarted();
         if(started){
             Console.WriteLine($"{name}: Stopping VM");
             await vm.DeallocateAsync(Azure.WaitUntil.Completed);
@@ -63,32 +58,38 @@ public class AzureVM
 
     public async Task ConsoleDirect(string input, Process _client){
         await Start();
-        if (!connected){
-            await StartSSH(_client);
-        }
+        if (!connected) await StartSSH(_client);
         Console.WriteLine($"{name}: sent '{input}'");
         await _client.StandardInput.WriteLineAsync(input);
     }
 
     public async Task StartSSH(Process _client){
-        Console.WriteLine($"{name}: Attempting SSH connection");
+        Console.WriteLine($"{name}: StartSSH trying to connect");
         _client.Start();
 
         TaskCompletionSource<bool> _heartbeatReceived = new();
-        _ = Task.Run(async () => {
-            while(!_client.StandardOutput.EndOfStream){
+        var monitorTask = Task.Run(async () => {
+            while(!_heartbeatReceived.Task.IsCompleted){
                 string? output = await _client.StandardOutput.ReadLineAsync();
-                if(output!=null){
-                    if(output.Contains("Welcome")) _heartbeatReceived.TrySetResult(true);
+                if(output!=null && output.Contains("Welcome")){
+                    _heartbeatReceived.TrySetResult(true);
                 }
             }
+            Console.WriteLine($"{name}: StartSSH welcome received");
         });
 
-        await _heartbeatReceived.Task;
+        //FAIL-OPEN logic, assumes welcome message was missed
+        var timeoutTask = Task.Delay(10000).ContinueWith(_ => {
+            if(!_heartbeatReceived.Task.IsCompleted) 
+                Console.WriteLine($"{name}: StartSSH connection welcome not received.");
+            _heartbeatReceived.TrySetResult(true);
+        });
+
+        await Task.WhenAny(monitorTask, timeoutTask);
         await Task.Delay(200);
         connected = true;
 
-        Console.WriteLine($"{name}: SSH connection succeeded");
+        Console.WriteLine($"{name}: StartSSH connection attempted");
     }
     private async Task StartVM(){
         Console.WriteLine($"{name}: Starting VM");

@@ -19,15 +19,18 @@ public class Program{
 
         //Discord Bot Commands
         //Need to match SlashCommandHandler switch cases to be caught
+        List<string>? _choices = ["SCP", "GMOD"];
         var commands = new List<Command>{
             new("help", "Prints help information", Rank.User),
             new("start", "#Admin - Starts specified game server", Rank.Admin,
-                [new(name: "game", description: "select game", isRequired: true, choices: ["SCP", "GMOD"])]),
-            new("stop", "#Admin - Stops VM and server", Rank.Admin),
+                [new(name: "game", description: "select game", isRequired: true, choices: _choices)]),
+            new("stop", "#Admin - Stops VM and server", Rank.Admin,
+                [new(name: "game", description: "select game", isRequired: true, choices: _choices)]),
             new("console", "#Owner - Sends input direct to Azure VM", Rank.Owner, 
                 [new(name: "input", description: "Input sent to the console", isRequired: true )]),
             new("repopulate", "#Owner - Refreshes bot commands", Rank.Owner),
-            new("poweronazure", "#Owner - Starts Azure Virtual Machine", Rank.Owner)
+            new("poweronazure", "#Owner - Starts Azure Virtual Machine", Rank.Owner),
+            new("poweroffazure", "#Owner - Stops Azure Virtual Machine", Rank.Owner)
         };
 
 
