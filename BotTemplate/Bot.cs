@@ -2,10 +2,9 @@ using SCDisc.Utility;
 
 namespace SCDisc;
 
-public class Bot(string token, DiscordSocketConfig? config = null, List<Command>? _commands = null) : BotBase(token,config,_commands)
+public class Bot(string token, AzureVM vm, DiscordSocketConfig? config = null, List<Command>? _commands = null) : BotBase(token,config,_commands)
 {
-    private readonly AzureVM vm = new();
-    private readonly SCPProcessInterface _server = new();
+    private readonly SCPInterface _server = new(vm);
 
     // Uncomment to do initial population of commands
     /*protected async override Task ClientReadyHandler(){
@@ -111,10 +110,7 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
                         "Commands Repopulated");
                     break;
                 case "console":
-                    runTimed(
-                        () => vm.ConsoleDirect((string)command.Data.Options.First().Value),
-                        "Sending",
-                        $"Sent \"{(string)command.Data.Options.First().Value}\"");
+                    run(SendSlashReply("To-Do Add to SCP Process"));
                     break;
                 case "poweronazure":
                     runTimed(

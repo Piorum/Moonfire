@@ -11,19 +11,26 @@ public class AzureVM
 {
     private readonly VirtualMachineResource vm;
     private bool started;
-    public readonly Process sshClient;
-    public readonly string name = "Ubuntu-Server-1";
-    public AzureVM(){
+    private bool connected = false;
+    public readonly string name;
+    public readonly string ip;
+    public readonly string group;
+
+    public AzureVM(string _name, string _ip, string _group){
+        name = _name;
+        ip = _ip;
+        group = _group;
+
         //credential setup
         var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
         var clientSecret = Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET");
         var tenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
         var subscription = Environment.GetEnvironmentVariable("AZURE_SUBSCRIPTION_ID");
-        ClientSecretCredential credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
-        ArmClient client = new ArmClient(credential, subscription);
+        ClientSecretCredential credential = new(tenantId, clientId, clientSecret);
+        ArmClient client = new(credential, subscription);
 
         //selecting VM
-        Azure.Core.ResourceIdentifier rgName = new($"/subscriptions/{subscription}/resourceGroups/Moonfire-VM-1");
+        Azure.Core.ResourceIdentifier rgName = new($"/subscriptions/{subscription}/resourceGroups/{group}");
         ResourceGroupResource resourceGroup = client.GetResourceGroupResource(rgName);
         VirtualMachineCollection vmCollection = resourceGroup.GetVirtualMachines();
         vm = vmCollection.Get(name);
@@ -31,70 +38,66 @@ public class AzureVM
         //check initial VM power state
         started = "VM running" == vm.InstanceView().Value.Statuses.FirstOrDefault(status => status.Code.StartsWith("PowerState/"))?.DisplayStatus;
         Console.WriteLine($"VM: {name} is Started: {started}");
-
-        sshClient = new()
-        {
-            StartInfo = new ProcessStartInfo
-            {
-                FileName = "ssh",
-                Arguments = @"-i ~/.ssh/Ubuntu-Server-1-Key.pem azureuser@13.89.185.75",
-                CreateNoWindow = true,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            }
-        };
-
-        if(started) _ = StartSSH();
-
     }
+
     public async Task Start(){
+        CheckStarted();
         if(!started){
-            Console.WriteLine($"{name}: Starting VM");
-            await vm.PowerOnAsync(Azure.WaitUntil.Completed);
-            started = true;
-            Console.WriteLine($"{name}: Started VM");
-
-            await StartSSH();
-
+            await StartVM();
         }
     }
 
     public async Task Stop(){
+        CheckStarted();
         if(started){
             Console.WriteLine($"{name}: Stopping VM");
             await vm.DeallocateAsync(Azure.WaitUntil.Completed);
 
             started = false;
+            connected = false;
             Console.WriteLine($"{name}: Stopped VM");
         }
     }
 
-    public async Task ConsoleDirect(string input){
-        await EnsureStarted();
-        Console.WriteLine($"{name}: sent '{input}'");
-        await sshClient.StandardInput.WriteLineAsync(input);    
-    }
-
-    private async Task EnsureStarted(){
-        if(!started){
-            await Start();
+    public async Task ConsoleDirect(string input, Process _client){
+        await Start();
+        if (!connected){
+            await StartSSH(_client);
         }
+        Console.WriteLine($"{name}: sent '{input}'");
+        await _client.StandardInput.WriteLineAsync(input);
     }
 
-    private async Task StartSSH(){
-        sshClient.Start();
+    public async Task StartSSH(Process _client){
         Console.WriteLine($"{name}: Attempting SSH connection");
+        _client.Start();
+
         TaskCompletionSource<bool> _heartbeatReceived = new();
         _ = Task.Run(async () => {
-            while(!sshClient.StandardOutput.EndOfStream){
-                string? output = await sshClient.StandardOutput.ReadLineAsync();
+            while(!_client.StandardOutput.EndOfStream){
+                string? output = await _client.StandardOutput.ReadLineAsync();
                 if(output!=null){
                     if(output.Contains("Welcome")) _heartbeatReceived.TrySetResult(true);
                 }
             }
         });
+
         await _heartbeatReceived.Task;
+        await Task.Delay(200);
+        connected = true;
+
         Console.WriteLine($"{name}: SSH connection succeeded");
+    }
+    private async Task StartVM(){
+        Console.WriteLine($"{name}: Starting VM");
+
+        await vm.PowerOnAsync(Azure.WaitUntil.Completed);
+        started = true;
+        
+        Console.WriteLine($"{name}: Started VM");
+    }
+
+    private void CheckStarted(){
+        started = "VM running" == vm.InstanceView().Value.Statuses.FirstOrDefault(status => status.Code.StartsWith("PowerState/"))?.DisplayStatus;
     }
 }

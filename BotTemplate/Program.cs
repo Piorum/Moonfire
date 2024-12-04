@@ -29,7 +29,9 @@ public class Program{
             new("poweronazure", "#Owner - Starts Azure Virtual Machine", Rank.Owner)
         };
 
-        var _application = new Bot(token,config,commands);
+
+        AzureVM vm = new("Ubuntu-Server-1","13.89.185.75","Moonfire-VM-1");
+        var _application = new Bot(token,vm,config,commands);
         await _application.StartBotAsync();
     }
 }
