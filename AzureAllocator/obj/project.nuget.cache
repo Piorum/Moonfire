@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "LJ6NQ59V6ipCkXx3wp+jnn1sxNsc9cEUukoNa4CeR3VP4M0dyBphJ6d9fsje8LXZrAjRFOr65oxV4zMM+mF+FA==",
+  "success": true,
+  "projectFilePath": "/home/username/Documents/SCDisc/AzureAllocator/AzureAllocator.csproj",
+  "expectedPackageFiles": [
+    "/home/username/.nuget/packages/microsoft.aspnetcore.app.ref/8.0.10/microsoft.aspnetcore.app.ref.8.0.10.nupkg.sha512"
+  ],
+  "logs": []
+}

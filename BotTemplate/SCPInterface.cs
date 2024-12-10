@@ -33,7 +33,7 @@ public class SCPInterface
             Console.WriteLine($"{vm.name}: Starting SCP Server");
             await vm.ConsoleDirect(@"sudo chmod -R 777 /datadrive/",sshClient);
             await vm.ConsoleDirect(@"ln -s /datadrive/config/ ~/.config/SCP\ Secret\ Laboratory",sshClient);
-            await vm.ConsoleDirect(@"cd /datadrive/Steam/steamapps/common/SCP\ Secret\ Laboratory\ Dedicated\ Server/",sshClient);
+            await vm.ConsoleDirect(@"cd /datadrive/",sshClient);
             await vm.ConsoleDirect(@"./LocalAdmin 7777",sshClient);
 
             TaskCompletionSource<bool> _heartbeatReceived = new();
