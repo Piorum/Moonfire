@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace Moonfire;
+namespace Moonfire.Interfaces;
 
 public class SCPInterface
 {   

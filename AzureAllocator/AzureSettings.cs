@@ -1,5 +1,4 @@
 using Newtonsoft.Json;
-using Azure.Core;
 using Azure.ResourceManager.Compute.Models;
 
 namespace AzureAllocator;
