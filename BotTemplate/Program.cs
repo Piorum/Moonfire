@@ -1,20 +1,35 @@
-﻿namespace SCDisc;
+﻿using Azure.Core;
+using Azure.Identity;
+using Azure.ResourceManager;
+using Azure.ResourceManager.Compute;
+using Azure.ResourceManager.Compute.Models;
+using Azure.ResourceManager.Network;
+using Azure.ResourceManager.Network.Models;
+using Azure.ResourceManager.Resources;
+
+namespace SCDisc;
 
 public class Program{
     
     //entry point
-    public static async Task Main(){
+    public static async Task Main()
+    {
         //load .env
-        //this is a terrible way to do this, old way of doing this broke???, old way (File.ReadAllLines(".env")))
-        var envpath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"..","..","..",".env");
-        foreach(string line in File.ReadAllLines(envpath)){
+        var envPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "Moonfire",
+            ".env"
+        );
+        foreach (string line in File.ReadAllLines(envPath))
+        {
             //From NAME="value" Env.Set(NAME,value,process)
-            Environment.SetEnvironmentVariable(line[0..line.IndexOf('=')],line[(line.IndexOf('=')+2)..line.LastIndexOf('"')],EnvironmentVariableTarget.Process);
+            Environment.SetEnvironmentVariable(line[0..line.IndexOf('=')], line[(line.IndexOf('=') + 2)..line.LastIndexOf('"')], EnvironmentVariableTarget.Process);
         }
 
         //strongly defined to avoid nullable string
-        string token = Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN") ?? "";
-        var config = new DiscordSocketConfig{
+        var token = Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN") ?? "";
+        var config = new DiscordSocketConfig
+        {
             GatewayIntents = GatewayIntents.None | GatewayIntents.Guilds
         };
 
@@ -27,16 +42,35 @@ public class Program{
                 [new(name: "game", description: "select game", isRequired: true, choices: _choices)]),
             new("stop", "#Admin - Stops VM and server", Rank.Admin,
                 [new(name: "game", description: "select game", isRequired: true, choices: _choices)]),
-            new("console", "#Owner - Sends input direct to Azure VM", Rank.Owner, 
+            new("console", "#Owner - Sends input direct to Azure VM", Rank.Owner,
                 [new(name: "input", description: "Input sent to the console", isRequired: true )]),
             new("repopulate", "#Owner - Refreshes bot commands", Rank.Owner),
             new("poweronazure", "#Owner - Starts Azure Virtual Machine", Rank.Owner),
             new("poweroffazure", "#Owner - Stops Azure Virtual Machine", Rank.Owner)
         };
 
+        //creating ArmClient
+        var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID") ?? "";
+        var clientSecret = Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET") ?? "";
+        var tenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID") ?? "";
+        var subscription = Environment.GetEnvironmentVariable("AZURE_SUBSCRIPTION_ID") ?? "";
+        ClientSecretCredential credential = new(tenantId, clientId, clientSecret);
+        ArmClient client = new(credential, subscription);
 
-        AzureVM vm = new("Ubuntu-Server-1","13.89.185.75","Moonfire-VM-1");
-        var _application = new Bot(token,vm,config,commands);
-        await _application.StartBotAsync();
+        //loading vm settings
+        var templatePath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "Moonfire",
+            "Config",
+            "Template.json"
+        );
+        var settings = await AzureSettings.CreateAsync(templatePath);
+
+        var vm = await AzureManager.Allocate(client, settings);
+        if (vm != null)
+        {
+            var _application = new Bot(token, vm, config, commands);
+            await _application.StartBotAsync();
+        }
     }
 }

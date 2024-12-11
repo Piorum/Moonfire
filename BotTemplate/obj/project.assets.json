@@ -83,6 +83,44 @@
           }
         }
       },
+      "Azure.ResourceManager.Network/1.9.0": {
+        "type": "package",
+        "dependencies": {
+          "Azure.Core": "1.42.0",
+          "Azure.ResourceManager": "1.13.0",
+          "System.ClientModel": "1.0.0",
+          "System.Text.Json": "6.0.9"
+        },
+        "compile": {
+          "lib/netstandard2.0/Azure.ResourceManager.Network.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/Azure.ResourceManager.Network.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Azure.ResourceManager.Resources/1.9.0": {
+        "type": "package",
+        "dependencies": {
+          "Azure.Core": "1.43.0",
+          "Azure.ResourceManager": "1.13.0",
+          "System.ClientModel": "1.1.0",
+          "System.Text.Json": "6.0.9"
+        },
+        "compile": {
+          "lib/netstandard2.0/Azure.ResourceManager.Resources.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/Azure.ResourceManager.Resources.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Discord.Net/3.15.3": {
         "type": "package",
         "dependencies": {
@@ -523,6 +561,25 @@
         "runtime": {
           "lib/netcoreapp2.0/_._": {}
         }
+      },
+      "AzureAllocator/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "Azure.Core": "1.44.1",
+          "Azure.Identity": "1.13.1",
+          "Azure.ResourceManager": "1.13.0",
+          "Azure.ResourceManager.Compute": "1.6.0",
+          "Azure.ResourceManager.Network": "1.9.0",
+          "Azure.ResourceManager.Resources": "1.9.0",
+          "Newtonsoft.Json": "13.0.3"
+        },
+        "compile": {
+          "bin/placeholder/AzureAllocator.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/AzureAllocator.dll": {}
+        }
       }
     }
   },
@@ -595,6 +652,38 @@
         "azureicon.png",
         "lib/netstandard2.0/Azure.ResourceManager.Compute.dll",
         "lib/netstandard2.0/Azure.ResourceManager.Compute.xml"
+      ]
+    },
+    "Azure.ResourceManager.Network/1.9.0": {
+      "sha512": "DhrnqgH9NfTnh9BUY3UUfwrs84uhzq/EczWo4CyiT7tj+ofk+qlOyRx97hN2DkrWLmNHHO1/fmUfe/Xq0+Kj3Q==",
+      "type": "package",
+      "path": "azure.resourcemanager.network/1.9.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "CHANGELOG.md",
+        "README.md",
+        "azure.resourcemanager.network.1.9.0.nupkg.sha512",
+        "azure.resourcemanager.network.nuspec",
+        "azureicon.png",
+        "lib/netstandard2.0/Azure.ResourceManager.Network.dll",
+        "lib/netstandard2.0/Azure.ResourceManager.Network.xml"
+      ]
+    },
+    "Azure.ResourceManager.Resources/1.9.0": {
+      "sha512": "AaGmoPM6UxEYtmf5ADkl26DRy1Ms9CIL9yqgUnoU6YhXYA8r/F52p16JQ9xEHSCzXhr+OO4x2ztujHtj1Eb+qw==",
+      "type": "package",
+      "path": "azure.resourcemanager.resources/1.9.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "CHANGELOG.md",
+        "README.md",
+        "azure.resourcemanager.resources.1.9.0.nupkg.sha512",
+        "azure.resourcemanager.resources.nuspec",
+        "azureicon.png",
+        "lib/netstandard2.0/Azure.ResourceManager.Resources.dll",
+        "lib/netstandard2.0/Azure.ResourceManager.Resources.xml"
       ]
     },
     "Discord.Net/3.15.3": {
@@ -1347,6 +1436,11 @@
         "useSharedDesignerContext.txt",
         "version.txt"
       ]
+    },
+    "AzureAllocator/1.0.0": {
+      "type": "project",
+      "path": "../AzureAllocator/AzureAllocator.csproj",
+      "msbuildProject": "../AzureAllocator/AzureAllocator.csproj"
     }
   },
   "projectFileDependencyGroups": {
@@ -1354,6 +1448,7 @@
       "Azure.Identity >= 1.13.1",
       "Azure.ResourceManager >= 1.13.0",
       "Azure.ResourceManager.Compute >= 1.6.0",
+      "AzureAllocator >= 1.0.0",
       "Discord.Net >= 3.15.3"
     ]
   },
@@ -1381,7 +1476,11 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "/home/username/Documents/SCDisc/AzureAllocator/AzureAllocator.csproj": {
+              "projectPath": "/home/username/Documents/SCDisc/AzureAllocator/AzureAllocator.csproj"
+            }
+          }
         }
       },
       "warningProperties": {
