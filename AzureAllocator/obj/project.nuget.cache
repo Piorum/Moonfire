@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "qp7bk3WFf0O8J5Or3WSexxt5v8x+0kUrjOzfGmnAkQ4BCODmjLeeOADeF3ovt79T8CUKNMWBLN7JxoBc2v/82w==",
+  "dgSpecHash": "LamotBKajiR9wvCO6rGqiqWnlviDgsGkmZZNCT7/nrGYcFQEb93ALj+e00yOkcaef+cX1IwHz4HANbqcUfocRA==",
   "success": true,
   "projectFilePath": "/home/username/Documents/SCDisc/AzureAllocator/AzureAllocator.csproj",
   "expectedPackageFiles": [
@@ -14,6 +14,7 @@
     "/home/username/.nuget/packages/microsoft.identity.client/4.66.1/microsoft.identity.client.4.66.1.nupkg.sha512",
     "/home/username/.nuget/packages/microsoft.identity.client.extensions.msal/4.66.1/microsoft.identity.client.extensions.msal.4.66.1.nupkg.sha512",
     "/home/username/.nuget/packages/microsoft.identitymodel.abstractions/6.35.0/microsoft.identitymodel.abstractions.6.35.0.nupkg.sha512",
+    "/home/username/.nuget/packages/mono.posix.netstandard/1.0.0/mono.posix.netstandard.1.0.0.nupkg.sha512",
     "/home/username/.nuget/packages/newtonsoft.json/13.0.3/newtonsoft.json.13.0.3.nupkg.sha512",
     "/home/username/.nuget/packages/system.clientmodel/1.1.0/system.clientmodel.1.1.0.nupkg.sha512",
     "/home/username/.nuget/packages/system.diagnostics.diagnosticsource/6.0.1/system.diagnostics.diagnosticsource.6.0.1.nupkg.sha512",

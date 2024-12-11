@@ -4,8 +4,7 @@ using Azure.ResourceManager.Compute.Models;
 
 namespace AzureAllocator;
 
-public class AzureSettings
-{
+public class AzureSettings{
     //make sure this property is changeable
     [JsonProperty(nameof(Region))]
     public string? Region;
@@ -15,6 +14,9 @@ public class AzureSettings
     
     [JsonProperty(nameof(VmSize))]
     public string? VmSize { get; private set; }
+
+    [JsonProperty(nameof(SecurityRules))]
+    public List<SecurityRuleSettings>? SecurityRules { get; private set; }
 
 
     private AzureSettings(){}
@@ -27,4 +29,16 @@ public class AzureSettings
     public static async Task<AzureSettings> CreateAsync(string filepath) =>
         await Task.Run(async () => JsonConvert.DeserializeObject<AzureSettings>(await File.ReadAllTextAsync(filepath)) ?? new());
 
+}
+
+public class SecurityRuleSettings{
+    public string? Name { get; set; }
+    public int? Priority { get; set; }
+    public string? Access { get; set; }
+    public string? Direction { get; set; }
+    public string? Protocol { get; set; }
+    public string? SourcePortRange { get; set; }
+    public string? DestinationPortRange { get; set; }
+    public string? SourceAddressPrefix { get; set; }
+    public string? DestinationAddressPrefix { get; set; }
 }

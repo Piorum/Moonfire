@@ -19,7 +19,7 @@ public class SCPInterface
             StartInfo = new ProcessStartInfo
             {
                 FileName = "ssh",
-                Arguments = $"-i ~/.ssh/{vm.name}-Key.pem azureuser@{vm.ip}",
+                Arguments = $"-o StrictHostKeyChecking=no -i ~/.config/Moonfire/Ssh/{vm.rgname}/{vm.name}-Key.pem azureuser@{vm.ip}",
                 CreateNoWindow = true,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,

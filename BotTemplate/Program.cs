@@ -66,11 +66,13 @@ public class Program{
         );
         var settings = await AzureSettings.CreateAsync(templatePath);
 
-        var vm = await AzureManager.Allocate(client, settings);
+        var vm = await AzureManager.Allocate(client, settings, "SCPtestRG", "SCPtestVM");
         if (vm != null)
         {
             var _application = new Bot(token, vm, config, commands);
             await _application.StartBotAsync();
+        } else{
+            await Console.Out.WriteLineAsync("Azure Provisioning Failed");
         }
     }
 }

@@ -14,13 +14,15 @@ public class AzureVM
     private bool started;
     private bool connected = false;
     public readonly string name;
+    public readonly string rgname;
     public readonly string ip;
 
-    public AzureVM(VirtualMachineResource _vm, string _name, string _ip, ResourceGroupResource? _rg){
+    public AzureVM(VirtualMachineResource _vm, string _name, string _ip, ResourceGroupResource? _rg, string _rgname){
         name = _name;
         ip = _ip;
         vm = _vm;
         rg = _rg;
+        rgname = _rgname;
 
         //check initial VM power state
         CheckStarted();
@@ -65,7 +67,7 @@ public class AzureVM
         });
 
         //FAIL-OPEN logic, assumes welcome message was missed
-        var timeoutTask = Task.Delay(10000).ContinueWith(_ => {
+        var timeoutTask = Task.Delay(30000).ContinueWith(_ => {
             if(!_heartbeatReceived.Task.IsCompleted) 
                 Console.WriteLine($"{name}: StartSSH connection welcome not received.");
             _heartbeatReceived.TrySetResult(true);
