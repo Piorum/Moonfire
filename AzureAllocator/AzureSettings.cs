@@ -5,6 +5,7 @@ namespace AzureAllocator;
 
 public class AzureSettings{
     //make sure this property is changeable
+    //all tagged due to nullable and private setters
     [JsonProperty(nameof(Region))]
     public string? Region;
     
@@ -16,6 +17,9 @@ public class AzureSettings{
 
     [JsonProperty(nameof(SecurityRules))]
     public List<SecurityRuleSettings>? SecurityRules { get; private set; }
+
+    [JsonProperty(nameof(DataDisks))]
+    public List<DataDiskSettings>? DataDisks { get; private set; }
 
 
     private AzureSettings(){}
@@ -40,4 +44,9 @@ public class SecurityRuleSettings{
     public string? DestinationPortRange { get; set; }
     public string? SourceAddressPrefix { get; set; }
     public string? DestinationAddressPrefix { get; set; }
+}
+
+public class DataDiskSettings{
+    public int? Size { get; set; }
+    public string? Type { get; set; }
 }

@@ -64,7 +64,7 @@ public class Bot(string token, AzureVM vm, DiscordSocketConfig? config = null, L
                     switch((string)command.Data.Options.First().Value){
                         case "1": //SCP
                             runTimed(
-                                () => _server.StartServerAsync(vm),
+                                () => _server.StartServerAsync(),
                                 "Starting",
                                 () => $"Started at '{_server.PublicIp}'",
                                 "You shouldn't be here - Bot.cs start command case",
@@ -82,7 +82,7 @@ public class Bot(string token, AzureVM vm, DiscordSocketConfig? config = null, L
                     switch((string)command.Data.Options.First().Value){
                         case "1": //SCP
                             runTimed(
-                                () => _server.StopServerAsync(vm),
+                                () => _server.StopServerAsync(),
                                 "Stopping",
                                 () => $"Stopping SCP Server'",
                                 "You shouldn't be here - Bot.cs stop command case",
@@ -130,7 +130,7 @@ public class Bot(string token, AzureVM vm, DiscordSocketConfig? config = null, L
                     break;
                 case "poweroffazure":
                     runTimed(
-                        vm.Stop,
+                        vm.Deallocate,
                         "Stopping Azure VM",
                         "Azure VM Stopped");
                     break;

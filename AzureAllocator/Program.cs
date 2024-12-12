@@ -15,6 +15,7 @@ public class Program{
         );
         foreach(string line in File.ReadAllLines(envPath)){
             //From NAME="value" Env.Set(NAME,value,process)
+            if(line[0]=='#') continue;
             Environment.SetEnvironmentVariable(line[0..line.IndexOf('=')],line[(line.IndexOf('=')+2)..line.LastIndexOf('"')],EnvironmentVariableTarget.Process);
         }
 
@@ -40,9 +41,33 @@ public class Program{
 
         //deallocating vm
         //check for null, but should never be null here
-        /*if(vm==null){
+        if(vm==null){
             return;
         }
-        await vm.DeAllocate();*/
+
+        //setup datadisk
+        /*var script = @"
+            #!/bin/bash
+            while [ ! -b /dev/sdc ]; do
+                :
+            done
+
+            parted /dev/sdc --script mklabel gpt
+            parted /dev/sdc --script mkpart primary ext4 0% 100%
+
+            sudo mkfs.ext4 /dev/sdc1
+
+            sudo mkdir -p /datadrive
+            sudo mount /dev/sdc1 /datadrive
+
+            sudo chmod -R 777 /datadrive
+            ";
+        _ = Console.Out.WriteLineAsync("Formatting Disk 1");
+        await vm.RunScript(script);*/
+
+        _ = Console.Out.WriteLineAsync("Downloading Blob");
+        await vm.DownloadBlob(@"scpcontainer",@"scpcontainer.tar.gz",@"/datadrive/scpcontainer.tar.gz");
+        _ = Console.Out.WriteLineAsync("Extracting");
+        await vm.RunScript(@"tar -xvzf /datadrive/scpcontainer.tar.gz -C /datadrive");
     }
 }

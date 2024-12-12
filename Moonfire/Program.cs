@@ -17,6 +17,7 @@ public class Program{
         foreach (string line in File.ReadAllLines(envPath))
         {
             //From NAME="value" Env.Set(NAME,value,process)
+            if(line[0]=='#') continue;
             Environment.SetEnvironmentVariable(line[0..line.IndexOf('=')], line[(line.IndexOf('=') + 2)..line.LastIndexOf('"')], EnvironmentVariableTarget.Process);
         }
 
@@ -60,7 +61,7 @@ public class Program{
         );
         var settings = await AzureSettings.CreateAsync(templatePath);
 
-        var vm = await AzureManager.Allocate(client, settings, "SCPtestRG", "SCPtestVM");
+        var vm = await AzureManager.Allocate(client, settings, "SCPTestRG", "SCPTestVM");
         if (vm != null)
         {
             var _application = new Bot(token, vm, config, commands);

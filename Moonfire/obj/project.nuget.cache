@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "62pjwBnkgcox6o6buLCQXMQVw0ybCHs7Ug826LcF+r0wEZ7xxy3izr9/TXdrAsDGTUO4C1FyYIjwfDLQQnqHhw==",
+  "dgSpecHash": "8+3TNIUl8zYd/JsTtQ/Yzi60fkt+N5B97HBLfQRKth8lnU9PLM8YEqmDqPc1iIFkDeyQWGa1Kzi+3WXGI75d1g==",
   "success": true,
   "projectFilePath": "/home/username/Documents/Moonfire/Moonfire/Moonfire.csproj",
   "expectedPackageFiles": [
@@ -10,6 +10,8 @@
     "/home/username/.nuget/packages/azure.resourcemanager.compute/1.6.0/azure.resourcemanager.compute.1.6.0.nupkg.sha512",
     "/home/username/.nuget/packages/azure.resourcemanager.network/1.9.0/azure.resourcemanager.network.1.9.0.nupkg.sha512",
     "/home/username/.nuget/packages/azure.resourcemanager.resources/1.9.0/azure.resourcemanager.resources.1.9.0.nupkg.sha512",
+    "/home/username/.nuget/packages/azure.storage.blobs/12.23.0/azure.storage.blobs.12.23.0.nupkg.sha512",
+    "/home/username/.nuget/packages/azure.storage.common/12.22.0/azure.storage.common.12.22.0.nupkg.sha512",
     "/home/username/.nuget/packages/discord.net/3.15.3/discord.net.3.15.3.nupkg.sha512",
     "/home/username/.nuget/packages/discord.net.commands/3.15.3/discord.net.commands.3.15.3.nupkg.sha512",
     "/home/username/.nuget/packages/discord.net.core/3.15.3/discord.net.core.3.15.3.nupkg.sha512",
@@ -28,6 +30,7 @@
     "/home/username/.nuget/packages/system.collections.immutable/6.0.0/system.collections.immutable.6.0.0.nupkg.sha512",
     "/home/username/.nuget/packages/system.diagnostics.diagnosticsource/6.0.1/system.diagnostics.diagnosticsource.6.0.1.nupkg.sha512",
     "/home/username/.nuget/packages/system.interactive.async/6.0.1/system.interactive.async.6.0.1.nupkg.sha512",
+    "/home/username/.nuget/packages/system.io.hashing/6.0.0/system.io.hashing.6.0.0.nupkg.sha512",
     "/home/username/.nuget/packages/system.linq.async/6.0.1/system.linq.async.6.0.1.nupkg.sha512",
     "/home/username/.nuget/packages/system.memory/4.5.5/system.memory.4.5.5.nupkg.sha512",
     "/home/username/.nuget/packages/system.memory.data/6.0.0/system.memory.data.6.0.0.nupkg.sha512",

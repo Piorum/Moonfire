@@ -62,6 +62,10 @@
               "target": "Package",
               "version": "[1.9.0, )"
             },
+            "Azure.Storage.Blobs": {
+              "target": "Package",
+              "version": "[12.23.0, )"
+            },
             "Mono.Posix.NETStandard": {
               "target": "Package",
               "version": "[1.0.0, )"
