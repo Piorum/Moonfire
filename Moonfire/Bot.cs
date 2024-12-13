@@ -1,11 +1,12 @@
 using Moonfire.Utility;
 using Moonfire.Interfaces;
+using Azure.ResourceManager;
 
 namespace Moonfire;
 
-public class Bot(string token, AzureVM vm, DiscordSocketConfig? config = null, List<Command>? _commands = null) : BotBase(token,config,_commands)
+public class Bot(string token, ArmClient azureClient, DiscordSocketConfig? config = null, List<Command>? _commands = null) : BotBase(token,config,_commands)
 {
-    private readonly SCPInterface _server = new(vm);
+    private Dictionary<ulong, SCPInterface?> servers = [];
 
     // Uncomment to do initial population of commands
     /*protected async override Task ClientReadyHandler(){
@@ -40,11 +41,11 @@ public class Bot(string token, AzureVM vm, DiscordSocketConfig? config = null, L
             //User commands switch
             switch (command.Data.Name){
                 case helpCmd:
-                    run(
+                    _ = run(
                         PrintHelpAsync(SendSlashReply));
                     break;
                 default:
-                    run(SendSlashReply($"Caught {command.Data.Name} by user but found no command"));
+                    _ = run(SendSlashReply($"Caught {command.Data.Name} by user but found no command"));
                     break;
             }
             return Task.CompletedTask;
@@ -53,7 +54,7 @@ public class Bot(string token, AzureVM vm, DiscordSocketConfig? config = null, L
         else if(commands.Any(p => p.Name == command.Data.Name && p.Rank == Rank.Admin)){
             //Check for admin perm (we could change this to another perm, or add more ranks and switches)
             if(!((SocketGuildUser)command.User).GuildPermissions.Administrator){
-                run(
+                _ = run(
                     SendSlashReply("You are not an admin"));
                 return Task.CompletedTask;
             }
@@ -63,41 +64,60 @@ public class Bot(string token, AzureVM vm, DiscordSocketConfig? config = null, L
                 case "start":
                     switch((string)command.Data.Options.First().Value){
                         case "1": //SCP
-                            runTimed(
-                                () => _server.StartServerAsync(),
-                                "Starting",
-                                () => $"Started at '{_server.PublicIp}'",
-                                "You shouldn't be here - Bot.cs start command case",
-                                elapsed => false);
+                            var scpStartTask = Task.Run(async () => {
+                                _ = SendSlashReply("Starting SCP Server");
+                                var guid = command.GuildId ?? 0;
+                                if(!servers.TryGetValue(guid,out var server)){
+                                    server = await SCPInterface.CreateInterface(azureClient,$"{guid}");
+                                    servers[guid] = server;
+                                }
+                                if(server==null){
+                                    _ = ModifySlashReply("Azure Provisioning Failed");
+                                    return;
+                                }
+                                await server.StartServerAsync(azureClient);
+                                await ModifySlashReply($"Started Server at '{server.PublicIp}'");
+                            });
+                            _ = scpStartTask;
                             break;
                         case "2": //GMOD
-                            run(SendSlashReply("GMOD not available"));
+                            _ = run(SendSlashReply("GMOD not available"));
                             break;
                         default:
-                            run(SendSlashReply($"Caught {command.Data.Options.First().Value} by start command but found no game"));
+                            _ = run(SendSlashReply($"Caught {command.Data.Options.First().Value} by start command but found no game"));
                             break;
                     }
                     break;
                 case "stop":
                     switch((string)command.Data.Options.First().Value){
                         case "1": //SCP
-                            runTimed(
-                                () => _server.StopServerAsync(),
-                                "Stopping",
-                                () => $"Stopping SCP Server'",
-                                "You shouldn't be here - Bot.cs stop command case",
-                                elapsed => false);
+                            var scpStopTask = Task.Run(async () => {
+                                _ = SendSlashReply("Stopping SCP Server");
+                                var guid = command.GuildId ?? 0;
+                                if(!servers.TryGetValue(guid,out var server)){
+                                    _ = ModifySlashReply("No Server Found");
+                                    return;
+                                }
+                                if(server==null){
+                                    _ = ModifySlashReply("Server Was Null");
+                                    return;
+                                }
+                                await server.StopServerAsync();
+                                servers[guid]=null;
+                                _ = ModifySlashReply("Stopped Server");
+                            });
+                            _ = scpStopTask;
                             break;
                         case "2": //GMOD
-                            run(SendSlashReply("GMOD not available"));
+                            _ = run(SendSlashReply("GMOD not available"));
                             break;
                         default:
-                            run(SendSlashReply($"Caught {command.Data.Options.First().Value} by stop command but found no game"));
+                            _ = run(SendSlashReply($"Caught {command.Data.Options.First().Value} by stop command but found no game"));
                             break;
                     }
                     break;
                 default:
-                    run(SendSlashReply($"Caught {command.Data.Name} by admin but found no command"));
+                    _ = run(SendSlashReply($"Caught {command.Data.Name} by admin but found no command"));
                     break;
             }
             return Task.CompletedTask;
@@ -106,7 +126,7 @@ public class Bot(string token, AzureVM vm, DiscordSocketConfig? config = null, L
         // These commands should only be for bot management
         else if (commands.Any(p => p.Name == command.Data.Name && p.Rank == Rank.Owner)){
             if(!(ownerId == command.User.Id)){
-                run(
+                _ = run(
                     SendSlashReply("You are not bot owner"));
                 return Task.CompletedTask;
             }
@@ -114,34 +134,22 @@ public class Bot(string token, AzureVM vm, DiscordSocketConfig? config = null, L
             //Owner commands switch
             switch(command.Data.Name){
                 case "repopulate":
-                    runTimed(
+                    _ = runTimed(
                         async () => {await UnregisterCommandsAsync(); await PopulateCommandsAsync(ownerServerId);},
                         "Starting Task",
                         "Commands Repopulated");
                     break;
                 case "console":
-                    run(SendSlashReply("To-Do Add to SCP Process"));
-                    break;
-                case "poweronazure":
-                    runTimed(
-                        vm.Start,
-                        "Starting Azure VM",
-                        "Azure VM Started");
-                    break;
-                case "poweroffazure":
-                    runTimed(
-                        vm.Deallocate,
-                        "Stopping Azure VM",
-                        "Azure VM Stopped");
+                    _ = run(SendSlashReply("To-Do Add to SCP Process"));
                     break;
                 default:
-                    run(SendSlashReply($"Caught {command.Data.Name} by owner but found no command"));
+                    _ = run(SendSlashReply($"Caught {command.Data.Name} by owner but found no command"));
                     break;
             }
             return Task.CompletedTask;
         }
         else {
-            run(SendSlashReply("No switch captured command"));
+            _ = run(SendSlashReply("No switch captured command"));
             return Task.CompletedTask;
         }
     }

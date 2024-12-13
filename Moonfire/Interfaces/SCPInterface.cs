@@ -1,37 +1,67 @@
 using System.Text;
 using System.Diagnostics;
+using Azure.ResourceManager;
 
 namespace Moonfire.Interfaces;
 
 public class SCPInterface
 {   
     private bool _started = false;
-    private readonly string? ip;
-    public string PublicIp => _started ? ip ?? "Not Found" : "Server Not Started";
-    private readonly Process sshClient;
-    private readonly AzureVM vm;
+    public string PublicIp => _started ? vm?.ip ?? "Not Found" : "Server Not Started";
+    private Process? sshClient;
+    private AzureVM? vm;
 
-    public SCPInterface(AzureVM _vm){
-        vm = _vm;
-        ip = vm.ip;
+    private SCPInterface(){}
 
-        sshClient = new()
+    public static async Task<SCPInterface?> CreateInterface(ArmClient client,string name){
+        SCPInterface obj = new();
+
+        //loading settings
+        var templatePath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 
+            "Moonfire",
+            "Config",
+            "SCPSettings.json"
+        );
+        var settings = await AzureSettings.CreateAsync(templatePath);
+
+        //allocating vm
+        //match RG/VM names in sshClient ProcessStartInfo.Arguments
+        obj.vm = await AzureManager.Allocate(client, settings, $"{name}RG", $"SCPVM");
+
+        if(obj.vm == null){
+            _ = Console.Out.WriteLineAsync("SCPInterace: Azure Allocation Failed");
+            return null;
+        }
+
+        obj.sshClient = new()
         {
             StartInfo = new ProcessStartInfo
             {
                 FileName = "ssh",
-                Arguments = $"-o StrictHostKeyChecking=no -i ~/.config/Moonfire/Ssh/{vm.rgname}/{vm.name}-Key.pem azureuser@{vm.ip}",
+                //RG/Key names to allocation names, Use vm.ip, publicIp returns 'Server Not Started'
+                Arguments = $"-o StrictHostKeyChecking=no -i ~/.config/Moonfire/Ssh/{name}RG/SCPVM-Key.pem azureuser@{obj.vm.ip}",
                 CreateNoWindow = true,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
             }
         };
+
+        return obj;
     }
 
-    public async Task StartServerAsync(){
+    public async Task StartServerAsync(ArmClient client){
+        if(vm==null){
+            _ = Console.Out.WriteLineAsync("SCPInterface: StartServerAsync: vm does not exist");
+            return;
+        }
+        if(sshClient==null){
+            _ = Console.Out.WriteLineAsync($"{vm.name}: StartServerAsync: sshClient does not exist");
+            return;
+        }
         if(_started){
-            _ = Console.Out.WriteLineAsync("Process should already be started.");
+            _ = Console.Out.WriteLineAsync($"{vm.name}: Process should already be started");
             return;
         }
 
@@ -78,8 +108,16 @@ public class SCPInterface
     }
 
     public async Task StopServerAsync(){
+        if(vm==null){
+            _ = Console.Out.WriteLineAsync("SCPInterface: StopServerAsync: vm does not exist");
+            return;
+        }
+        if(sshClient==null){
+            _ = Console.Out.WriteLineAsync($"{vm.name}: StopServerAsync: sshClient does not exist");
+            return;
+        }
         if(!_started){
-            _ = Console.Out.WriteLineAsync("Process should already be dead.");
+            _ = Console.Out.WriteLineAsync($"{vm.name}: Process should already be dead.");
             return;
         }
         
@@ -95,6 +133,11 @@ public class SCPInterface
     }
 
     private async Task SetupDisk(){
+        if(vm==null){
+            _ = Console.Out.WriteLineAsync("SCPInterface: SetupDisk: vm does not exist");
+            return;
+        }
+
         //partition, format, mount, chmod
         var script = @"
             #!/bin/bash

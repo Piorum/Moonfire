@@ -47,9 +47,6 @@ public abstract class BotBase{
 
     protected virtual Task SlashCommandHandler(SocketSlashCommand command){return Task.CompletedTask;}
 
-    // Tried refactoring the PopulateCommandsAsync to have less redundancy
-    // Let me know if this does not end up working - Jarod 8/30/24 7:17PM
-    // It didn't really work but it gave me some good ideas - Piorum 8/31/24 02:05:44AM
     protected async Task PopulateCommandsAsync(ulong ownerServer){
         foreach (var command in commands.Where(p => p.Rank == Rank.User || p.Rank == Rank.Admin).ToList())
             foreach (var guild in _client.Guilds)
