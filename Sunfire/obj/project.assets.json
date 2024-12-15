@@ -1683,11 +1683,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/username/Documents/Moonfire/Moonfire/Moonfire.csproj",
-      "projectName": "Moonfire",
-      "projectPath": "/home/username/Documents/Moonfire/Moonfire/Moonfire.csproj",
+      "projectUniqueName": "/home/username/Documents/Singularity/Sunfire/Sunfire/Sunfire.csproj",
+      "projectName": "Sunfire",
+      "projectPath": "/home/username/Documents/Singularity/Sunfire/Sunfire/Sunfire.csproj",
       "packagesPath": "/home/username/.nuget/packages/",
-      "outputPath": "/home/username/Documents/Moonfire/Moonfire/obj/",
+      "outputPath": "/home/username/Documents/Singularity/Sunfire/Sunfire/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/username/.nuget/NuGet/NuGet.Config"
@@ -1702,8 +1702,8 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "/home/username/Documents/Moonfire/AzureAllocator/AzureAllocator.csproj": {
-              "projectPath": "/home/username/Documents/Moonfire/AzureAllocator/AzureAllocator.csproj"
+            "/home/username/Documents/Singularity/Sunfire/AzureAllocator/AzureAllocator.csproj": {
+              "projectPath": "/home/username/Documents/Singularity/Sunfire/AzureAllocator/AzureAllocator.csproj"
             }
           }
         }

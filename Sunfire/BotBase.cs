@@ -1,5 +1,5 @@
 
-namespace Moonfire;
+namespace Sunfire;
 
 public abstract class BotBase{
     protected const string helpCmd = $"help";

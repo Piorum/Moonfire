@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "8+3TNIUl8zYd/JsTtQ/Yzi60fkt+N5B97HBLfQRKth8lnU9PLM8YEqmDqPc1iIFkDeyQWGa1Kzi+3WXGI75d1g==",
+  "dgSpecHash": "C49fF4Cc6Bt3DfHO2QBBbivc1Sbn5wcHnEWTRmdybzeB/TL8JM3J93cCdm3kmjeTys2cZqwQHXAUPV0k2sKt7A==",
   "success": true,
-  "projectFilePath": "/home/username/Documents/Moonfire/Moonfire/Moonfire.csproj",
+  "projectFilePath": "/home/username/Documents/Singularity/Sunfire/Sunfire/Sunfire.csproj",
   "expectedPackageFiles": [
     "/home/username/.nuget/packages/azure.core/1.44.1/azure.core.1.44.1.nupkg.sha512",
     "/home/username/.nuget/packages/azure.identity/1.13.1/azure.identity.1.13.1.nupkg.sha512",

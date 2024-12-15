@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/home/username/Documents/Moonfire/Moonfire/Moonfire.csproj": {}
+    "/home/username/Documents/Singularity/Sunfire/Moonfire/Moonfire.csproj": {}
   },
   "projects": {
-    "/home/username/Documents/Moonfire/AzureAllocator/AzureAllocator.csproj": {
+    "/home/username/Documents/Singularity/Sunfire/AzureAllocator/AzureAllocator.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/username/Documents/Moonfire/AzureAllocator/AzureAllocator.csproj",
+        "projectUniqueName": "/home/username/Documents/Singularity/Sunfire/AzureAllocator/AzureAllocator.csproj",
         "projectName": "AzureAllocator",
-        "projectPath": "/home/username/Documents/Moonfire/AzureAllocator/AzureAllocator.csproj",
+        "projectPath": "/home/username/Documents/Singularity/Sunfire/AzureAllocator/AzureAllocator.csproj",
         "packagesPath": "/home/username/.nuget/packages/",
-        "outputPath": "/home/username/Documents/Moonfire/AzureAllocator/obj/",
+        "outputPath": "/home/username/Documents/Singularity/Sunfire/AzureAllocator/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/username/.nuget/NuGet/NuGet.Config"
@@ -101,14 +101,14 @@
         }
       }
     },
-    "/home/username/Documents/Moonfire/Moonfire/Moonfire.csproj": {
+    "/home/username/Documents/Singularity/Sunfire/Moonfire/Moonfire.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/username/Documents/Moonfire/Moonfire/Moonfire.csproj",
+        "projectUniqueName": "/home/username/Documents/Singularity/Sunfire/Moonfire/Moonfire.csproj",
         "projectName": "Moonfire",
-        "projectPath": "/home/username/Documents/Moonfire/Moonfire/Moonfire.csproj",
+        "projectPath": "/home/username/Documents/Singularity/Sunfire/Moonfire/Moonfire.csproj",
         "packagesPath": "/home/username/.nuget/packages/",
-        "outputPath": "/home/username/Documents/Moonfire/Moonfire/obj/",
+        "outputPath": "/home/username/Documents/Singularity/Sunfire/Moonfire/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/username/.nuget/NuGet/NuGet.Config"
@@ -123,8 +123,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "/home/username/Documents/Moonfire/AzureAllocator/AzureAllocator.csproj": {
-                "projectPath": "/home/username/Documents/Moonfire/AzureAllocator/AzureAllocator.csproj"
+              "/home/username/Documents/Singularity/Sunfire/AzureAllocator/AzureAllocator.csproj": {
+                "projectPath": "/home/username/Documents/Singularity/Sunfire/AzureAllocator/AzureAllocator.csproj"
               }
             }
           }

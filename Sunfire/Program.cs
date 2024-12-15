@@ -1,7 +1,7 @@
 ﻿using Azure.Identity;
 using Azure.ResourceManager;
 
-namespace Moonfire;
+namespace Sunfire;
 
 public class Program{
     
@@ -11,7 +11,7 @@ public class Program{
         //load .env
         var envPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Moonfire",
+            nameof(Sunfire),
             ".env"
         );
         foreach (string line in File.ReadAllLines(envPath))

@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace Moonfire.Utility;
+namespace Sunfire.Utility;
 
 public static class FuncExt
 {   

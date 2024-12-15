@@ -1136,11 +1136,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/username/Documents/Moonfire/AzureAllocator/AzureAllocator.csproj",
+      "projectUniqueName": "/home/username/Documents/Singularity/Sunfire/AzureAllocator/AzureAllocator.csproj",
       "projectName": "AzureAllocator",
-      "projectPath": "/home/username/Documents/Moonfire/AzureAllocator/AzureAllocator.csproj",
+      "projectPath": "/home/username/Documents/Singularity/Sunfire/AzureAllocator/AzureAllocator.csproj",
       "packagesPath": "/home/username/.nuget/packages/",
-      "outputPath": "/home/username/Documents/Moonfire/AzureAllocator/obj/",
+      "outputPath": "/home/username/Documents/Singularity/Sunfire/AzureAllocator/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/username/.nuget/NuGet/NuGet.Config"

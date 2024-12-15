@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "uqLBELPFTB+7POtQTns0nfDYMj4+UxQu5SpMyo+18JEKOfl7XqjfX2adkGGQuOJFswyA0fyGHyC0928j8tYStQ==",
+  "dgSpecHash": "lIMtBpMrWRdxxiNlw6T3OFmBjlmF33tkVjZxRHiiYEF6bZDcN48E2DhydCba3UdqXeAyeLPqMcJdOACD/AsEhw==",
   "success": true,
-  "projectFilePath": "/home/username/Documents/Moonfire/AzureAllocator/AzureAllocator.csproj",
+  "projectFilePath": "/home/username/Documents/Singularity/Sunfire/AzureAllocator/AzureAllocator.csproj",
   "expectedPackageFiles": [
     "/home/username/.nuget/packages/azure.core/1.44.1/azure.core.1.44.1.nupkg.sha512",
     "/home/username/.nuget/packages/azure.identity/1.13.1/azure.identity.1.13.1.nupkg.sha512",

@@ -3,7 +3,7 @@ using System.Diagnostics;
 using Azure.ResourceManager;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Moonfire.Interfaces;
+namespace Sunfire.Interfaces;
 
 public class SCPInterface
 {   
@@ -21,7 +21,7 @@ public class SCPInterface
         //loading settings
         var templatePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 
-            "Moonfire",
+            nameof(Sunfire),
             "Config",
             "SCPSettings.json"
         );

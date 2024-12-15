@@ -1,8 +1,8 @@
-using Moonfire.Utility;
-using Moonfire.Interfaces;
+using Sunfire.Utility;
+using Sunfire.Interfaces;
 using Azure.ResourceManager;
 
-namespace Moonfire;
+namespace Sunfire;
 
 public class Bot(string token, ArmClient azureClient, DiscordSocketConfig? config = null, List<Command>? _commands = null) : BotBase(token,config,_commands)
 {
