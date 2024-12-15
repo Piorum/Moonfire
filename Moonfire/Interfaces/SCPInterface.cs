@@ -1,6 +1,7 @@
 using System.Text;
 using System.Diagnostics;
 using Azure.ResourceManager;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Moonfire.Interfaces;
 
@@ -8,6 +9,7 @@ public class SCPInterface
 {   
     private bool _started = false;
     public string PublicIp => _started ? vm?.ip ?? "Not Found" : "Server Not Started";
+    private string Name => $"{vm?.rgname ?? "RG Name Not Found"}:{vm?.name ?? "VM Name Not Found"}:";
     private Process? sshClient;
     private AzureVM? vm;
 
@@ -51,34 +53,36 @@ public class SCPInterface
         return obj;
     }
 
-    public async Task StartServerAsync(ArmClient client){
-        if(vm==null){
-            _ = Console.Out.WriteLineAsync("SCPInterface: StartServerAsync: vm does not exist");
-            return;
+    public async Task StartServerAsync(Func<string, Task> SendMessage){
+        var fN = nameof(StartServerAsync); //used in logging
+
+        try{
+            if(vm==null) throw new("VM does not exist");
+            if(sshClient==null)throw new("sshClient does not exist");
+            if (_started) throw new("Process should already be started");
         }
-        if(sshClient==null){
-            _ = Console.Out.WriteLineAsync($"{vm.name}: StartServerAsync: sshClient does not exist");
-            return;
-        }
-        if(_started){
-            _ = Console.Out.WriteLineAsync($"{vm.name}: Process should already be started");
+        catch (Exception e){
+            _ = Log(fN,$"{e}");
+            _ = SendMessage($"{e}");
             return;
         }
 
-        _ = Console.Out.WriteLineAsync($"{vm.name}: Setting up Disk");
+        _ = SendMessage("Setting Up Game Files");
+        _ = Log(fN,"Setting up Disk");
         await SetupDisk();
 
-        _ = Console.Out.WriteLineAsync($"{vm.name}: Downloading Blob");
+        _ = Log(fN,"Downloading Blob");
         await vm.DownloadBlob(@"scpcontainer",@"scpcontainer.tar.gz",@"/datadrive/scpcontainer.tar.gz");
 
-        _ = Console.Out.WriteLineAsync($"{vm.name}: Extracting Blob");
+        _ = Log(fN,"Extracting Blob");
         await vm.ConsoleDirect(@"tar -xvzf /datadrive/scpcontainer.tar.gz -C /datadrive",sshClient);
 
-        _ = Console.Out.WriteLineAsync($"{vm.name}: Setting Up Server");
+        _ = Log(fN,"Setting Up Server");
         await vm.ConsoleDirect(@"mkdir -p /home/azureuser/.config",sshClient);
         await vm.ConsoleDirect(@"ln -s /datadrive/scpcontainer/config /home/azureuser/.config/SCP\ Secret\ Laboratory",sshClient);
 
-        _ = Console.Out.WriteLineAsync($"{vm.name}: Starting SCP Server");
+        _ = SendMessage("Starting Server");
+        _ = Log(fN,"Starting SCP Server");
         await vm.ConsoleDirect(@"cd /datadrive/scpcontainer",sshClient);
         await vm.ConsoleDirect(@"./LocalAdmin 7777",sshClient);
 
@@ -97,44 +101,49 @@ public class SCPInterface
                     if(output.Contains("save the configuration")) _ = vm.ConsoleDirect("this",sshClient);
                 }
             }
-            Console.WriteLine($"{vm.name}: SCPInterface: sshClient EndOfStream encountered or halted");
+            _ = Log(fN,"sshClient EndOfStream encountered or halted");
         });
 
         //Waits for heartbeat report to continue
         await _heartbeatReceived.Task;
-        if(configTransferFailed) _ = Console.Out.WriteLineAsync($"{vm.name}: Config Transfer Failed");
-        _ = Console.Out.WriteLineAsync($"{vm.name}: SCP Server Started");
+        if(configTransferFailed) _ = Log(fN,"Config Transfer Failed");
+        _ = Log(fN,"SCP Server Started");
         _started = true;
     }
 
-    public async Task StopServerAsync(){
-        if(vm==null){
-            _ = Console.Out.WriteLineAsync("SCPInterface: StopServerAsync: vm does not exist");
-            return;
-        }
-        if(sshClient==null){
-            _ = Console.Out.WriteLineAsync($"{vm.name}: StopServerAsync: sshClient does not exist");
-            return;
-        }
-        if(!_started){
-            _ = Console.Out.WriteLineAsync($"{vm.name}: Process should already be dead.");
+    public async Task StopServerAsync(Func<string, Task> SendMessage){
+        var fN = nameof(StopServerAsync); //used in logging
+
+        try{
+            if(vm==null) throw new("VM does not exist");
+            if(sshClient==null)throw new("sshClient does not exist");
+            if(!_started) throw new("Process should already be dead.");
+        } catch (Exception e){
+            _ = Log(fN,$"{e}");
+            _ = SendMessage($"{e}");
             return;
         }
         
         await vm.ConsoleDirect(@"stop",sshClient);
-        Console.WriteLine($"{vm.name}: SCP Server Stopped");
+        _ = Log(fN,"SCP Server Stopped");
 
         await vm.ConsoleDirect(@"exit",sshClient);
         sshClient.Close();
+        _ = Log(fN,"SSH Connection Stopped");
         
+        _ = SendMessage($"Deprovisioning Server");
         await vm.Deallocate();
         _started = false;
-        Console.WriteLine($"{vm.name}: SCPInterface Reset");
+        _ = Log(fN,"SCPInterface Reset");
     }
 
     private async Task SetupDisk(){
-        if(vm==null){
-            _ = Console.Out.WriteLineAsync("SCPInterface: SetupDisk: vm does not exist");
+        var fN = nameof(SetupDisk); //used in logging
+
+        try{
+            if(vm==null) throw new ArgumentException("VM does not exist");
+        } catch (Exception e){
+            _ = Log(fN,$"{e}");
             return;
         }
 
@@ -155,7 +164,11 @@ public class SCPInterface
 
             sudo chmod -R 777 /datadrive
             ";
-        _ = Console.Out.WriteLineAsync($"{vm.name}: Formatting Disk 1");
+
+        _ = Log(fN,"Formatting Disk 1");
         await vm.RunScript(script);
     }
+
+    private async Task Log(string funcName, string input) =>
+        await Console.Out.WriteLineAsync($"{Name}{funcName}:{input}");
 }

@@ -27,20 +27,20 @@ public static class AzureManager
                 ResourceIdentifier rgid = new($"/subscriptions/{Environment.GetEnvironmentVariable("AZURE_SUBSCRIPTION_ID")}/resourceGroups/{rgName}");
                 rg = client.GetResourceGroupResource(rgid);
                 vm = await rg.GetVirtualMachines().GetAsync(vmName);
-                ip = (await rg.GetPublicIPAddresses().GetAsync("PublicIP")).Value.Data.IPAddress;
+                ip = (await rg.GetPublicIPAddresses().GetAsync($"{vmName}PublicIP")).Value.Data.IPAddress;
             }
             catch {
                 //behavior if resource group does not exist
-                _ = Console.Out.WriteLineAsync($"{nameof(AzureManager)}: Creating Resource Group");
+                _ = Log(vmName,rgName,nameof(Allocate),$"Creating Resource Group");
                 rg = (await client
                     .GetDefaultSubscription()
                     .GetResourceGroups()
                     .CreateOrUpdateAsync(Azure.WaitUntil.Completed, rgName, new ResourceGroupData(region))).Value;
 
                 //begin vnet and pip allocation and continue once both are done
-                var vnetTask = AllocateVnet(region,rg);
-                var pipTask = AllocatePip(region,rg);
-                var nsgTask = AllocateNsg(region,rg,settings);
+                var vnetTask = AllocateVnet(region,vmName,rgName,rg);
+                var pipTask = AllocatePip(region,vmName,rgName,rg);
+                var nsgTask = AllocateNsg(region,vmName,rgName,rg,settings);
                 var keyTask = GenerateSshKeyPair(region,vmName,rgName,rg);
                 await Task.WhenAll(vnetTask,pipTask,nsgTask,keyTask);
                 var vnet = await vnetTask;
@@ -51,52 +51,60 @@ public static class AzureManager
                 ip = pip.Data.IPAddress;
 
                 //allocate nic then vm
-                var nic = await AllocateNic(region,rg,vnet,pip,nsg);
-                vm = await AllocateVm(region,vmName,rg,nic,key,settings);
+                var nic = await AllocateNic(region,vmName,rgName,rg,vnet,pip,nsg);
+                vm = await AllocateVm(region,vmName,rgName,rg,nic,key,settings);
             }
 
-            _ = Console.Out.WriteLineAsync($"{nameof(AzureManager)}: Completed Allocation of {vmName}");
+            _ = Log(vmName,rgName,nameof(Allocate),$"Completed Allocation");
             //return allocated vm interface
             return new AzureVM(vm, vmName, ip, rg, rgName);
         } 
         catch (Exception e){
-            await Console.Out.WriteLineAsync($"AzureManager, Failed to allocate.\n{e}");
+            _ = Log(vmName,rgName,nameof(Allocate),$"Failed to allocate.\n{e}");
             if(rg!=null){
-                await Console.Out.WriteLineAsync($"Cleaning up partial VM");
-                await DeAllocate(rg);
-                await Console.Out.WriteLineAsync($"Partial VM deallocated");
+                _ = Log(vmName,rgName,nameof(Allocate),$"Cleaning up partial VM");
+                await DeAllocate(vmName,rgName,rg);
+                _ = Log(vmName,rgName,nameof(Allocate),$"Partial VM deallocated");
             } else{
-                await Console.Out.WriteLineAsync("Did not create any resources in Azure. No clean up is necessary");
+                _ = Log(vmName,rgName,nameof(Allocate),$"Did not create any resources in Azure. No clean up is necessary");
             }
         }
         return null;
     }
 
-    public static async Task DeAllocate(ResourceGroupResource resourceGroup){
+    public static async Task DeAllocate(
+        string vmName,
+        string rgName,
+        ResourceGroupResource resourceGroup
+    ){
         try{
             await resourceGroup.DeleteAsync(Azure.WaitUntil.Completed);
         }
         catch (Exception e){
-            await Console.Out.WriteLineAsync($"Failed deallocation\n{e}");
+            _ = Log(vmName,rgName,nameof(DeAllocate),$"Failed deallocation\n{e}");
         }
     }
 
     private static async Task<VirtualNetworkResource> AllocateVnet(
         string region,
+        string vmName,
+        string rgName,
         ResourceGroupResource rg)
     {
         var vnetData = new VirtualNetworkData()
         {
             Location = region,
             AddressPrefixes = { "10.0.0.0/16" },
-            Subnets = { new SubnetData() { Name = "Subnet", AddressPrefix = "10.0.0.0/24" } }
+            Subnets = { new SubnetData() { Name = $"{vmName}Subnet", AddressPrefix = "10.0.0.0/24" } }
         };
-        _ = Console.Out.WriteLineAsync($"{nameof(AzureManager)}: Creating Virtual Network");
-        return (await rg.GetVirtualNetworks().CreateOrUpdateAsync(Azure.WaitUntil.Completed, "Vnet", vnetData)).Value;
+        _ = Log(vmName,rgName,nameof(AllocateVnet),$"Creating Virtual Network");
+        return (await rg.GetVirtualNetworks().CreateOrUpdateAsync(Azure.WaitUntil.Completed, $"{vmName}Vnet", vnetData)).Value;
     }
 
     private static async Task<PublicIPAddressResource> AllocatePip(
-        string region, 
+        string region,
+        string vmName,
+        string rgName,
         ResourceGroupResource rg
     ){
         var publicIp = new PublicIPAddressData()
@@ -105,12 +113,14 @@ public static class AzureManager
             Sku = new PublicIPAddressSku { Name = PublicIPAddressSkuName.Standard },
             PublicIPAllocationMethod = NetworkIPAllocationMethod.Static
         };
-        _ = Console.Out.WriteLineAsync($"{nameof(AzureManager)}: Creating Public Ip");
-        return (await rg.GetPublicIPAddresses().CreateOrUpdateAsync(Azure.WaitUntil.Completed, "PublicIP", publicIp)).Value;
+        _ = Log(vmName,rgName,nameof(AllocatePip),$"Creating Public Ip");
+        return (await rg.GetPublicIPAddresses().CreateOrUpdateAsync(Azure.WaitUntil.Completed, $"{vmName}PublicIP", publicIp)).Value;
     }
 
     private static async Task<NetworkSecurityGroupResource> AllocateNsg(
-        string region, 
+        string region,
+        string vmName,
+        string rgName,
         ResourceGroupResource rg,
         AzureSettings settings
     ){
@@ -138,12 +148,14 @@ public static class AzureManager
                 });
             }
 
-        _ = Console.Out.WriteLineAsync($"{nameof(AzureManager)}: Creating Network Security Group");
-        return (await rg.GetNetworkSecurityGroups().CreateOrUpdateAsync(Azure.WaitUntil.Completed, "NetworkSG", nsg)).Value;
+        _ = Log(vmName,rgName,nameof(AllocateNsg),$"Creating Network Security Group");
+        return (await rg.GetNetworkSecurityGroups().CreateOrUpdateAsync(Azure.WaitUntil.Completed, $"{vmName}NetworkSG", nsg)).Value;
     }
 
     private static async Task<NetworkInterfaceResource> AllocateNic(
         string region,
+        string vmName,
+        string rgName,
         ResourceGroupResource rg,
         VirtualNetworkResource vnet,
         PublicIPAddressResource pip,
@@ -162,7 +174,7 @@ public static class AzureManager
                     PrivateIPAllocationMethod = NetworkIPAllocationMethod.Dynamic,
                     Primary = true,
                     Subnet = new SubnetData(){
-                        Id = vnet.Data.Subnets.First(s => s.Name == "Subnet").Id
+                        Id = vnet.Data.Subnets.First(s => s.Name == $"{vmName}Subnet").Id
                     },
                     PublicIPAddress = new PublicIPAddressData(){
                         Id = pip.Id
@@ -170,13 +182,14 @@ public static class AzureManager
                 }
             }
         };
-        _ = Console.Out.WriteLineAsync($"{nameof(AzureManager)}: Creating Network Interface");
-        return (await rg.GetNetworkInterfaces().CreateOrUpdateAsync(Azure.WaitUntil.Completed, "NetworkInterface", nicData)).Value;
+        _ = Log(vmName,rgName,nameof(AllocateNic),$"Creating Network Interface");
+        return (await rg.GetNetworkInterfaces().CreateOrUpdateAsync(Azure.WaitUntil.Completed, $"{vmName}NetworkInterface", nicData)).Value;
     }
 
     private static async Task<VirtualMachineResource> AllocateVm(
         string region,
-        string VmName,
+        string vmName,
+        string rgName,
         ResourceGroupResource rg,
         NetworkInterfaceResource nic,
         SshPublicKeyGenerateKeyPairResult key,
@@ -198,7 +211,7 @@ public static class AzureManager
             },
             OSProfile = new VirtualMachineOSProfile()
             {
-                ComputerName = VmName,
+                ComputerName = vmName,
                 AdminUsername = "azureuser",
                 LinuxConfiguration = new LinuxConfiguration
                 {
@@ -218,7 +231,7 @@ public static class AzureManager
                 OSDisk = new VirtualMachineOSDisk(DiskCreateOptionType.FromImage)
                 {
                     OSType = SupportedOperatingSystemType.Linux,
-                    Name = "OsDisk",
+                    Name = $"{vmName}OsDisk",
                     ManagedDisk = new VirtualMachineManagedDisk
                     {
                         StorageAccountType = StorageAccountType.StandardLrs
@@ -235,12 +248,12 @@ public static class AzureManager
         //adding data disks
         if(settings.DataDisks!=null){
             foreach(var disk in settings.DataDisks){
-                _ = Console.Out.WriteLineAsync($"{nameof(AzureManager)}: Attaching Disk 1");
                 var i = vmData.StorageProfile.DataDisks.Count + 1;
+                _ = Log(vmName,rgName,nameof(AllocateVm),$"Attaching Disk {i}");
                 vmData.StorageProfile.DataDisks.Add(
                     new(i, DiskCreateOptionType.Empty)
                     {
-                        Name = $"DataDisk{i}",
+                        Name = $"{vmName}DataDisk{i}",
                         DiskSizeGB = disk.Size,
                         ManagedDisk = new()
                         {
@@ -251,22 +264,22 @@ public static class AzureManager
             }
         }
 
-        _ = Console.Out.WriteLineAsync($"{nameof(AzureManager)}: Creating Virtual Machine");
-        return (await rg.GetVirtualMachines().CreateOrUpdateAsync(Azure.WaitUntil.Completed, VmName, vmData)).Value;
+        _ = Log(vmName,rgName,nameof(AllocateVm),$"Creating Virtual Machine");
+        return (await rg.GetVirtualMachines().CreateOrUpdateAsync(Azure.WaitUntil.Completed, vmName, vmData)).Value;
     }
 
     private static async Task<SshPublicKeyGenerateKeyPairResult> GenerateSshKeyPair(
         string region,
-        string VmName,
-        string RgName,
+        string vmName,
+        string rgName,
         ResourceGroupResource rg
     ){
-        _ = Console.Out.WriteLineAsync($"{nameof(AzureManager)}: Creating Ssh Key Pair");
+        _ = Log(vmName,rgName,nameof(GenerateSshKeyPair),$"Creating Ssh Key Pair");
         var keyData = new SshPublicKeyData(region)
         {
             PublicKey = null // Set this to null to let Azure generate the key
         };
-        var key = (await rg.GetSshPublicKeys().CreateOrUpdateAsync(Azure.WaitUntil.Completed,"SshKey",keyData)).Value;
+        var key = (await rg.GetSshPublicKeys().CreateOrUpdateAsync(Azure.WaitUntil.Completed,$"{vmName}SshKey",keyData)).Value;
         var pair = (await key.GenerateKeyPairAsync()).Value;
 
         //saving private key locally
@@ -274,9 +287,9 @@ public static class AzureManager
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "Moonfire",
             "Ssh",
-            $"{RgName}"
+            $"{rgName}"
         );
-        var keyPath = Path.Combine(sshPath,$"{VmName}-Key.pem");
+        var keyPath = Path.Combine(sshPath,$"{vmName}-Key.pem");
 
         //Ensure directory exists and delete old key if found
         if(!Directory.Exists(sshPath)) Directory.CreateDirectory(sshPath);
@@ -287,4 +300,7 @@ public static class AzureManager
 
         return pair;
     }
+
+    private static async Task Log(string vmName, string rgName, string funcName, string input) =>
+        await Console.Out.WriteLineAsync($"{rgName}:{vmName}:{funcName}:{input}");
 }

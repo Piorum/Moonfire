@@ -35,7 +35,7 @@ public class Program{
             "Template.json"
         );
         var settings = await AzureSettings.CreateAsync(templatePath);
-
+        
         //allocating vm
         var vm = await AzureManager.Allocate(client, settings, "TestRG", "TestVM");
 

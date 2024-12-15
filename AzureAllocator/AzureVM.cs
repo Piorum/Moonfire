@@ -27,28 +27,28 @@ public class AzureVM
         rgname = _rgname;
 
         //check initial VM power state
-        Console.WriteLine($"{name} is Started: {Started}");
+        _ = Log("AzureVM",$"Started:{Started}");
     }
     public async Task Start(){
         if(!Started) await StartVM();
     }
     public async Task Deallocate(){
         if(Started){
-            Console.WriteLine($"{name}: Deallocating VM");
-            await AzureManager.DeAllocate(rg);
+            _ = Log(nameof(Deallocate),$"Deallocating VM");
+            await AzureManager.DeAllocate(name,rgname,rg);
             connected = false;
-            Console.WriteLine($"{name}: Deallocated VM");
+            _ = Log(nameof(Deallocate),$"Deallocated VM");
         }
     }
     //This connects through SSH and sends console input through the standard input
     public async Task ConsoleDirect(string input, Process _client){
         await Start();
         if (!connected) await StartSSH(_client);
-        Console.WriteLine($"{name}: sent '{input}'");
+        _ = Log(nameof(ConsoleDirect),$"sent:{input}");
         await _client.StandardInput.WriteLineAsync(input);
     }
     public async Task StartSSH(Process _client){
-        Console.WriteLine($"{name}: StartSSH trying to connect");
+        _ = Log(nameof(StartSSH),$"trying to connect");
         _client.Start();
 
         TaskCompletionSource<bool> _connectionAttempted = new();
@@ -62,13 +62,13 @@ public class AzureVM
                     _client.Start();
                 }
             }
-            Console.WriteLine($"{name}: StartSSH welcome received");
+            _ = Log(nameof(StartSSH),$"welcome received");
         });
 
         //FAIL-OPEN logic, assumes welcome message was missed
         var timeoutTask = Task.Delay(10000).ContinueWith(_ => {
             if(!_connectionAttempted.Task.IsCompleted) 
-                Console.WriteLine($"{name}: StartSSH connection welcome not received.");
+                _ = Log(nameof(StartSSH),$"connection welcome not received.");
             _connectionAttempted.TrySetResult(true);
         });
 
@@ -76,7 +76,7 @@ public class AzureVM
         await Task.Delay(200); //leave time to connection to settle
         connected = true;
 
-        Console.WriteLine($"{name}: StartSSH connection attempted");
+        _ = Log(nameof(StartSSH),$"connection attempted");
     }
     //This runs a bash script on the machine
     public async Task RunScript(string script){
@@ -87,6 +87,7 @@ public class AzureVM
                 script
             }
         };
+        _ = Log(nameof(RunScript),$"{script}");
         await vm.RunCommandAsync(Azure.WaitUntil.Completed, scriptParams);
     }
     public async Task DownloadBlob(string container, string name, string destination){
@@ -105,26 +106,20 @@ public class AzureVM
 
         Uri sasUri = blobClient.GenerateSasUri(sasBuilder);
 
+        _ = Log(nameof(DownloadBlob),$"Downloading '{container}/{name}' to '{destination}'");
         await RunScript($"curl -o {destination} '{sasUri}'");
     }
-    public async Task DeAllocate(){
-        //check for null, but should never be null here
-        if(rg==null){
-            await Console.Out.WriteLineAsync($"{name}: Resource Group Null, Deallocation Failed");
-            return;
-        }
-        await Console.Out.WriteLineAsync($"{name}: Deallocating");
-        await AzureManager.DeAllocate(rg);
-        await Console.Out.WriteLineAsync($"{name}: Deallocated");
-    }
     private async Task StartVM(){
-        Console.WriteLine($"{name}: Starting VM");
+        _ = Log(nameof(StartVM),$"Starting VM");
 
         await vm.PowerOnAsync(Azure.WaitUntil.Completed);
         
-        Console.WriteLine($"{name}: Started VM");
+        _ = Log(nameof(StartVM),$"Started VM");
     }
     private bool CheckStarted(){
         return "VM running" == vm.InstanceView().Value.Statuses.FirstOrDefault(status => status.Code.StartsWith("PowerState/"))?.DisplayStatus;
     }
+
+    private async Task Log(string funcName, string input) =>
+        await Console.Out.WriteLineAsync($"{rgname}:{name}:{funcName}:{input}");
 }

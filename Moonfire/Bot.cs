@@ -16,7 +16,7 @@ public class Bot(string token, ArmClient azureClient, DiscordSocketConfig? confi
 
     protected override Task SlashCommandHandler(SocketSlashCommand command){
 
-        //finds first command to matches name of passed command
+        //finds first command that matches name of passed command
         //if a command was found gets the rank of that command
         _ = commands.FirstOrDefault(p => p.Name == command.Data.Name)?.Rank switch
         {
@@ -39,6 +39,7 @@ public class Bot(string token, ArmClient azureClient, DiscordSocketConfig? confi
                 
             _ => SendSlashReply($"Caught {command.Data.Name} by user handler but found no command",command),
         };
+
         return Task.CompletedTask;
     }
 
@@ -63,6 +64,7 @@ public class Bot(string token, ArmClient azureClient, DiscordSocketConfig? confi
             _ = SendSlashReply("You are not bot owner",command);
             return Task.CompletedTask;
         }
+
         _ = command.Data.Name switch
         {
             "repopulate" => RepopulateTaskAsync(command),
@@ -71,6 +73,7 @@ public class Bot(string token, ArmClient azureClient, DiscordSocketConfig? confi
 
             _ => SendSlashReply($"Caught {command.Data.Name} by owner handler but found no command",command),
         };
+
         return Task.CompletedTask;
     }
 
@@ -81,8 +84,10 @@ public class Bot(string token, ArmClient azureClient, DiscordSocketConfig? confi
             "1" => StartScpTaskAsync(command),
             //GMOD
             "2" => SendSlashReply("GMOD not available",command),
+
             _ => SendSlashReply($"Caught {command.Data.Options.First().Value} by start command handler but found no game",command),
         };
+
         return Task.CompletedTask;
     }
 
@@ -93,8 +98,10 @@ public class Bot(string token, ArmClient azureClient, DiscordSocketConfig? confi
             "1" => StopScpTaskAsync(command),
             //GMOD
             "2" => SendSlashReply("GMOD not available",command),
+
             _ => SendSlashReply($"Caught {command.Data.Options.First().Value} by stop command handler but found no game",command),
         };
+
         return Task.CompletedTask;
     }
 
@@ -109,12 +116,14 @@ public class Bot(string token, ArmClient azureClient, DiscordSocketConfig? confi
     }
 
     private async Task StartScpTaskAsync(SocketSlashCommand command){
-        _ = SendSlashReply("Starting SCP Server",command);
+        //ensure initial reply is sent first
+        await SendSlashReply("Handling Command",command);
         //convert from ulong? to ulong
         var guid = command.GuildId ?? 0;
         //if no value, or value = null
         if(!servers.TryGetValue(guid,out var server) || servers[guid]==null){
             //set server and dictionary value to scpinterface object
+            _ = ModifySlashReply("Provisioning Server",command);
             server = await SCPInterface.CreateInterface(azureClient,$"{guid}");
             servers[guid] = server;
         }
@@ -124,12 +133,13 @@ public class Bot(string token, ArmClient azureClient, DiscordSocketConfig? confi
             return;
         }
         //start server
-        await server.StartServerAsync(azureClient);
+        await server.StartServerAsync((string a)=>ModifySlashReply(a,command));
         await ModifySlashReply($"Started Server at '{server.PublicIp}'",command);
     }
 
     private async Task StopScpTaskAsync(SocketSlashCommand command){
-        _ = SendSlashReply("Stopping SCP Server",command);
+        //ensure initial reply is sent first
+        await SendSlashReply("Stopping SCP Server",command);
         var guid = command.GuildId ?? 0;
         if(!servers.TryGetValue(guid,out var server)){
             _ = ModifySlashReply("No Server Found",command);
@@ -139,13 +149,14 @@ public class Bot(string token, ArmClient azureClient, DiscordSocketConfig? confi
             _ = ModifySlashReply("Server Was Null",command);
             return;
         }
-        await server.StopServerAsync();
+        await server.StopServerAsync((string a)=>ModifySlashReply(a,command));
         servers[guid]=null;
         _ = ModifySlashReply("Stopped Server",command);
     }
 
     private async Task RepopulateTaskAsync(SocketSlashCommand command){
-        _ = SendSlashReply("Repopulating Commands",command);
+        //ensure initial reply is sent first
+        await SendSlashReply("Repopulating Commands",command);
         await UnregisterCommandsAsync();
         await PopulateCommandsAsync(ownerServerId);
         _ = ModifySlashReply("Commands Repopulated",command);
