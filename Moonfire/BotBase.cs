@@ -24,6 +24,7 @@ public abstract class BotBase{
         //Define Handlers
         _client.Ready += ClientReadyHandler;
         _client.SlashCommandExecuted += SlashCommandHandler;
+        _client.JoinedGuild += JoinedGuildHandler;
         _client.Log += message => {
             Console.WriteLine(message);
             return Task.CompletedTask;
@@ -46,6 +47,13 @@ public abstract class BotBase{
     protected virtual Task ClientReadyHandler(){return Task.CompletedTask;}
 
     protected virtual Task SlashCommandHandler(SocketSlashCommand command){return Task.CompletedTask;}
+
+    private Task JoinedGuildHandler(SocketGuild guild){
+        //add each user/admin command in commands list to server
+        foreach (var command in commands.Where(p => p.Rank == Rank.User || p.Rank == Rank.Admin).ToList())
+            _ = PopulateCommandAsync(command, guild);
+        return Task.CompletedTask;
+    }
 
     protected async Task PopulateCommandsAsync(ulong ownerServer){
         foreach (var command in commands.Where(p => p.Rank == Rank.User || p.Rank == Rank.Admin).ToList())
