@@ -6,12 +6,16 @@ namespace Sunfire;
 public class Program{
     
     //entry point
-    public static async Task Main()
-    {
+    public static async Task Main(){
+        var CONFIG_PATH = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            nameof(Sunfire) //change in azure allocator program.cs
+        );
+        Environment.SetEnvironmentVariable(nameof(CONFIG_PATH),CONFIG_PATH,EnvironmentVariableTarget.Process);
+
         //load .env
         var envPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            nameof(Sunfire),
+            Environment.GetEnvironmentVariable("CONFIG_PATH") ?? "",
             ".env"
         );
         foreach (string line in File.ReadAllLines(envPath))

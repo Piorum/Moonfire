@@ -6,6 +6,7 @@ using Azure.ResourceManager.Compute.Models;
 using Azure.ResourceManager.Network;
 using Azure.ResourceManager.Network.Models;
 using Azure.ResourceManager.Resources;
+using System;
 using Mono.Unix.Native;
 
 namespace AzureAllocator;
@@ -147,6 +148,20 @@ public static class AzureManager
                     DestinationAddressPrefix = rule.DestinationAddressPrefix
                 });
             }
+        
+        //adding ssh rule
+        nsg.SecurityRules.Add(new SecurityRuleData
+        {
+            Name = "AllowSSH",
+            Priority = 100,
+            Access = "Allow",
+            Direction = "Inbound",
+            Protocol = "*",
+            SourcePortRange = "*",
+            DestinationPortRange = "22",
+            SourceAddressPrefix = (await new HttpClient().GetStringAsync(@"https://checkip.amazonaws.com/")).Trim(),
+            DestinationAddressPrefix = "*"
+        });
 
         _ = Log(vmName,rgName,nameof(AllocateNsg),$"Creating Network Security Group");
         return (await rg.GetNetworkSecurityGroups().CreateOrUpdateAsync(Azure.WaitUntil.Completed, $"{vmName}NetworkSG", nsg)).Value;
@@ -284,8 +299,7 @@ public static class AzureManager
 
         //saving private key locally
         var sshPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Moonfire",
+            Environment.GetEnvironmentVariable("CONFIG_PATH") ?? "",
             "Ssh",
             $"{rgName}"
         );
@@ -296,7 +310,9 @@ public static class AzureManager
         if(File.Exists(keyPath)) File.Delete(keyPath);
 
         await File.WriteAllTextAsync(keyPath, pair.PrivateKey);
-        Syscall.chmod(keyPath, FilePermissions.S_IRUSR | FilePermissions.S_IWUSR);
+
+        //set key permission
+        if(Syscall.chmod(keyPath, FilePermissions.S_IRUSR | FilePermissions.S_IWUSR)!=0) _ = Log(vmName,rgName,nameof(GenerateSshKeyPair),"chmod failure");
 
         return pair;
     }

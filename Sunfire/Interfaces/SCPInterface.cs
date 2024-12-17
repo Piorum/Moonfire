@@ -20,8 +20,7 @@ public class SCPInterface
 
         //loading settings
         var templatePath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 
-            nameof(Sunfire),
+            Environment.GetEnvironmentVariable("CONFIG_PATH") ?? "",
             "Config",
             "SCPSettings.json"
         );
@@ -42,7 +41,7 @@ public class SCPInterface
             {
                 FileName = "ssh",
                 //RG/Key names to allocation names, Use vm.ip, publicIp returns 'Server Not Started'
-                Arguments = $"-o StrictHostKeyChecking=no -i ~/.config/Moonfire/Ssh/{name}RG/SCPVM-Key.pem azureuser@{obj.vm.ip}",
+                Arguments = $"-o StrictHostKeyChecking=no -i {Environment.GetEnvironmentVariable("CONFIG_PATH")}/Ssh/{name}RG/SCPVM-Key.pem azureuser@{obj.vm.ip}",
                 CreateNoWindow = true,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
