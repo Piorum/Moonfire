@@ -10,9 +10,11 @@ public class Program{
     
     //entry point
     public static async Task Main(){
+        var ver = "Sunfire";
+
         var CONFIG_PATH = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Sunfire"
+            ver
         );
         Environment.SetEnvironmentVariable(nameof(CONFIG_PATH),CONFIG_PATH,EnvironmentVariableTarget.Process);
 
@@ -27,109 +29,28 @@ public class Program{
             Environment.SetEnvironmentVariable(line[0..line.IndexOf('=')],line[(line.IndexOf('=')+2)..line.LastIndexOf('"')],EnvironmentVariableTarget.Process);
         }
 
-        //Building Sunfire
-        var _process = new Process {
-        StartInfo = new ProcessStartInfo
-            {
-                FileName = "dotnet",
-                WorkingDirectory = @"/home/username/Documents/Singularity/Sunfire/Sunfire",
-                Arguments = @"build",
-                CreateNoWindow = true,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            }
-        };
-        _process.Start();
-        _ = Task.Run(async () => {
-            while(!_process.StandardOutput.EndOfStream){
-                string? output = await _process.StandardOutput.ReadLineAsync();
-                if(output!=null){
-                    Console.WriteLine(output);
-                }
-            }
-        });
-        await _process.WaitForExitAsync();
+        //build and deploy application
+        await SetupHelper.UpdateBuild(ver);
 
-        //Compressing Sunfire
-        _process = new Process {
-        StartInfo = new ProcessStartInfo
-            {
-                FileName = "tar",
-                WorkingDirectory = @"/home/username/Documents/Singularity/Sunfire/Sunfire/bin/Debug/",
-                Arguments = @"-czvf /home/username/Documents/Singularity/Builds/Sunfire.tar.gz ./net8.0",
-                CreateNoWindow = true,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            }
-        };
-        _process.Start();
-        _ = Task.Run(async () => {
-            while(!_process.StandardOutput.EndOfStream){
-                string? output = await _process.StandardOutput.ReadLineAsync();
-                if(output!=null){
-                    Console.WriteLine(output);
-                }
-            }
-        });
-        await _process.WaitForExitAsync();
+    }
+}
 
-        //Compressing Sunfire Config
-        _process = new Process {
-        StartInfo = new ProcessStartInfo
-            {
-                FileName = "tar",
-                WorkingDirectory = @"/home/username/.config/",
-                Arguments = @"-czvf /home/username/Documents/Singularity/Builds/SunfireConfig.tar.gz ./Sunfire",
-                CreateNoWindow = true,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            }
-        };
-        _process.Start();
-        _ = Task.Run(async () => {
-            while(!_process.StandardOutput.EndOfStream){
-                string? output = await _process.StandardOutput.ReadLineAsync();
-                if(output!=null){
-                    Console.WriteLine(output);
-                }
-            }
-        });
-        await _process.WaitForExitAsync();
+public static class SetupHelper{
+    public static async Task UpdateBuild(string ver){
+        //building project
+        await BuildDotnet($"/home/username/Documents/Singularity/{ver}/{ver}");
+        _ = Console.Out.WriteLineAsync("Project Built");
 
-        //Connecting to storage account
-        string connectionString = Environment.GetEnvironmentVariable("MOONFIRE_STORAGE_STRING") ?? "";
-        string filePath;
+        //uploading to storage account
+        await UploadFolder(
+            $"/home/username/Documents/Singularity/{ver}/{ver}/bin/Debug/",@"net8.0",
+            $"{ver}.tar.gz");
+        await UploadFolder(
+            $"/home/username/.config/",$"{ver}",
+            $"{ver}Config.tar.gz");
+        _ = Console.Out.WriteLineAsync("Build Uploaded");
 
-        //Uploading Sunfire
-        BlobClient blobClient = new(connectionString, "bot", "Sunfire.tar.gz");
-        filePath = @"/home/username/Documents/Singularity/Builds/Sunfire.tar.gz";
-        using (FileStream uploadFileStream = File.OpenRead(filePath))
-        {
-            blobClient.Upload(uploadFileStream, overwrite: true);
-        }
-
-        //Uploading Sunfire Config
-        blobClient = new(connectionString, "bot", "SunfireConfig.tar.gz");
-        filePath = @"/home/username/Documents/Singularity/Builds/SunfireConfig.tar.gz";
-        using (FileStream uploadFileStream = File.OpenRead(filePath))
-        {
-            blobClient.Upload(uploadFileStream, overwrite: true);
-        }
-
-        Console.WriteLine("Upload completed successfully.");
-
-        //creating ArmClient
-        var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID") ?? "";
-        var clientSecret = Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET") ?? "";
-        var tenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID") ?? "";
-        var subscription = Environment.GetEnvironmentVariable("AZURE_SUBSCRIPTION_ID") ?? "";
-        ClientSecretCredential credential = new(tenantId, clientId, clientSecret);
-        ArmClient client = new(credential, subscription);
-
-        //loading settings
+        //loading application hardware settings
         var AzureSettingsPath = Path.Combine(
             Environment.GetEnvironmentVariable("CONFIG_PATH") ?? "",
             "Config",
@@ -138,68 +59,108 @@ public class Program{
         var settings = await AzureSettings.CreateAsync(AzureSettingsPath);
         
         //allocating vm
-        var vm = await AzureManager.Allocate(client, settings, "SunfireRG", "SunfireVM");
+        var vm = await AzureManager.Allocate(await AzureManager.BuildArmClient(), settings, $"{ver}RG", $"{ver}VM");
+        _ = Console.Out.WriteLineAsync("VM Allocated");
 
         //check for null, but should never be null here
         if(vm==null){
             return;
         }
 
-        //Downloading Sunfire from storage account, extracting, running
+        await InstallScript(vm,ver);
+        _ = Console.Out.WriteLineAsync("Install Script Finished");
+    }
+
+    private static async Task InstallScript(AzureVM vm, string ver){
         _ = Console.Out.WriteLineAsync("Running Install Script");
-        var script = @"
-            #!/bin/bash
-            while [ ! -b /dev/sda ]; do
-                :
-            done
+        
+        var script = "";
+        void f(string a) => script += a + Environment.NewLine;
+        f(@"#!/bin/bash");
+        f(@"while [ ! -b /dev/sda ]; do");
+        f(@"    :");
+        f(@"done");
 
-            apt-get install -y dotnet-runtime-8.0
+        f(@"apt-get install -y dotnet-runtime-8.0");
 
-            export HOME=/home/azureuser
+        f(@"export HOME=/home/azureuser");
 
-            killall -9 Sunfire
-            rm -rf ~/.config
-            rm -rf ~/Sunfire.tar.gz
-            rm -rf ~/Sunfire
+        f($"killall -9 {ver}");
+        f(@"rm -rf ~/.config");
+        f($"rm -rf ~/{ver}.tar.gz");
+        f($"rm -rf ~/{ver}");
 
-            mkdir -p ~/.config &&
-            ";
-        script += $"curl -o ~/Sunfire.tar.gz '{await vm.GetDownloadSas(@"bot",@"Sunfire.tar.gz")}' &&\n";
-        script += $"curl -o ~/.config/SunfireConfig.tar.gz '{await vm.GetDownloadSas(@"bot",@"SunfireConfig.tar.gz")}' &&\n";
-        script += @"
-            tar -xvzf ~/Sunfire.tar.gz -C ~/ &&
-            tar -xvzf ~/.config/SunfireConfig.tar.gz -C ~/.config &&
+        f(@"mkdir -p ~/.config");
 
-            chmod -R 777 ~/.config &&
-            chmod -R 777 ~/net8.0 &&
-            
-            sudo -u azureuser ~/net8.0/Sunfire > ~/Sunfire.log 2>&1 &
-            ";
-        await vm.RunScript(script); //This will never exit
+        f($"curl -o ~/{ver}.tar.gz '{await vm.GetDownloadSas(@"bot",$"{ver}.tar.gz")}'");
+        f($"curl -o ~/.config/{ver}Config.tar.gz '{await vm.GetDownloadSas(@"bot",$"{ver}Config.tar.gz")}'");
 
-        //setup datadisk
-        /*var script = @"
-            #!/bin/bash
-            while [ ! -b /dev/sdc ]; do
-                :
-            done
+        f($"tar -xvzf ~/{ver}.tar.gz -C ~/");
+        f($"tar -xvzf ~/.config/{ver}Config.tar.gz -C ~/.config");
 
-            parted /dev/sdc --script mklabel gpt
-            parted /dev/sdc --script mkpart primary ext4 0% 100%
+        f(@"chmod -R 777 ~/.config");
+        f(@"chmod -R 777 ~/net8.0");
 
-            sudo mkfs.ext4 /dev/sdc1
+        f($"sudo -u azureuser ~/net8.0/{ver} > ~/{ver}.log 2>&1 &");
+        
+        await vm.RunScript(script);
+    }
 
-            sudo mkdir -p /datadrive
-            sudo mount /dev/sdc1 /datadrive
+    private static async Task BuildDotnet(string cwd){
+        var _process = new Process {
+        StartInfo = new ProcessStartInfo
+            {
+                FileName = "dotnet",
+                WorkingDirectory = cwd,
+                Arguments = @"build",
+                CreateNoWindow = true,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            }
+        };
+        await RunProcess(_process);
+    }
 
-            sudo chmod -R 777 /datadrive
-            ";
-        _ = Console.Out.WriteLineAsync("Formatting Disk 1");
-        await vm.RunScript(script);*/
+    private static async Task UploadFolder(string cwd, string folder, string target){
+        var _process = new Process {
+        StartInfo = new ProcessStartInfo
+            {
+                FileName = "tar",
+                WorkingDirectory = cwd,
+                Arguments = $"-czvf /home/username/Documents/Singularity/Builds/{target} ./{folder}",
+                CreateNoWindow = true,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            }
+        };
+        await RunProcess(_process);
 
-        /*_ = Console.Out.WriteLineAsync("Downloading Blob");
-        await vm.DownloadBlob(@"scpcontainer",@"scpcontainer.tar.gz",@"/datadrive/scpcontainer.tar.gz");
-        _ = Console.Out.WriteLineAsync("Extracting");
-        await vm.RunScript(@"tar -xvzf /datadrive/scpcontainer.tar.gz -C /datadrive");*/
+        await UploadTar(target);
+    }
+
+    private static async Task RunProcess(Process _process){
+        _process.Start();
+        _ = Task.Run(async () => {
+            while(!_process.StandardOutput.EndOfStream){
+                string? output = await _process.StandardOutput.ReadLineAsync();
+                if(output!=null){
+                    Console.WriteLine(output);
+                }
+            }
+        });
+        await _process.WaitForExitAsync();
+    }
+
+    private static async Task UploadTar(string file){
+        string connectionString = Environment.GetEnvironmentVariable("MOONFIRE_STORAGE_STRING") ?? "";
+        string filePath = @"/home/username/Documents/Singularity/Builds/";
+
+        BlobClient blobClient = new(connectionString, "bot", file);
+        filePath = Path.Combine(filePath,file);
+
+        using FileStream uploadFileStream = File.OpenRead(filePath);
+        await blobClient.UploadAsync(uploadFileStream, overwrite: true);
     }
 }

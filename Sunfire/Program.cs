@@ -34,6 +34,7 @@ public class Program{
 
         //Discord Bot Commands
         //Need to match SlashCommandHandler switch cases to be caught
+        //Choices need to match Game Enum in Bot.cs
         List<string>? _choices = ["SCP", "MINECRAFT"];
         var commands = new List<Command>{
             new("help", "Prints help information", Rank.User),
@@ -46,15 +47,7 @@ public class Program{
             new("repopulate", "#Owner - Refreshes bot commands", Rank.Owner)
         };
 
-        //creating ArmClient
-        var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID") ?? "";
-        var clientSecret = Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET") ?? "";
-        var tenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID") ?? "";
-        var subscription = Environment.GetEnvironmentVariable("AZURE_SUBSCRIPTION_ID") ?? "";
-        ClientSecretCredential credential = new(tenantId, clientId, clientSecret);
-        ArmClient azureClient = new(credential, subscription);
-
-        var _application = new Bot(token, azureClient, config, commands);
+        var _application = new Bot(token, await AzureManager.BuildArmClient(), config, commands);
         await _application.StartBotAsync();
     }
 }

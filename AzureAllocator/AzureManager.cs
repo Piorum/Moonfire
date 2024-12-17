@@ -13,6 +13,15 @@ namespace AzureAllocator;
 
 public static class AzureManager
 {
+    public static Task<ArmClient> BuildArmClient(){
+        var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID") ?? "";
+        var clientSecret = Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET") ?? "";
+        var tenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID") ?? "";
+        var subscription = Environment.GetEnvironmentVariable("AZURE_SUBSCRIPTION_ID") ?? "";
+        ClientSecretCredential credential = new(tenantId, clientId, clientSecret);
+        ArmClient client = new(credential, subscription);
+        return Task.FromResult(client);
+    }
     public static async Task<AzureVM?> Allocate(ArmClient client, AzureSettings settings, string rgName, string vmName){
         //defaults if settings are null
         var region = settings.Region ?? "centralus";
@@ -42,7 +51,7 @@ public static class AzureManager
                 var vnetTask = AllocateVnet(region,vmName,rgName,rg);
                 var pipTask = AllocatePip(region,vmName,rgName,rg);
                 var nsgTask = AllocateNsg(region,vmName,rgName,rg,settings);
-                var keyTask = GenerateSshKeyPair(region,vmName,rgName,rg);
+                var keyTask = AllocateSshKeyPair(region,vmName,rgName,rg);
                 await Task.WhenAll(vnetTask,pipTask,nsgTask,keyTask);
                 var vnet = await vnetTask;
                 var pip = await pipTask;
@@ -283,13 +292,13 @@ public static class AzureManager
         return (await rg.GetVirtualMachines().CreateOrUpdateAsync(Azure.WaitUntil.Completed, vmName, vmData)).Value;
     }
 
-    private static async Task<SshPublicKeyGenerateKeyPairResult> GenerateSshKeyPair(
+    private static async Task<SshPublicKeyGenerateKeyPairResult> AllocateSshKeyPair(
         string region,
         string vmName,
         string rgName,
         ResourceGroupResource rg
     ){
-        _ = Log(vmName,rgName,nameof(GenerateSshKeyPair),$"Creating Ssh Key Pair");
+        _ = Log(vmName,rgName,nameof(AllocateSshKeyPair),$"Creating Ssh Key Pair");
         var keyData = new SshPublicKeyData(region)
         {
             PublicKey = null // Set this to null to let Azure generate the key
@@ -312,7 +321,7 @@ public static class AzureManager
         await File.WriteAllTextAsync(keyPath, pair.PrivateKey);
 
         //set key permission
-        if(Syscall.chmod(keyPath, FilePermissions.S_IRUSR | FilePermissions.S_IWUSR)!=0) _ = Log(vmName,rgName,nameof(GenerateSshKeyPair),"chmod failure");
+        if(Syscall.chmod(keyPath, FilePermissions.S_IRUSR | FilePermissions.S_IWUSR)!=0) _ = Log(vmName,rgName,nameof(AllocateSshKeyPair),"chmod failure");
 
         return pair;
     }
