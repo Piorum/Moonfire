@@ -30,14 +30,14 @@ public class Program{
 
         //Discord Bot Commands
         //Need to match SlashCommandHandler switch cases to be caught
-        List<string>? _choices = ["SCP", "GMOD"];
+        List<string>? _choices = ["SCP", "MINECRAFT"];
         var commands = new List<Command>{
             new("help", "Prints help information", Rank.User),
-            new("start", "#Admin - Starts specified game server", Rank.Admin,
+            new("start", "#Admin - Provisions and Starts Game Server", Rank.Admin,
                 [new(name: "game", description: "select game", isRequired: true, choices: _choices)]),
-            new("stop", "#Admin - Stops VM and server", Rank.Admin,
+            new("stop", "#Admin - Deprovisions and Stops Game Server", Rank.Admin,
                 [new(name: "game", description: "select game", isRequired: true, choices: _choices)]),
-            new("console", "#Owner - Sends input direct to Azure VM", Rank.Owner,
+            new("console", "#Owner - WIP", Rank.Owner,
                 [new(name: "input", description: "Input sent to the console", isRequired: true )]),
             new("repopulate", "#Owner - Refreshes bot commands", Rank.Owner)
         };

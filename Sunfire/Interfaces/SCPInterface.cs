@@ -58,7 +58,7 @@ public class SCPInterface
 
         try{
             if(vm==null) throw new("VM does not exist");
-            if(sshClient==null)throw new("sshClient does not exist");
+            if(sshClient==null) throw new("sshClient does not exist");
             if (_started) throw new("Process should already be started");
         }
         catch (Exception e){

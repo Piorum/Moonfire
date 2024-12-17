@@ -38,7 +38,7 @@ public abstract class BotBase{
         //Starting Bot
         await _client.LoginAsync(TokenType.Bot, _token);
         await _client.StartAsync();
-        await _client.SetActivityAsync(new Game($"/{helpCmd}", ActivityType.Watching));
+        await _client.SetActivityAsync(new Discord.Game($"/{helpCmd}", ActivityType.Watching));
 
         //Block this task until program is closed
         await Task.Delay(-1);

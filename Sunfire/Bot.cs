@@ -60,8 +60,9 @@ public class Bot(string token, ArmClient azureClient, DiscordSocketConfig? confi
     }
 
     private Task OwnerCommandHandler(SocketSlashCommand command){
-        if(!(ownerId == command.User.Id)){
-            _ = SendSlashReply("You are not bot owner",command);
+        //allows admin in owner server to manage bot
+        if(!((SocketGuildUser)command.User).GuildPermissions.Administrator){
+            _ = SendSlashReply("You are not an admin",command);
             return Task.CompletedTask;
         }
 
@@ -78,12 +79,14 @@ public class Bot(string token, ArmClient azureClient, DiscordSocketConfig? confi
     }
 
     private Task StartCommandHandler(SocketSlashCommand command){
-        _ = (string)command.Data.Options.First().Value switch
+        _ = (Game)Convert.ToInt32(command.Data.Options.First().Value) switch
         {
-            //SCP
-            "1" => StartScpTaskAsync(command),
-            //GMOD
-            "2" => SendSlashReply("GMOD not available",command),
+            
+            Game.SCP => StartScpTaskAsync(command),
+            
+            Game.MINECRAFT => SendSlashReply("Minecraft not available",command),
+            
+            Game.GMOD => SendSlashReply("GMOD not available",command),
 
             _ => SendSlashReply($"Caught {command.Data.Options.First().Value} by start command handler but found no game",command),
         };
@@ -92,12 +95,14 @@ public class Bot(string token, ArmClient azureClient, DiscordSocketConfig? confi
     }
 
     private Task StopCommandHandler(SocketSlashCommand command){
-        _ = (string)command.Data.Options.First().Value switch
+        _ = (Game)Convert.ToInt32(command.Data.Options.First().Value) switch
         {
-            //SCP
-            "1" => StopScpTaskAsync(command),
-            //GMOD
-            "2" => SendSlashReply("GMOD not available",command),
+            
+            Game.SCP => StopScpTaskAsync(command),
+            
+            Game.MINECRAFT => SendSlashReply("Minecraft not available",command),
+            
+            Game.GMOD => SendSlashReply("GMOD not available",command),
 
             _ => SendSlashReply($"Caught {command.Data.Options.First().Value} by stop command handler but found no game",command),
         };
@@ -173,4 +178,11 @@ public class Bot(string token, ArmClient azureClient, DiscordSocketConfig? confi
 
     private static async Task ModifySlashReply (string a, SocketSlashCommand command) =>
         await command.ModifyOriginalResponseAsync(async msg => msg.Embed = (await EmbedMessage(a,command)).Build());
+}
+
+public enum Game{
+        NONE,
+        SCP,
+        MINECRAFT,
+        GMOD
 }
