@@ -1,7 +1,6 @@
-using System.Text;
 using System.Diagnostics;
-using Azure.ResourceManager;
-using System.Diagnostics.CodeAnalysis;
+using Newtonsoft.Json;
+using Azure.Data.Tables;
 
 namespace Sunfire.Interfaces;
 
@@ -12,26 +11,61 @@ public class SCPInterface
     private string Name => $"{vm?.rgname ?? "RG Name Not Found"}:{vm?.name ?? "VM Name Not Found"}:";
     private Process? sshClient;
     private AzureVM? vm;
+    private ScpSettings? scpSettings;
 
     private SCPInterface(){}
 
-    public static async Task<SCPInterface?> CreateInterface(ArmClient client,string name){
+    public static async Task<SCPInterface?> CreateInterface(string guildId){
         SCPInterface obj = new();
 
+
         //loading settings
-        var templatePath = Path.Combine(
-            Environment.GetEnvironmentVariable("CONFIG_PATH") ?? "",
-            "Config",
-            "SCPSettings.json"
-        );
-        var settings = await AzureSettings.CreateAsync(templatePath);
+        var tableClient = await AzureManager.GetTableClient(nameof(Sunfire));
+
+        //loading hardware settings
+        //attempt to get stored settings
+        var hardwareSettingsJson = (await AzureManager.GetTableEntity(tableClient,guildId,"config"))?["scphardware"];
+
+        //if settings are null load and store template settings
+        if(hardwareSettingsJson==null){
+            _ = Console.Out.WriteLineAsync($"{nameof(SCPInterface)}: No Hardware Settings Found For {guildId} Storing Defaults");
+            //use template settings if none are found
+            var hardwareTemplatePath = Path.Combine(
+                Environment.GetEnvironmentVariable("CONFIG_PATH") ?? "",
+                "Config",
+                "SCPSettings.json"
+            );
+            hardwareSettingsJson = await File.ReadAllTextAsync(hardwareTemplatePath);
+            await AzureManager.StoreTableEntity(tableClient,new TableEntity(guildId,"config"){
+                { "scphardware", (string)hardwareSettingsJson }
+            });
+        }
+
+        //create settings object
+        var hardwareSettings = await AzureSettings.CreateAsync((string)hardwareSettingsJson,true);
+
+        //loading game settings
+        //attempt to get stored setting
+        var gameSettingsJson = (await AzureManager.GetTableEntity(tableClient,guildId,"config"))?["scpgame"];
+
+        if(gameSettingsJson==null){
+            _ = Console.Out.WriteLineAsync($"{nameof(SCPInterface)}: No Game Settings Found For {guildId} Storing Defaults");
+            //use default settings if none is found
+            gameSettingsJson = JsonConvert.SerializeObject(new ScpSettings());
+            await AzureManager.StoreTableEntity(tableClient,new TableEntity(guildId,"config"){
+                { "scpgame", (string)gameSettingsJson }
+            });
+        }
+
+        //deserialize json string into obj
+        obj.scpSettings = JsonConvert.DeserializeObject<ScpSettings>((string)gameSettingsJson);
 
         //allocating vm
         //match RG/VM names in sshClient ProcessStartInfo.Arguments
-        obj.vm = await AzureManager.Allocate(client, settings, $"{name}RG", $"SCPVM");
+        obj.vm = await AzureManager.Allocate(hardwareSettings, $"{guildId}RG", $"SCPVM");
 
         if(obj.vm == null){
-            _ = Console.Out.WriteLineAsync("SCPInterace: Azure Allocation Failed");
+            _ = Console.Out.WriteLineAsync($"{nameof(SCPInterface)}: Azure Allocation Failed");
             return null;
         }
 
@@ -41,7 +75,7 @@ public class SCPInterface
             {
                 FileName = "ssh",
                 //RG/Key names to allocation names, Use vm.ip, publicIp returns 'Server Not Started'
-                Arguments = $"-o StrictHostKeyChecking=no -i {Environment.GetEnvironmentVariable("CONFIG_PATH")}/Ssh/{name}RG/SCPVM-Key.pem azureuser@{obj.vm.ip}",
+                Arguments = $"-o StrictHostKeyChecking=no -i {Environment.GetEnvironmentVariable("CONFIG_PATH")}/Ssh/{guildId}RG/SCPVM-Key.pem azureuser@{obj.vm.ip}",
                 CreateNoWindow = true,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
@@ -170,4 +204,12 @@ public class SCPInterface
 
     private async Task Log(string funcName, string input) =>
         await Console.Out.WriteLineAsync($"{Name}{funcName}:{input}");
+}
+
+public class ScpSettings{
+    [JsonProperty(nameof(id))]
+    public List<ulong> id = [];
+
+    [JsonProperty(nameof(role))]
+    public List<string> role = [];
 }

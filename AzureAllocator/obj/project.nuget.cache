@@ -1,10 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "lIMtBpMrWRdxxiNlw6T3OFmBjlmF33tkVjZxRHiiYEF6bZDcN48E2DhydCba3UdqXeAyeLPqMcJdOACD/AsEhw==",
+  "dgSpecHash": "DMBfT1yXdrK77kJwVVptKzA6yJFGJVY+aelC9osShY7ombBhpGkJHMJx48LpotgnBd4B9I46bFr3bs6YsfSueQ==",
   "success": true,
   "projectFilePath": "/home/username/Documents/Singularity/Sunfire/AzureAllocator/AzureAllocator.csproj",
   "expectedPackageFiles": [
     "/home/username/.nuget/packages/azure.core/1.44.1/azure.core.1.44.1.nupkg.sha512",
+    "/home/username/.nuget/packages/azure.data.tables/12.9.1/azure.data.tables.12.9.1.nupkg.sha512",
     "/home/username/.nuget/packages/azure.identity/1.13.1/azure.identity.1.13.1.nupkg.sha512",
     "/home/username/.nuget/packages/azure.resourcemanager/1.13.0/azure.resourcemanager.1.13.0.nupkg.sha512",
     "/home/username/.nuget/packages/azure.resourcemanager.compute/1.6.0/azure.resourcemanager.compute.1.6.0.nupkg.sha512",

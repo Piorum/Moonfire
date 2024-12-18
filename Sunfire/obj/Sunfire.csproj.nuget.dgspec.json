@@ -42,6 +42,10 @@
               "target": "Package",
               "version": "[1.44.1, )"
             },
+            "Azure.Data.Tables": {
+              "target": "Package",
+              "version": "[12.9.1, )"
+            },
             "Azure.Identity": {
               "target": "Package",
               "version": "[1.13.1, )"
@@ -139,17 +143,9 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
-            "Azure.Identity": {
-              "target": "Package",
-              "version": "[1.13.1, )"
-            },
             "Azure.ResourceManager": {
               "target": "Package",
               "version": "[1.13.0, )"
-            },
-            "Azure.ResourceManager.Compute": {
-              "target": "Package",
-              "version": "[1.6.0, )"
             },
             "Discord.Net": {
               "target": "Package",

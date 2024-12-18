@@ -1,5 +1,3 @@
-using Azure.Identity;
-using Azure.ResourceManager;
 using Azure.ResourceManager.Compute;
 using Azure.ResourceManager.Compute.Models;
 using Azure.ResourceManager.Resources;
@@ -90,7 +88,7 @@ public class AzureVM
         _ = Log(nameof(RunScript),$"{script}");
         await vm.RunCommandAsync(Azure.WaitUntil.Completed, scriptParams);
     }
-    public Task<Uri> GetDownloadSas(string container, string name){
+    public static Task<Uri> GetDownloadSas(string container, string name){
         string connectionString = Environment.GetEnvironmentVariable("MOONFIRE_STORAGE_STRING") ?? "";
         var blobClient = new BlobClient(connectionString, container, name);
 

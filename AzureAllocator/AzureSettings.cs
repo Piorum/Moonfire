@@ -29,8 +29,14 @@ public class AzureSettings{
         settings.Region = region;
         return settings;
     }
-    public static async Task<AzureSettings> CreateAsync(string filepath) =>
-        await Task.Run(async () => JsonConvert.DeserializeObject<AzureSettings>(await File.ReadAllTextAsync(filepath)) ?? new());
+
+    //Json filepath
+    public static async Task<AzureSettings> CreateAsync(string jsonPath) =>
+        await Task.Run(async () => JsonConvert.DeserializeObject<AzureSettings>(await File.ReadAllTextAsync(jsonPath)) ?? new());
+
+    //rawJson string
+    public static async Task<AzureSettings> CreateAsync(string jsonRaw, bool _) =>
+        await Task.Run(() => JsonConvert.DeserializeObject<AzureSettings>(jsonRaw) ?? new());
 
 }
 

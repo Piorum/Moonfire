@@ -1,10 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "C49fF4Cc6Bt3DfHO2QBBbivc1Sbn5wcHnEWTRmdybzeB/TL8JM3J93cCdm3kmjeTys2cZqwQHXAUPV0k2sKt7A==",
+  "dgSpecHash": "cYUuidoqbeJZgwTw9vwYi2f+W49vK9o6msUsGp4dVkmvtR+5z5zrzSqN59iAzct5cEx+Ht2vfMmW1vtywuCutw==",
   "success": true,
   "projectFilePath": "/home/username/Documents/Singularity/Sunfire/Sunfire/Sunfire.csproj",
   "expectedPackageFiles": [
     "/home/username/.nuget/packages/azure.core/1.44.1/azure.core.1.44.1.nupkg.sha512",
+    "/home/username/.nuget/packages/azure.data.tables/12.9.1/azure.data.tables.12.9.1.nupkg.sha512",
     "/home/username/.nuget/packages/azure.identity/1.13.1/azure.identity.1.13.1.nupkg.sha512",
     "/home/username/.nuget/packages/azure.resourcemanager/1.13.0/azure.resourcemanager.1.13.0.nupkg.sha512",
     "/home/username/.nuget/packages/azure.resourcemanager.compute/1.6.0/azure.resourcemanager.compute.1.6.0.nupkg.sha512",

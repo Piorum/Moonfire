@@ -42,6 +42,10 @@
               "target": "Package",
               "version": "[1.44.1, )"
             },
+            "Azure.Data.Tables": {
+              "target": "Package",
+              "version": "[12.9.1, )"
+            },
             "Azure.Identity": {
               "target": "Package",
               "version": "[1.13.1, )"

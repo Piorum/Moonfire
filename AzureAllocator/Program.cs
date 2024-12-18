@@ -1,6 +1,4 @@
-﻿using Azure.Identity;
-using Azure.ResourceManager;
-using Azure.Storage.Blobs;
+﻿using Azure.Storage.Blobs;
 using System.Diagnostics;
 
 
@@ -59,7 +57,7 @@ public static class SetupHelper{
         var settings = await AzureSettings.CreateAsync(AzureSettingsPath);
         
         //allocating vm
-        var vm = await AzureManager.Allocate(await AzureManager.BuildArmClient(), settings, $"{ver}RG", $"{ver}VM");
+        var vm = await AzureManager.Allocate(settings, $"{ver}RG", $"{ver}VM");
         _ = Console.Out.WriteLineAsync("VM Allocated");
 
         //check for null, but should never be null here
@@ -92,8 +90,8 @@ public static class SetupHelper{
 
         f(@"mkdir -p ~/.config");
 
-        f($"curl -o ~/{ver}.tar.gz '{await vm.GetDownloadSas(@"bot",$"{ver}.tar.gz")}'");
-        f($"curl -o ~/.config/{ver}Config.tar.gz '{await vm.GetDownloadSas(@"bot",$"{ver}Config.tar.gz")}'");
+        f($"curl -o ~/{ver}.tar.gz '{await AzureVM.GetDownloadSas(@"bot",$"{ver}.tar.gz")}'");
+        f($"curl -o ~/.config/{ver}Config.tar.gz '{await AzureVM.GetDownloadSas(@"bot",$"{ver}Config.tar.gz")}'");
 
         f($"tar -xvzf ~/{ver}.tar.gz -C ~/");
         f($"tar -xvzf ~/.config/{ver}Config.tar.gz -C ~/.config");

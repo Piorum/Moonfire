@@ -6,25 +6,18 @@ using Azure.ResourceManager.Compute.Models;
 using Azure.ResourceManager.Network;
 using Azure.ResourceManager.Network.Models;
 using Azure.ResourceManager.Resources;
-using System;
+using Azure.Data.Tables;
 using Mono.Unix.Native;
+using Azure;
 
 namespace AzureAllocator;
 
 public static class AzureManager
 {
-    public static Task<ArmClient> BuildArmClient(){
-        var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID") ?? "";
-        var clientSecret = Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET") ?? "";
-        var tenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID") ?? "";
-        var subscription = Environment.GetEnvironmentVariable("AZURE_SUBSCRIPTION_ID") ?? "";
-        ClientSecretCredential credential = new(tenantId, clientId, clientSecret);
-        ArmClient client = new(credential, subscription);
-        return Task.FromResult(client);
-    }
-    public static async Task<AzureVM?> Allocate(ArmClient client, AzureSettings settings, string rgName, string vmName){
+    public static async Task<AzureVM?> Allocate(AzureSettings settings, string rgName, string vmName){
         //defaults if settings are null
         var region = settings.Region ?? "centralus";
+        var client = await BuildArmClient();
 
         ResourceGroupResource? rg = null; //used in finally
         try{
@@ -93,6 +86,46 @@ public static class AzureManager
         catch (Exception e){
             _ = Log(vmName,rgName,nameof(DeAllocate),$"Failed deallocation\n{e}");
         }
+    }
+    //To avoid excessive table clients allow other classes to store a table client
+    public async static Task<TableClient> GetTableClient(string table){
+        string connectionString = Environment.GetEnvironmentVariable("MOONFIRE_STORAGE_STRING") ?? "";
+        var client = new TableClient(connectionString, table);
+        await client.CreateIfNotExistsAsync();
+        return client;
+    }
+    
+    public static async Task<TableEntity?> GetTableEntity(TableClient client, string key, string row){
+        try{
+            return (await client.GetEntityIfExistsAsync<TableEntity>(key,row)).Value;
+        }catch{
+            return null;
+        }
+    }
+
+    public static async Task StoreTableEntity(TableClient client, TableEntity entity){
+        var _old = await GetTableEntity(client,entity.PartitionKey,entity.RowKey);
+        if(_old!=null) await UpdateTableEntity(client,entity);
+        else await AddTableEntity(client,entity);
+    }
+    
+    public static async Task DeleteTableEntity(TableClient client, string key, string row) =>
+        await client.DeleteEntityAsync(key,row);
+
+    private static async Task AddTableEntity(TableClient client, TableEntity entity) =>
+        await client.AddEntityAsync(entity);
+    
+    private static async Task UpdateTableEntity(TableClient client, TableEntity entity) =>
+        await client.UpdateEntityAsync(entity,ETag.All,TableUpdateMode.Merge);
+
+    private static Task<ArmClient> BuildArmClient(){
+        var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID") ?? "";
+        var clientSecret = Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET") ?? "";
+        var tenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID") ?? "";
+        var subscription = Environment.GetEnvironmentVariable("AZURE_SUBSCRIPTION_ID") ?? "";
+        ClientSecretCredential credential = new(tenantId, clientId, clientSecret);
+        ArmClient client = new(credential, subscription);
+        return Task.FromResult(client);
     }
 
     private static async Task<VirtualNetworkResource> AllocateVnet(

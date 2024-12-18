@@ -1,4 +1,3 @@
-
 namespace Sunfire;
 
 public abstract class BotBase{

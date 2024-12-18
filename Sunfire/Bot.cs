@@ -1,10 +1,8 @@
-using Sunfire.Utility;
 using Sunfire.Interfaces;
-using Azure.ResourceManager;
 
 namespace Sunfire;
 
-public class Bot(string token, ArmClient azureClient, DiscordSocketConfig? config = null, List<Command>? _commands = null) : BotBase(token,config,_commands)
+public class Bot(string token, DiscordSocketConfig? config = null, List<Command>? _commands = null) : BotBase(token,config,_commands)
 {
     private readonly Dictionary<ulong, SCPInterface?> servers = [];
 
@@ -129,7 +127,7 @@ public class Bot(string token, ArmClient azureClient, DiscordSocketConfig? confi
         if(!servers.TryGetValue(guid,out var server) || servers[guid]==null){
             //set server and dictionary value to scpinterface object
             _ = ModifySlashReply("Provisioning Server",command);
-            server = await SCPInterface.CreateInterface(azureClient,$"{guid}");
+            server = await SCPInterface.CreateInterface($"{guid}");
             servers[guid] = server;
         }
         //check if provisioning failed
