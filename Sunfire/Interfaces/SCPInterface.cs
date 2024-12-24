@@ -1,26 +1,27 @@
 using System.Diagnostics;
 using Newtonsoft.Json;
 using Azure.Data.Tables;
+using Azure.ResourceManager.Compute;
 
 namespace Sunfire.Interfaces;
 
-public class SCPInterface
+public class SCPInterface : IServer<SCPInterface>
 {   
-    private bool _started = false;
-    public string PublicIp => _started ? vm?.ip ?? "Not Found" : "Server Not Started";
+    public string PublicIp => vm?.ip ?? "Not Found";
     private string Name => $"{vm?.rgname ?? "RG Name Not Found"}:{vm?.name ?? "VM Name Not Found"}:";
+    private bool started = false;
     private Process? sshClient;
     private AzureVM? vm;
     private ScpSettings? scpSettings;
 
     private SCPInterface(){}
 
-    public static async Task<SCPInterface?> CreateInterface(string guildId){
+    public static async Task<SCPInterface?> CreateInterfaceAsync(string guildId){
         SCPInterface obj = new();
 
 
         //loading settings
-        var tableClient = await AzureManager.GetTableClient(nameof(Sunfire));
+        var tableClient = await AzureManager.GetTableClient(nameof(Sunfire) + "SCP");
 
         //loading hardware settings
         //attempt to get stored settings
@@ -57,6 +58,8 @@ public class SCPInterface
             });
         }
 
+        _ = Console.Out.WriteLineAsync($"{(string)hardwareSettingsJson}");
+        _ = Console.Out.WriteLineAsync($"{(string)gameSettingsJson}");
         //deserialize json string into obj
         obj.scpSettings = JsonConvert.DeserializeObject<ScpSettings>((string)gameSettingsJson);
 
@@ -71,53 +74,40 @@ public class SCPInterface
 
         obj.sshClient = new()
         {
-            StartInfo = new ProcessStartInfo
-            {
-                FileName = "ssh",
-                //RG/Key names to allocation names, Use vm.ip, publicIp returns 'Server Not Started'
-                Arguments = $"-o StrictHostKeyChecking=no -i {Environment.GetEnvironmentVariable("CONFIG_PATH")}/Ssh/{guildId}RG/SCPVM-Key.pem azureuser@{obj.vm.ip}",
-                CreateNoWindow = true,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            }
+            StartInfo = await AzureVM.BuildSshClient(guildId,obj.vm)
         };
 
         return obj;
     }
 
-    public async Task StartServerAsync(Func<string, Task> SendMessage){
+    public async Task<bool> StartServerAsync(Func<string, Task> SendMessage){
         var fN = nameof(StartServerAsync); //used in logging
 
-        try{
-            if(vm==null) throw new("VM does not exist");
-            if(sshClient==null) throw new("sshClient does not exist");
-            if (_started) throw new("Process should already be started");
+        if(vm==null){
+            await Log(fN,"VM does not exist");
+            await SendMessage("VM does not exist");
+            return false;
         }
-        catch (Exception e){
-            _ = Log(fN,$"{e}");
-            _ = SendMessage($"{e}");
-            return;
+        if(sshClient==null){
+            await Log(fN,"sshClient does not exist");
+            await SendMessage("sshClient does not exist");
+            return false;
+        }
+        if(started){
+            await Log(fN,"Game Already Started");
+            return true;
+        }
+        if(await AzureManager.GetBoolDefaultFalse("Updatefire","updating","game","scp")){
+            await Log(fN,"Game is updating");
+            await SendMessage("Game is updating - Try again soon");
+            return false;
         }
 
-        _ = SendMessage("Setting Up Game Files");
-        _ = Log(fN,"Setting up Disk");
-        await SetupDisk();
-
-        _ = Log(fN,"Downloading Blob");
-        await vm.DownloadBlob(@"scpcontainer",@"scpcontainer.tar.gz",@"/datadrive/scpcontainer.tar.gz");
-
-        _ = Log(fN,"Extracting Blob");
-        await vm.ConsoleDirect(@"tar -xvzf /datadrive/scpcontainer.tar.gz -C /datadrive",sshClient);
-
-        _ = Log(fN,"Setting Up Server");
-        await vm.ConsoleDirect(@"mkdir -p /home/azureuser/.config",sshClient);
-        await vm.ConsoleDirect(@"ln -s /datadrive/scpcontainer/config /home/azureuser/.config/SCP\ Secret\ Laboratory",sshClient);
-
-        _ = SendMessage("Starting Server");
-        _ = Log(fN,"Starting SCP Server");
-        await vm.ConsoleDirect(@"cd /datadrive/scpcontainer",sshClient);
-        await vm.ConsoleDirect(@"./LocalAdmin 7777",sshClient);
+        if(!await GetAlreadyStarted(vm)){
+            if(!await Setup(SendMessage)) return false;
+        } else {
+            return await ReconnectAsync(SendMessage);
+        }
 
         TaskCompletionSource<bool> _heartbeatReceived = new();
         var configTransferFailed = false;
@@ -141,65 +131,145 @@ public class SCPInterface
         await _heartbeatReceived.Task;
         if(configTransferFailed) _ = Log(fN,"Config Transfer Failed");
         _ = Log(fN,"SCP Server Started");
-        _started = true;
+
+        await SetAlreadyStarted(true,vm);
+
+        started = true;
+        return true;
     }
 
-    public async Task StopServerAsync(Func<string, Task> SendMessage){
+    public async Task<bool> StopServerAsync(Func<string, Task> SendMessage){
         var fN = nameof(StopServerAsync); //used in logging
 
-        try{
-            if(vm==null) throw new("VM does not exist");
-            if(sshClient==null)throw new("sshClient does not exist");
-            if(!_started) throw new("Process should already be dead.");
-        } catch (Exception e){
-            _ = Log(fN,$"{e}");
-            _ = SendMessage($"{e}");
-            return;
-        }
-        
-        await vm.ConsoleDirect(@"stop",sshClient);
-        _ = Log(fN,"SCP Server Stopped");
+        scpSettings = null;
 
-        await vm.ConsoleDirect(@"exit",sshClient);
-        sshClient.Close();
-        _ = Log(fN,"SSH Connection Stopped");
-        
+        if(sshClient!=null && vm!=null && vm.Connected){
+            sshClient.Close();
+            _ = Log(fN,"SSH Connection Stopped");
+            sshClient.Dispose();
+        }
+
         _ = SendMessage($"Deprovisioning Server");
-        await vm.Deallocate();
-        _started = false;
+        if(vm!=null){
+
+            await SetAlreadyStarted(false,vm);
+
+            await vm.Deallocate();
+        }
+
         _ = Log(fN,"SCPInterface Reset");
+        vm = null;
+
+        return true;
     }
 
-    private async Task SetupDisk(){
-        var fN = nameof(SetupDisk); //used in logging
+    public async Task<bool> ReconnectAsync(Func<string, Task> SendMessage){
+        _ = SendMessage("Reconnecting to Server");
+        _ = Log(nameof(ReconnectAsync),"Reconnecting to Server");
+        
+        if(vm==null){
+            _ = SendMessage("VM Null - Broken Interface");
+            _ = Log(nameof(ReconnectAsync),"VM Null - Broken Interface");
+            await StopServerAsync(SendMessage); //deleting interface
+            return false;
+        }
+        if(sshClient==null){
+            _ = SendMessage("sshClient Null - Broken Interface");
+            _ = Log(nameof(ReconnectAsync),"sshClient Null - Broken Interface");
+            await StopServerAsync(SendMessage); //deleting interface
+            return false;
+        }
+        if(!vm.Started){
+            _ = SendMessage("VM Offline - Reset Interface - Try Again");
+            _ = Log(nameof(ReconnectAsync),"VM Offline - Reset Interface");
 
-        try{
-            if(vm==null) throw new ArgumentException("VM does not exist");
-        } catch (Exception e){
-            _ = Log(fN,$"{e}");
-            return;
+            await SetAlreadyStarted(false,vm);
+
+            await StartServerAsync(SendMessage);
+            return true;
+        }
+        await vm.StartSSH(sshClient);
+
+        //restart log output
+        _ = Task.Run(async () => {
+            while(!sshClient.StandardOutput.EndOfStream){
+                string? output = await sshClient.StandardOutput.ReadLineAsync();
+                if(output!=null) _ = Console.Out.WriteLineAsync(output);
+            }
+            _ = Log(nameof(ReconnectAsync),"sshClient EndOfStream encountered or halted");
+        });
+
+        return true;
+    }
+
+    private async Task<bool> Setup(Func<string, Task> SendMessage){
+        var fN = nameof(Setup); //used in logging
+
+        if(vm==null){
+            await Log(fN,"Server Hardware Null");
+            await Log(fN,"VM does not exist");
+            return false;
+        }
+        if(sshClient==null){
+            await Log(fN,"sshClient does not exist");
+            await SendMessage("sshClient does not exist");
+            return false;
         }
 
         //partition, format, mount, chmod
-        var script = @"
-            #!/bin/bash
-            while [ ! -b /dev/sdc ]; do
-                :
-            done
+        var script = "";
+        void f(string a) => script += a + Environment.NewLine;
 
-            parted /dev/sdc --script mklabel gpt
-            parted /dev/sdc --script mkpart primary ext4 0% 100%
+        f(@"#!/bin/bash");
+        f(@"while [ ! -b /dev/sda ]; do");
+        f(@"    :");
+        f(@"done");
 
-            sudo mkfs.ext4 /dev/sdc1
+        f(@"export HOME=/home/azureuser");
 
-            sudo mkdir -p /datadrive
-            sudo mount /dev/sdc1 /datadrive
+        f(@"if [ ! -d ~/scpcontainer ]; then");
 
-            sudo chmod -R 777 /datadrive
-            ";
+        f($"    curl -o ~/scpcontainer.tar.gz '{await AzureVM.GetDownloadSas(@"scpcontainer",@"scpcontainer.tar.gz")}'");
 
-        _ = Log(fN,"Formatting Disk 1");
+        f(@"    tar -xvzf ~/scpcontainer.tar.gz -C ~/");
+        f(@"    mkdir -p ~/.config");
+        f(@"    ln -s ~/scpcontainer/config ~/.config/SCP\ Secret\ Laboratory");
+
+        f(@"    chmod -R 777 ~/.config");
+        f(@"    chmod -R 777 ~/scpcontainer");
+        
+        f(@"else");
+
+        f(@"    killall -9 LocalAdmin");
+
+        f(@"fi");
+
+        _ = SendMessage("Setting Up Game Files");
+        _ = Log(fN,"Running Setup Script");
         await vm.RunScript(script);
+
+        _ = SendMessage("Starting Server");
+        _ = Log(fN,"Starting SCP Server");
+        await vm.ConsoleDirect(@"cd ~/scpcontainer",sshClient);
+        await vm.ConsoleDirect(@"./LocalAdmin 7777",sshClient);
+
+        return true;
+    }
+
+    private static async Task SetAlreadyStarted(bool value, AzureVM vm){
+        var tableClient = await AzureManager.GetTableClient(nameof(Sunfire));
+        await AzureManager.StoreTableEntity(tableClient,vm.rgname,"started","scp",value);
+        tableClient = null;
+    }
+
+    private static async Task<bool> GetAlreadyStarted(AzureVM vm){
+        var tableClient = await AzureManager.GetTableClient(nameof(Sunfire));
+        var entity = await AzureManager.GetTableEntity(tableClient, vm.rgname, "started","scp");
+        tableClient = null;
+        //default to false if null
+        //if not null alreadyStarted = entity
+        bool alreadyStarted = entity != null && (bool)entity;
+        return alreadyStarted;
     }
 
     private async Task Log(string funcName, string input) =>

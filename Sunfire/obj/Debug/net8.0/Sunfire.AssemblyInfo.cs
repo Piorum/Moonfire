@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Sunfire")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b8f1b0a7a6f36adcea2b30881f89f9e368385505")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0372c6e00c4cb620b87d9bf9ffd810bc31611b1a")]
 [assembly: System.Reflection.AssemblyProductAttribute("Sunfire")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Sunfire")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,3 +1,4 @@
+using Azure;
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
@@ -8,7 +9,6 @@ using Azure.ResourceManager.Network.Models;
 using Azure.ResourceManager.Resources;
 using Azure.Data.Tables;
 using Mono.Unix.Native;
-using Azure;
 
 namespace AzureAllocator;
 
@@ -102,9 +102,64 @@ public static class AzureManager
             return null;
         }
     }
+    
+    public static async Task<object?> GetTableEntity(TableClient client, string key, string row, string column){
+        try{
+            var value = (await client.GetEntityIfExistsAsync<TableEntity>(key,row)).Value?[column];
+            return value;
+        }catch{
+            return null;
+        }
+    }
+    
+    public static async Task<object?> GetTableEntity(string client, string key, string row, string column){
+        try{
+            var value = (await (await GetTableClient(client)).GetEntityIfExistsAsync<TableEntity>(key,row)).Value?[column];
+            return value;
+        }catch{
+            return null;
+        }
+    }
+    
+    public static async Task<bool> GetBoolDefaultFalse(string client, string key, string row, string column){
+        try{
+            var value = (await (await GetTableClient(client)).GetEntityIfExistsAsync<TableEntity>(key,row)).Value?[column];
+            return (bool?)value ?? false;
+        }catch{
+            return false;
+        }
+    }
+    
+    public static async Task<bool> GetBoolDefaultTrue(string client, string key, string row, string column){
+        try{
+            var value = (await (await GetTableClient(client)).GetEntityIfExistsAsync<TableEntity>(key,row)).Value?[column];
+            return (bool?)value ?? true;
+        }catch{
+            return true;
+        }
+    }
 
     public static async Task StoreTableEntity(TableClient client, TableEntity entity){
         var _old = await GetTableEntity(client,entity.PartitionKey,entity.RowKey);
+        if(_old!=null) await UpdateTableEntity(client,entity);
+        else await AddTableEntity(client,entity);
+    }
+
+    public static async Task StoreTableEntity(TableClient client, string key, string row, string column, object value){
+        var _old = await GetTableEntity(client,key,row);
+        var entity = new TableEntity(key,row){
+            { column, value }
+        };
+        if(_old!=null) await UpdateTableEntity(client,entity);
+        else await AddTableEntity(client,entity);
+    }
+
+    public static async Task StoreTableEntity(string clientName, string key, string row, string column, object value){
+        var client = await GetTableClient(clientName);
+        var _old = await GetTableEntity(client,key,row);
+        var entity = new TableEntity(key,row){
+            { column, value }
+        };
         if(_old!=null) await UpdateTableEntity(client,entity);
         else await AddTableEntity(client,entity);
     }
@@ -341,8 +396,8 @@ public static class AzureManager
 
         //saving private key locally
         var sshPath = Path.Combine(
-            Environment.GetEnvironmentVariable("CONFIG_PATH") ?? "",
-            "Ssh",
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            ".ssh",
             $"{rgName}"
         );
         var keyPath = Path.Combine(sshPath,$"{vmName}-Key.pem");

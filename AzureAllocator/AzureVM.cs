@@ -9,13 +9,13 @@ namespace AzureAllocator;
 
 public class AzureVM
 {
-    private readonly VirtualMachineResource vm;
-    private readonly ResourceGroupResource rg;
-    private bool connected = false;
+    public bool Connected = false;
     public bool Started => CheckStarted();
     public readonly string name;
     public readonly string rgname;
     public readonly string ip;
+    private readonly VirtualMachineResource vm;
+    private readonly ResourceGroupResource rg;
 
     public AzureVM(VirtualMachineResource _vm, string _name, string _ip, ResourceGroupResource _rg, string _rgname){
         name = _name;
@@ -27,24 +27,36 @@ public class AzureVM
         //check initial VM power state
         _ = Log("AzureVM",$"Started:{Started}");
     }
+
     public async Task Start(){
         if(!Started) await StartVM();
     }
+
     public async Task Deallocate(){
         if(Started){
             _ = Log(nameof(Deallocate),$"Deallocating VM");
             await AzureManager.DeAllocate(name,rgname,rg);
-            connected = false;
+            Connected = false;
             _ = Log(nameof(Deallocate),$"Deallocated VM");
         }
     }
-    //This connects through SSH and sends console input through the standard input
-    public async Task ConsoleDirect(string input, Process _client){
-        await Start();
-        if (!connected) await StartSSH(_client);
-        _ = Log(nameof(ConsoleDirect),$"sent:{input}");
-        await _client.StandardInput.WriteLineAsync(input);
+
+    public static Task<ProcessStartInfo> BuildSshClient(string guid, AzureVM vm){
+        return Task.FromResult(new ProcessStartInfo
+            {
+                FileName = "ssh", 
+                Arguments =
+                    $"-t " +
+                    $"-o StrictHostKeyChecking=no " +
+                    $"-i {Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}/.ssh/{guid}RG/{vm?.name}-Key.pem " +
+                    $"azureuser@{vm?.ip}",
+                CreateNoWindow = true,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            });
     }
+
     public async Task StartSSH(Process _client){
         _ = Log(nameof(StartSSH),$"trying to connect");
         _client.Start();
@@ -57,9 +69,6 @@ public class AzureVM
                     _connectionAttempted.TrySetResult(true);
                     _ = Log(nameof(StartSSH),$"welcome received");
                 }
-                if(_client.StandardOutput.EndOfStream){
-                    _client.Start();
-                }
             };
         });
 
@@ -71,13 +80,20 @@ public class AzureVM
         });
 
         await Task.WhenAny(monitorTask, timeoutTask);
-        await Task.Delay(200); //leave time to connection to settle
-        connected = true;
+        Connected = true;
 
-        _ = Log(nameof(StartSSH),$"connection attempted");
+        _ = Log(nameof(StartSSH),$"ssh connection attempted");
+    }
+    //This connects through SSH and sends console input through the standard input
+    public async Task ConsoleDirect(string input, Process _client){
+        await Start();
+        if (!Connected) await StartSSH(_client);
+        _ = Log(nameof(ConsoleDirect),$"sent:{input}");
+        await _client.StandardInput.WriteLineAsync(input);
     }
     //This runs a bash script on the machine
     public async Task RunScript(string script){
+        await Start();
         var scriptParams = new RunCommandInput("RunShellScript")
         {
             Script = 
@@ -88,6 +104,7 @@ public class AzureVM
         _ = Log(nameof(RunScript),$"{script}");
         await vm.RunCommandAsync(Azure.WaitUntil.Completed, scriptParams);
     }
+
     public static Task<Uri> GetDownloadSas(string container, string name){
         string connectionString = Environment.GetEnvironmentVariable("MOONFIRE_STORAGE_STRING") ?? "";
         var blobClient = new BlobClient(connectionString, container, name);
@@ -104,10 +121,12 @@ public class AzureVM
 
         return Task.FromResult(blobClient.GenerateSasUri(sasBuilder));
     }
+
     public async Task DownloadBlob(string container, string name, string destination){
         _ = Log(nameof(DownloadBlob),$"Downloading '{container}/{name}' to '{destination}'");
         await RunScript($"curl -o {destination} '{await GetDownloadSas(container,name)}'");
     }
+
     private async Task StartVM(){
         _ = Log(nameof(StartVM),$"Starting VM");
 
@@ -115,6 +134,7 @@ public class AzureVM
         
         _ = Log(nameof(StartVM),$"Started VM");
     }
+    
     private bool CheckStarted(){
         return "VM running" == vm.InstanceView().Value.Statuses.FirstOrDefault(status => status.Code.StartsWith("PowerState/"))?.DisplayStatus;
     }

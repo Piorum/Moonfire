@@ -1,4 +1,6 @@
-﻿using Azure.Storage.Blobs;
+﻿using Azure.Storage;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using System.Diagnostics;
 
 
@@ -158,7 +160,31 @@ public static class SetupHelper{
         BlobClient blobClient = new(connectionString, "bot", file);
         filePath = Path.Combine(filePath,file);
 
+        long fileSize = new FileInfo(filePath).Length;
+
         using FileStream uploadFileStream = File.OpenRead(filePath);
-        await blobClient.UploadAsync(uploadFileStream, overwrite: true);
+
+        if (await blobClient.ExistsAsync())
+        {
+            Console.WriteLine("Blob already exists. Deleting Old");
+            await blobClient.DeleteAsync();
+        }
+
+        var progressHandler = new Progress<long>(progress =>
+        {
+            double percentage = (double)progress / fileSize * 100;
+            Console.WriteLine($"Uploaded {progress} bytes of {fileSize} bytes. ({percentage:0.00}%)");
+        });
+
+        await Console.Out.WriteLineAsync($"Uploading File {filePath}");
+        await blobClient.UploadAsync(uploadFileStream, new BlobUploadOptions
+            {
+                TransferOptions = new StorageTransferOptions
+                {
+                    MaximumTransferSize = 16 * 1024 * 1024
+                },
+                ProgressHandler = progressHandler
+            });
+        await Console.Out.WriteLineAsync($"Uploaded File {filePath}");
     }
 }
