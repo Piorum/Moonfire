@@ -5,6 +5,7 @@ namespace Sunfire;
 public class Bot(string token, DiscordSocketConfig? config = null, List<Command>? _commands = null) : BotBase(token,config,_commands)
 {
     private readonly Dictionary<ulong, SCPInterface?> scpInterfaces = [];
+    private readonly Dictionary<ulong, bool> scpStartFlags = [];
 
     // Uncomment to do initial population of commands
     /*protected async override Task ClientReadyHandler(){
@@ -83,7 +84,7 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
         return (Game)Convert.ToInt32(command.Data.Options.First().Value) switch
         {
 
-            Game.SCP => StartTaskAsync(scpInterfaces,command),
+            Game.SCP => StartTaskAsync(scpInterfaces,scpStartFlags,command),
             
             Game.MINECRAFT => SendSlashReplyAsync("Minecraft not available",command),
             
@@ -117,7 +118,7 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
         await SendSlashReplyAsync(help[(help.IndexOf('[')+1)..help.LastIndexOf(']')],command);
     }
 
-    private static async Task StartTaskAsync<TServer>(Dictionary<ulong, TServer?> servers, SocketSlashCommand command)
+    private static async Task StartTaskAsync<TServer>(Dictionary<ulong, TServer?> servers, Dictionary<ulong, bool> startingFlags, SocketSlashCommand command)
         where TServer : class, IServer<TServer>
     {
         if(await CheckMaintenance(command)) return;
@@ -126,6 +127,13 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
         await SendSlashReplyAsync("Handling Command",command);
         //convert from ulong? to ulong
         ulong guid = command.GuildId ?? 0;
+
+        startingFlags.TryGetValue(guid,out var starting);
+        if(starting){
+            await ModifySlashReplyAsync("Already Starting",command);
+        }
+        startingFlags.Add(guid,true);
+
         //if no value, or value = null
         if(!servers.TryGetValue(guid,out TServer? server) || server == null){
             //set server and dictionary value to interface object
@@ -136,11 +144,13 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
         //check if provisioning failed
         if(server==null){
             await ModifySlashReplyAsync("Provisioning Failure",command);
+            startingFlags.Remove(guid);
             return;
         }
         //start server
         var result = await server.StartServerAsync((string a)=>ModifySlashReplyAsync(a,command));
         if(result) await ModifySlashReplyAsync($"Started Server at '{server.PublicIp}'",command);
+        startingFlags.Remove(guid);
     }
 
     private static async Task StopTaskAsync<TServer>(Dictionary<ulong, TServer?> servers, SocketSlashCommand command)
