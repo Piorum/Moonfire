@@ -121,16 +121,18 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
     private static async Task StartTaskAsync<TServer>(Dictionary<ulong, TServer?> servers, Dictionary<ulong, bool> startingFlags, SocketSlashCommand command)
         where TServer : class, IServer<TServer>
     {
-        if(await CheckMaintenance(command)) return;
-
         //ensure initial reply is sent first
         await SendSlashReplyAsync("Handling Command",command);
+
+        if(await CheckMaintenance(command)) return;
+
         //convert from ulong? to ulong
         ulong guid = command.GuildId ?? 0;
 
         startingFlags.TryGetValue(guid,out var starting);
         if(starting){
             await ModifySlashReplyAsync("Already Starting",command);
+            return;
         }
         startingFlags.Add(guid,true);
 
@@ -156,10 +158,11 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
     private static async Task StopTaskAsync<TServer>(Dictionary<ulong, TServer?> servers, SocketSlashCommand command)
         where TServer : class, IServer<TServer>
     {
-        if(await CheckMaintenance(command)) return;
-
         //ensure initial reply is sent first
         await SendSlashReplyAsync("Stopping SCP Server",command);
+        
+        if(await CheckMaintenance(command)) return;
+
         var guid = command.GuildId ?? 0;
         if(!servers.TryGetValue(guid,out var server)){
             await ModifySlashReplyAsync("No Server Found",command);
