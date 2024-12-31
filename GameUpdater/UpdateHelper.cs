@@ -11,7 +11,7 @@ public static class UpdateHelper
     public static async Task UpdateSCP(){
         var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         await Console.Out.WriteLineAsync("Updating SCP");
-        await AzureManager.StoreTableEntity("Updatefire","updating","game","scp",true);
+        await TableManager.StoreTableEntity("Updatefire","updating","game","scp",true);
         await RunBash($"steamcmd",$"+force_install_dir {home}/Documents/SCP +login anonymous +app_update 996560 -beta public validate +quit");
         await RunBash($"rm",$"-rf {home}/Documents/scpcontainer");
         await RunBash($"rm",$"-rf {home}/Documents/scpcontainer.tar.gz");
@@ -19,7 +19,7 @@ public static class UpdateHelper
         await RunBash($"cp",$"-r {home}/Documents/AzureContainers/SCPFILES/config {home}/Documents/AzureContainers/scpcontainer/config");
         await RunBash($"tar",$"-czvf {home}/Documents/AzureContainers/scpcontainer.tar.gz ./scpcontainer",$"{home}/Documents/AzureContainers");
         await UploadTar("scpcontainer.tar.gz","scpcontainer",$"{home}/Documents/AzureContainers/");
-        await AzureManager.StoreTableEntity("Updatefire","updating","game","scp",false);
+        await TableManager.StoreTableEntity("Updatefire","updating","game","scp",false);
     }
 
     public static async Task UpdateMINECRAFT(){
@@ -33,18 +33,18 @@ public static class UpdateHelper
     public static async Task MaintenanceLock(string ver){
         await Console.Out.WriteLineAsync("Locking Bot For Maintenance");
 
-        await AzureManager.StoreTableEntity("Updatefire","maintenance","bot","rebuilding",true);
+        await TableManager.StoreTableEntity("Updatefire","maintenance","bot","rebuilding",true);
 
-        //i = to maintenace period in minutes
+        //i = maintenace period in minutes
         for(var i = 3; i > 0; i--){
             await Console.Out.WriteLineAsync($"{i} minutes to restart");
-            await AzureManager.StoreTableEntity("Updatefire","maintenance","bot","time",i);
-            await Task.Delay(60000);
+            await TableManager.StoreTableEntity("Updatefire","maintenance","bot","time",i);
+            await Task.Delay( 60 * 1000 );
         }
 
         await SetupHelper.UpdateBuild(ver);
 
-        await AzureManager.StoreTableEntity("Updatefire","maintenance","bot","rebuilding",false);
+        await TableManager.StoreTableEntity("Updatefire","maintenance","bot","rebuilding",false);
     }
 
     private static async Task RunBash(string app, string arg, string? cwd = null){

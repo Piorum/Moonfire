@@ -8,7 +8,7 @@ namespace Sunfire.Interfaces;
 public class SCPInterface : IServer<SCPInterface>
 {   
     public string PublicIp => vm?.ip ?? "Not Found";
-    private string Name => $"{vm?.rgname ?? "RG Name Not Found"}:{vm?.name ?? "VM Name Not Found"}:";
+    private string Name => $"{vm?.rgName ?? "RG Name Not Found"}:{vm?.vmName ?? "VM Name Not Found"}:";
     private bool started = false;
     private Process? sshClient;
     private AzureVM? vm;
@@ -21,11 +21,11 @@ public class SCPInterface : IServer<SCPInterface>
 
 
         //loading settings
-        var tableClient = await AzureManager.GetTableClient(nameof(Sunfire) + "SCP");
+        var tableClient = await TableManager.GetTableClient(nameof(Sunfire) + "SCP");
 
         //loading hardware settings
         //attempt to get stored settings
-        var hardwareSettingsJson = (await AzureManager.GetTableEntity(tableClient,guildId,"config"))?["scphardware"];
+        var hardwareSettingsJson = (await TableManager.GetTableEntity(tableClient,guildId,"config"))?["scphardware"];
 
         //if settings are null load and store template settings
         if(hardwareSettingsJson==null){
@@ -37,7 +37,7 @@ public class SCPInterface : IServer<SCPInterface>
                 "SCPSettings.json"
             );
             hardwareSettingsJson = await File.ReadAllTextAsync(hardwareTemplatePath);
-            await AzureManager.StoreTableEntity(tableClient,new TableEntity(guildId,"config"){
+            await TableManager.StoreTableEntity(tableClient,new TableEntity(guildId,"config"){
                 { "scphardware", (string)hardwareSettingsJson }
             });
         }
@@ -47,13 +47,13 @@ public class SCPInterface : IServer<SCPInterface>
 
         //loading game settings
         //attempt to get stored setting
-        var gameSettingsJson = (await AzureManager.GetTableEntity(tableClient,guildId,"config"))?["scpgame"];
+        var gameSettingsJson = (await TableManager.GetTableEntity(tableClient,guildId,"config"))?["scpgame"];
 
         if(gameSettingsJson==null){
             _ = Console.Out.WriteLineAsync($"{nameof(SCPInterface)}: No Game Settings Found For {guildId} Storing Defaults");
             //use default settings if none is found
             gameSettingsJson = JsonConvert.SerializeObject(new ScpSettings());
-            await AzureManager.StoreTableEntity(tableClient,new TableEntity(guildId,"config"){
+            await TableManager.StoreTableEntity(tableClient,new TableEntity(guildId,"config"){
                 { "scpgame", (string)gameSettingsJson }
             });
         }
@@ -97,7 +97,7 @@ public class SCPInterface : IServer<SCPInterface>
             await Log(fN,"Game Already Started");
             return true;
         }
-        if(await AzureManager.GetBoolDefaultFalse("Updatefire","updating","game","scp")){
+        if(await TableManager.GetBoolDefaultFalse("Updatefire","updating","game","scp")){
             await Log(fN,"Game is updating");
             await SendMessage("Game is updating - Try again soon");
             return false;
@@ -257,14 +257,14 @@ public class SCPInterface : IServer<SCPInterface>
     }
 
     private static async Task SetAlreadyStarted(bool value, AzureVM vm){
-        var tableClient = await AzureManager.GetTableClient(nameof(Sunfire));
-        await AzureManager.StoreTableEntity(tableClient,vm.rgname,"started","scp",value);
+        var tableClient = await TableManager.GetTableClient(nameof(Sunfire));
+        await TableManager.StoreTableEntity(tableClient,vm.rgName,"started","scp",value);
         tableClient = null;
     }
 
     private static async Task<bool> GetAlreadyStarted(AzureVM vm){
-        var tableClient = await AzureManager.GetTableClient(nameof(Sunfire));
-        var entity = await AzureManager.GetTableEntity(tableClient, vm.rgname, "started","scp");
+        var tableClient = await TableManager.GetTableClient(nameof(Sunfire));
+        var entity = await TableManager.GetTableEntity(tableClient, vm.rgName, "started","scp");
         tableClient = null;
         //default to false if null
         //if not null alreadyStarted = entity

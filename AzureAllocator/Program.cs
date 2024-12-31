@@ -101,6 +101,8 @@ public static class SetupHelper{
         f(@"chmod -R 777 ~/.config");
         f(@"chmod -R 777 ~/net8.0");
 
+        f($"[ -e \"{ver}.log\" ] && mv \"{ver}.log\" \"{ver}.log_backup\"");
+
         f($"sudo -u azureuser ~/net8.0/{ver} > ~/{ver}.log 2>&1 &");
         
         await vm.RunScript(script);

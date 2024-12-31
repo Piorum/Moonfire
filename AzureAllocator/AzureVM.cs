@@ -4,6 +4,7 @@ using Azure.ResourceManager.Resources;
 using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
 using System.Diagnostics;
+using Azure.ResourceManager.Network;
 
 namespace AzureAllocator;
 
@@ -11,21 +12,59 @@ public class AzureVM
 {
     public bool Connected = false;
     public bool Started => CheckStarted();
-    public readonly string name;
-    public readonly string rgname;
-    public readonly string ip;
-    private readonly VirtualMachineResource vm;
+    public readonly string vmName;
+    public readonly string rgName;
+    public readonly string? ip;
     private readonly ResourceGroupResource rg;
+    private readonly VirtualMachineResource vm;
+    private readonly VirtualNetworkResource vnet;
+    private readonly PublicIPAddressResource pip;
+    private readonly NetworkSecurityGroupResource nsg;
+    private readonly NetworkInterfaceResource nic;
+    private readonly string keyName;
 
-    public AzureVM(VirtualMachineResource _vm, string _name, string _ip, ResourceGroupResource _rg, string _rgname){
-        name = _name;
-        ip = _ip;
-        vm = _vm;
-        rg = _rg;
-        rgname = _rgname;
+    private AzureVM(
+        string vmName, 
+        string rgName, 
+        ResourceGroupResource rg,
+        VirtualMachineResource vm,
+        VirtualNetworkResource vnet,
+        PublicIPAddressResource pip,
+        NetworkSecurityGroupResource nsg,
+        NetworkInterfaceResource nic,
+        string keyName
+    ){
+        this.vmName = vmName;
+        this.rgName = rgName;
+        this.rg = rg;
+        this.vm = vm;
+        this.vnet = vnet;
+        this.pip = pip;
+        this.nsg = nsg;
+        this.nic = nic;
+        this.keyName = keyName;
+        ip = pip.Data.IPAddress;
+    }
 
-        //check initial VM power state
-        _ = Log("AzureVM",$"Started:{Started}");
+    public static Task<bool> TryCreateAzureVMAsync(
+        string vmName, 
+        string rgName, 
+        ResourceGroupResource? rg,
+        VirtualMachineResource? vm,
+        VirtualNetworkResource? vnet,
+        PublicIPAddressResource? pip,
+        NetworkSecurityGroupResource? nsg,
+        NetworkInterfaceResource? nic,
+        string? keyName,
+        out AzureVM? azureVM
+    ){
+        if(rg==null || vm==null || vnet==null || pip==null || nsg==null || nic==null || keyName==null){
+            azureVM = null;
+            return Task.FromResult(false);
+        }
+
+        azureVM = new(vmName, rgName, rg, vm, vnet, pip, nsg, nic, keyName);
+        return Task.FromResult(true);
     }
 
     public async Task Start(){
@@ -35,7 +74,7 @@ public class AzureVM
     public async Task Deallocate(){
         if(Started){
             _ = Log(nameof(Deallocate),$"Deallocating VM");
-            await AzureManager.DeAllocate(name,rgname,rg);
+            await AzureManager.DeAllocate(rg,vm,vnet,pip,nsg,nic,keyName);
             Connected = false;
             _ = Log(nameof(Deallocate),$"Deallocated VM");
         }
@@ -48,7 +87,7 @@ public class AzureVM
                 Arguments =
                     $"-t " +
                     $"-o StrictHostKeyChecking=no " +
-                    $"-i {Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}/.ssh/{guid}RG/{vm?.name}-Key.pem " +
+                    $"-i {Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}/.ssh/{guid}RG/{vm?.vmName}-Key.pem " +
                     $"azureuser@{vm?.ip}",
                 CreateNoWindow = true,
                 RedirectStandardInput = true,
@@ -140,5 +179,5 @@ public class AzureVM
     }
 
     private async Task Log(string funcName, string input) =>
-        await Console.Out.WriteLineAsync($"{rgname}:{name}:{funcName}:{input}");
+        await Console.Out.WriteLineAsync($"{rgName}:{vmName}:{funcName}:{input}");
 }

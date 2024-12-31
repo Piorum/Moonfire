@@ -160,7 +160,7 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
     {
         //ensure initial reply is sent first
         await SendSlashReplyAsync("Stopping SCP Server",command);
-        
+
         if(await CheckMaintenance(command)) return;
 
         var guid = command.GuildId ?? 0;
@@ -186,8 +186,8 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
     }
 
     private static async Task<bool> CheckMaintenance(SocketSlashCommand command){
-        if(await AzureManager.GetBoolDefaultFalse("Updatefire","maintenance","bot","rebuilding")){
-            var timeRaw = await AzureManager.GetTableEntity("Updatefire","maintenance","bot","time");
+        if(await TableManager.GetBoolDefaultFalse("Updatefire","maintenance","bot","rebuilding")){
+            var timeRaw = await TableManager.GetTableEntity("Updatefire","maintenance","bot","time");
             int time = (int?)timeRaw ?? 5;
             await SendSlashReplyAsync($"Bot undergoing maintenance]\n[Try again in {time} minutes",command);
             return true;
@@ -220,9 +220,7 @@ public interface IServer<TSelf>
 {
     // Static abstract method to “create” an instance of TSelf
     static abstract Task<TSelf?> CreateInterfaceAsync(string name);
-
     Task<bool> StartServerAsync(Func<string, Task> messageSenderCallback);
     Task<bool> StopServerAsync(Func<string, Task> messageSenderCallback);
-    Task<bool> ReconnectAsync(Func<string, Task> SendMessage);
     string PublicIp { get; }
 }

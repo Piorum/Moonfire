@@ -6,6 +6,23 @@ public class Program{
     public static async Task Main(){
         var ver = nameof(Sunfire);
 
+        var CONFIG_PATH = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            ver
+        );
+        Environment.SetEnvironmentVariable(nameof(CONFIG_PATH),CONFIG_PATH,EnvironmentVariableTarget.Process);
+
+        //loading .env
+        var envPath = Path.Combine(
+            Environment.GetEnvironmentVariable("CONFIG_PATH") ?? "",
+            ".env"
+        );
+        foreach(string line in File.ReadAllLines(envPath)){
+            //From NAME="value" Env.Set(NAME,value,process)
+            if(line[0]=='#') continue;
+            Environment.SetEnvironmentVariable(line[0..line.IndexOf('=')],line[(line.IndexOf('=')+2)..line.LastIndexOf('"')],EnvironmentVariableTarget.Process);
+        }
+
         var i = 0;
         foreach(var game in Enum.GetValues(typeof(Options))){
             await Console.Out.WriteLineAsync($"{i} - {game}");
