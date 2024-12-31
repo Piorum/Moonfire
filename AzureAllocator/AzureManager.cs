@@ -94,7 +94,7 @@ public static class AzureManager
             _ = Console.Out.WriteLineAsync($"Deallocation Failed.\n{e}");
 
             //code should be added here to alert of failure
-            
+
         }
     }
 
@@ -461,7 +461,7 @@ public static class AzureManager
             rgName,
             a => rg.GetSshPublicKeys().ExistsAsync(a),
             a => rg.GetSshPublicKeyAsync(a),
-            vmName
+            keyName
         );
 
         if(sshR!=null){
