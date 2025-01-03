@@ -167,18 +167,19 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
             _ = Console.Out.WriteLineAsync($"{nameof(StartTaskAsync)}:Startup Timed Out");
             //send alert here
 
-            await ModifySlashReplyAsync($"Server Startup Timed Out]\n [Please Wait One Minute", command);
+            await ModifySlashReplyAsync($"Server Startup Failed]\n   [Try Again Soon", command);
             ulong guid = command.GuildId ?? 0;
+
+            workingFlags.Remove(guid);
+            workingFlags.Add(guid,Working.RECOVERING);
 
             if (!servers.TryGetValue(guid, out TServer? server) || server == null)
             {
+                workingFlags.Remove(guid);
                 return;
             }
 
             //This needs to run to clean up resources
-            //remove starting lock
-            workingFlags.Remove(guid);
-
             var stopcts = new CancellationTokenSource();
             await Ext.TimeoutTask
             (
@@ -189,6 +190,9 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
 
             //fully cleans up server object
             servers.Remove(guid);
+
+            //remove recovery lock
+            workingFlags.Remove(guid);
 
         },cts.Token));
 
@@ -235,9 +239,12 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
             _ = Console.Out.WriteLineAsync($"{nameof(StopTaskAsync)}:Stopping Timed Out");
             //send alert here
 
-            await ModifySlashReplyAsync($"Server Stopping Timed Out]\n    [Please Try Again",command);
-            ulong guid = command.GuildId ?? 0;
+            var guid = command.GuildId ?? 0;
 
+            workingFlags.Remove(guid);
+            workingFlags.Add(guid,Working.RECOVERING);
+
+            await ModifySlashReplyAsync($"Server Stopping Failure]\n     [Try Again Soon",command);
             servers.Remove(guid);
             workingFlags.Remove(guid);
 
@@ -277,6 +284,9 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
             case Working.STOPPING:
                 await ModifySlashReplyAsync("Server is Stopping",command);
                 return true;
+            case Working.RECOVERING:
+                await ModifySlashReplyAsync("Server is Recovering From Failure",command);
+                return true;
             default:
                 return false;
         }
@@ -297,7 +307,8 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
     private enum Working{
         NONE,
         STARTING,
-        STOPPING
+        STOPPING,
+        RECOVERING
     }
 }
 
