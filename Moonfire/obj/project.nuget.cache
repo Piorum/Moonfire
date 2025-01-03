@@ -1,10 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "8+3TNIUl8zYd/JsTtQ/Yzi60fkt+N5B97HBLfQRKth8lnU9PLM8YEqmDqPc1iIFkDeyQWGa1Kzi+3WXGI75d1g==",
+  "dgSpecHash": "u54HA//O/5C82LZBFUXb/JTwdB6mE0THsVCglaC9rX4TtTmvqLW3vU5DLh0fp7cBwa0RpN5NybZ4QpDdnPhgaQ==",
   "success": true,
-  "projectFilePath": "/home/username/Documents/Moonfire/Moonfire/Moonfire.csproj",
+  "projectFilePath": "/home/username/Documents/Singularity/Moonfire/Moonfire/Moonfire.csproj",
   "expectedPackageFiles": [
     "/home/username/.nuget/packages/azure.core/1.44.1/azure.core.1.44.1.nupkg.sha512",
+    "/home/username/.nuget/packages/azure.data.tables/12.9.1/azure.data.tables.12.9.1.nupkg.sha512",
     "/home/username/.nuget/packages/azure.identity/1.13.1/azure.identity.1.13.1.nupkg.sha512",
     "/home/username/.nuget/packages/azure.resourcemanager/1.13.0/azure.resourcemanager.1.13.0.nupkg.sha512",
     "/home/username/.nuget/packages/azure.resourcemanager.compute/1.6.0/azure.resourcemanager.compute.1.6.0.nupkg.sha512",

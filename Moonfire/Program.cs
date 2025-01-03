@@ -1,17 +1,20 @@
-﻿using Azure.Identity;
-using Azure.ResourceManager;
+﻿using Azure.Data.Tables;
 
 namespace Moonfire;
 
 public class Program{
     
     //entry point
-    public static async Task Main()
-    {
+    public static async Task Main(){
+        var CONFIG_PATH = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            nameof(Moonfire) //change in azure allocator program.cs
+        );
+        Environment.SetEnvironmentVariable(nameof(CONFIG_PATH),CONFIG_PATH,EnvironmentVariableTarget.Process);
+
         //load .env
         var envPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Moonfire",
+            Environment.GetEnvironmentVariable("CONFIG_PATH") ?? "",
             ".env"
         );
         foreach (string line in File.ReadAllLines(envPath))
@@ -30,27 +33,26 @@ public class Program{
 
         //Discord Bot Commands
         //Need to match SlashCommandHandler switch cases to be caught
-        List<string>? _choices = ["SCP", "GMOD"];
+        //Choices need to match Game Enum in Bot.cs
+        List<string>? _choices = ["SCP", "MINECRAFT"];
         var commands = new List<Command>{
             new("help", "Prints help information", Rank.User),
-            new("start", "#Admin - Starts specified game server", Rank.Admin,
+
+            new("start", "#Admin - Provisions and Starts Game Server", Rank.Admin,
                 [new(name: "game", description: "select game", isRequired: true, choices: _choices)]),
-            new("stop", "#Admin - Stops VM and server", Rank.Admin,
+            new("stop", "#Admin - Deprovisions and Stops Game Server", Rank.Admin,
                 [new(name: "game", description: "select game", isRequired: true, choices: _choices)]),
-            new("console", "#Owner - Sends input direct to Azure VM", Rank.Owner,
+
+            new("console", "#Owner - WIP", Rank.Owner,
                 [new(name: "input", description: "Input sent to the console", isRequired: true )]),
             new("repopulate", "#Owner - Refreshes bot commands", Rank.Owner)
         };
 
-        //creating ArmClient
-        var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID") ?? "";
-        var clientSecret = Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET") ?? "";
-        var tenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID") ?? "";
-        var subscription = Environment.GetEnvironmentVariable("AZURE_SUBSCRIPTION_ID") ?? "";
-        ClientSecretCredential credential = new(tenantId, clientId, clientSecret);
-        ArmClient azureClient = new(credential, subscription);
-
-        var _application = new Bot(token, azureClient, config, commands);
-        await _application.StartBotAsync();
+        var _application = new Bot(token, config, commands);
+        try{
+            await _application.StartBotAsync();
+        } catch (Exception e){
+            await Console.Out.WriteLineAsync($"{e}");
+        }
     }
 }

@@ -1,4 +1,3 @@
-using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Compute;
@@ -7,123 +6,268 @@ using Azure.ResourceManager.Network;
 using Azure.ResourceManager.Network.Models;
 using Azure.ResourceManager.Resources;
 using Mono.Unix.Native;
+using FuncExt;
 
 namespace AzureAllocator;
 
 public static class AzureManager
 {
-    public static async Task<AzureVM?> Allocate(ArmClient client, AzureSettings settings, string rgName, string vmName){
+    public static async Task<AzureVM?> Allocate(AzureSettings settings, string rgName, string vmName, CancellationToken token = default){
         //defaults if settings are null
         var region = settings.Region ?? "centralus";
+        var client = await BuildArmClient();
 
-        ResourceGroupResource? rg = null; //used in finally
+        var vnetName = $"{vmName}Vnet";
+        var pipName = $"{vmName}PublicIP";
+        var nsgName = $"{vmName}NetworkSG";
+        var nicName = $"{vmName}NetworkInterface";
+        var keyName = $"{vmName}SshKey";
+
+        ResourceGroupResource? rg = null;
+        VirtualMachineResource? vm = null;
+        VirtualNetworkResource? vnet = null;
+        PublicIPAddressResource? pip = null;
+        NetworkSecurityGroupResource? nsg = null;
+        NetworkInterfaceResource? nic = null;
+        string? key = null;
+        
+        var sub = await GetSubscriptionAsync();
         try{
-            //creating resource group
-            VirtualMachineResource vm;
-            string ip;
-            try{
-                //behavior if resource group exists
-                //this will break if internal resources are missing
-                ResourceIdentifier rgid = new($"/subscriptions/{Environment.GetEnvironmentVariable("AZURE_SUBSCRIPTION_ID")}/resourceGroups/{rgName}");
-                rg = client.GetResourceGroupResource(rgid);
-                vm = await rg.GetVirtualMachines().GetAsync(vmName);
-                ip = (await rg.GetPublicIPAddresses().GetAsync($"{vmName}PublicIP")).Value.Data.IPAddress;
-            }
-            catch {
-                //behavior if resource group does not exist
-                _ = Log(vmName,rgName,nameof(Allocate),$"Creating Resource Group");
-                rg = (await client
-                    .GetDefaultSubscription()
-                    .GetResourceGroups()
-                    .CreateOrUpdateAsync(Azure.WaitUntil.Completed, rgName, new ResourceGroupData(region))).Value;
+            rg = await AllocateOrGetRG(region,vmName,rgName,sub,token) ?? throw new("Resource Group Allocation Failed");
 
-                //begin vnet and pip allocation and continue once both are done
-                var vnetTask = AllocateVnet(region,vmName,rgName,rg);
-                var pipTask = AllocatePip(region,vmName,rgName,rg);
-                var nsgTask = AllocateNsg(region,vmName,rgName,rg,settings);
-                var keyTask = GenerateSshKeyPair(region,vmName,rgName,rg);
-                await Task.WhenAll(vnetTask,pipTask,nsgTask,keyTask);
-                var vnet = await vnetTask;
-                var pip = await pipTask;
-                var nsg = await nsgTask;
-                var key = await keyTask;
+            var vnetTask = AllocateOrGetVnet(region,vmName,rgName,rg,vnetName,token);
+            var pipTask = AllocateOrGetPip(region,vmName,rgName,rg,pipName,token);
+            var nsgTask = AllocateOrGetNsg(region,vmName,rgName,rg,settings,nsgName,token);
+            var keyTask = AllocateOrGetSshKeyPair(region,vmName,rgName,rg,keyName,token);
+            await Task.WhenAll(vnetTask,pipTask,nsgTask,keyTask);
+            vnet = await vnetTask ?? throw new("Virtual Network Allocation Failed");
+            pip = await pipTask ?? throw new("Public IP Allocation Failed");
+            nsg = await nsgTask ?? throw new("Network Security Group Allocation Failed");
+            key = await keyTask ?? throw new("Shh Key Pair Allocation Failed");
 
-                ip = pip.Data.IPAddress;
+            nic = await AllocateOrGetNic(region,vmName,rgName,rg,vnet,pip,nsg,nicName,token) ?? throw new("Network Interface Allocation Failed");
+            vm = await AllocateOrGetVm(region,vmName,rgName,rg,nic,key,settings,token) ?? throw new("Virtual Machine Allocation Failed");
 
-                //allocate nic then vm
-                var nic = await AllocateNic(region,vmName,rgName,rg,vnet,pip,nsg);
-                vm = await AllocateVm(region,vmName,rgName,rg,nic,key,settings);
-            }
+            var success = await AzureVM.TryCreateAzureVMAsync(vmName,rgName,rg,vm,vnet,pip,nsg,nic,keyName,out var azureVM);
+            return success ? azureVM : throw new("AzureVM Creation Failed");
 
-            _ = Log(vmName,rgName,nameof(Allocate),$"Completed Allocation");
-            //return allocated vm interface
-            return new AzureVM(vm, vmName, ip, rg, rgName);
-        } 
-        catch (Exception e){
-            _ = Log(vmName,rgName,nameof(Allocate),$"Failed to allocate.\n{e}");
-            if(rg!=null){
-                _ = Log(vmName,rgName,nameof(Allocate),$"Cleaning up partial VM");
-                await DeAllocate(vmName,rgName,rg);
-                _ = Log(vmName,rgName,nameof(Allocate),$"Partial VM deallocated");
-            } else{
-                _ = Log(vmName,rgName,nameof(Allocate),$"Did not create any resources in Azure. No clean up is necessary");
-            }
+        } catch (OperationCanceledException){
+            //propagate upward
+            throw;
+        } catch (Exception e){
+            _ = Log(vmName,rgName,nameof(Allocate),$"{e}");
+
+            _ = Log(vmName,rgName,nameof(Allocate),$"Cleaning Up");
+
+            var cts = new CancellationTokenSource();
+            await Ext.TimeoutTask
+            (
+                DeAllocate(rg,vm,vnet,pip,nsg,nic,keyName,cts.Token),
+                new(0,10,0),
+                cts
+            );
+
+            //code should be added here to alert of failure
+
+            return null;
         }
-        return null;
     }
 
     public static async Task DeAllocate(
-        string vmName,
-        string rgName,
-        ResourceGroupResource resourceGroup
+        ResourceGroupResource? rg,
+        VirtualMachineResource? vm,
+        VirtualNetworkResource? vnet,
+        PublicIPAddressResource? pip,
+        NetworkSecurityGroupResource? nsg,
+        NetworkInterfaceResource? nic,
+        string? keyName,
+        CancellationToken token = default
     ){
         try{
-            await resourceGroup.DeleteAsync(Azure.WaitUntil.Completed);
-        }
-        catch (Exception e){
-            _ = Log(vmName,rgName,nameof(DeAllocate),$"Failed deallocation\n{e}");
+            //order here is important
+            if(vm!=null) await vm.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+            if(nic!=null) await nic.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+            if(pip!=null) await pip.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+            if(nsg!=null) await nsg.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+            if(vnet!=null) await vnet.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+
+            bool keyExists = await rg.GetSshPublicKeys().ExistsAsync(keyName,cancellationToken:token);
+            if(keyExists) await (await rg.GetSshPublicKeyAsync(keyName,cancellationToken:token)).Value.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+
+            if(rg!=null){
+                //return if any other resources are found
+                await foreach (var _ in rg.GetGenericResourcesAsync(cancellationToken:token)){
+                    return;
+                }
+
+                await rg.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+            }
+        } catch (OperationCanceledException){
+            //propagate upward
+            throw;
+        } catch (Exception e){
+            _ = Console.Out.WriteLineAsync($"Deallocation Failed.\n{e}");
+
+            //code should be added here to alert of failure
+
         }
     }
 
-    private static async Task<VirtualNetworkResource> AllocateVnet(
+    private static Task<ArmClient> BuildArmClient(){
+        var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID") ?? "";
+        var clientSecret = Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET") ?? "";
+        var tenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID") ?? "";
+        var subscription = Environment.GetEnvironmentVariable("AZURE_SUBSCRIPTION_ID") ?? "";
+        ClientSecretCredential credential = new(tenantId, clientId, clientSecret);
+        ArmClient client = new(credential, subscription);
+        return Task.FromResult(client);
+    }
+
+    private static async Task<SubscriptionResource> GetSubscriptionAsync() =>
+        (await BuildArmClient()).GetSubscriptionResource(new($"/subscriptions/{Environment.GetEnvironmentVariable("AZURE_SUBSCRIPTION_ID")}"));
+
+    private static async Task<TResource?> GetResourceAsync<TResource>(
+        string vmName,
+        string rgName,
+        Func<string, Task<Azure.Response<bool>>> existsAsync,
+        Func<string, Task<Azure.Response<TResource>>> getAsync,
+        string resourceName
+    ) where TResource : class
+    {
+        var existsResponse = await existsAsync(resourceName);
+        if (existsResponse.Value)
+        {
+            _ = Log(vmName,rgName,nameof(GetResourceAsync),$"Found {typeof(TResource).Name}");
+            return (await getAsync(resourceName)).Value;
+        }
+        return null;
+
+    }
+
+    private static async Task<ResourceGroupResource?> AllocateOrGetRG(
         string region,
         string vmName,
         string rgName,
-        ResourceGroupResource rg)
-    {
+        SubscriptionResource subscription,
+        CancellationToken token = default
+    ){
+        var rgR = await GetResourceAsync(
+            vmName,
+            rgName,
+            a => subscription.GetResourceGroups().ExistsAsync(a,cancellationToken:token),
+            a => subscription.GetResourceGroupAsync(a,cancellationToken:token),
+            rgName
+        );
+
+        if(rgR!=null ) 
+            return rgR;
+        else
+            _ = Log(vmName,rgName,nameof(AllocateOrGetRG),$"Creating Resource Group");
+
+        try{
+            return (await subscription.GetResourceGroups().CreateOrUpdateAsync(Azure.WaitUntil.Completed, rgName, new ResourceGroupData(region),cancellationToken:token)).Value;
+        } catch (OperationCanceledException){
+            //propagate upward
+            throw;
+        } catch (Exception e){
+            _ = Log(vmName,rgName,nameof(AllocateOrGetRG),$"{e}");
+            return null;
+        }
+    }
+
+    private static async Task<VirtualNetworkResource?> AllocateOrGetVnet(
+        string region,
+        string vmName,
+        string rgName,
+        ResourceGroupResource rg,
+        string vnetName,
+        CancellationToken token = default
+    ){
+        var vnetR = await GetResourceAsync(
+            vmName,
+            rgName,
+            a => rg.GetVirtualNetworks().ExistsAsync(a,cancellationToken:token),
+            a => rg.GetVirtualNetworkAsync(a,cancellationToken:token),
+            vnetName
+        );
+
+        if(vnetR!=null) return vnetR;
+
         var vnetData = new VirtualNetworkData()
         {
             Location = region,
             AddressPrefixes = { "10.0.0.0/16" },
             Subnets = { new SubnetData() { Name = $"{vmName}Subnet", AddressPrefix = "10.0.0.0/24" } }
         };
-        _ = Log(vmName,rgName,nameof(AllocateVnet),$"Creating Virtual Network");
-        return (await rg.GetVirtualNetworks().CreateOrUpdateAsync(Azure.WaitUntil.Completed, $"{vmName}Vnet", vnetData)).Value;
+
+        _ = Log(vmName,rgName,nameof(AllocateOrGetVnet),$"Creating Virtual Network");
+        try{
+            return (await rg.GetVirtualNetworks().CreateOrUpdateAsync(Azure.WaitUntil.Completed, vnetName, vnetData,cancellationToken:token)).Value;
+        } catch (OperationCanceledException){
+            //propagate upward
+            throw;
+        } catch (Exception e){
+            _ = Log(vmName,rgName,nameof(AllocateOrGetRG),$"{e}");
+            return null;
+        }
     }
 
-    private static async Task<PublicIPAddressResource> AllocatePip(
+    private static async Task<PublicIPAddressResource?> AllocateOrGetPip(
         string region,
         string vmName,
         string rgName,
-        ResourceGroupResource rg
+        ResourceGroupResource rg,
+        string pipName,
+        CancellationToken token = default
     ){
+        var pipR = await GetResourceAsync(
+            vmName,
+            rgName,
+            a => rg.GetPublicIPAddresses().ExistsAsync(a,cancellationToken:token),
+            a => rg.GetPublicIPAddressAsync(a,cancellationToken:token),
+            pipName
+        );
+
+        if(pipR!=null) return pipR;
+
         var publicIp = new PublicIPAddressData()
         {
             Location = region,
             Sku = new PublicIPAddressSku { Name = PublicIPAddressSkuName.Standard },
             PublicIPAllocationMethod = NetworkIPAllocationMethod.Static
         };
-        _ = Log(vmName,rgName,nameof(AllocatePip),$"Creating Public Ip");
-        return (await rg.GetPublicIPAddresses().CreateOrUpdateAsync(Azure.WaitUntil.Completed, $"{vmName}PublicIP", publicIp)).Value;
+
+        _ = Log(vmName,rgName,nameof(AllocateOrGetPip),$"Creating Public Ip");
+        try{
+            return (await rg.GetPublicIPAddresses().CreateOrUpdateAsync(Azure.WaitUntil.Completed, $"{vmName}PublicIP", publicIp,cancellationToken:token)).Value;
+        } catch (OperationCanceledException){
+            //propagate upward
+            throw;
+        } catch (Exception e){
+            _ = Log(vmName,rgName,nameof(AllocateOrGetRG),$"{e}");
+            return null;
+        }
     }
 
-    private static async Task<NetworkSecurityGroupResource> AllocateNsg(
+    private static async Task<NetworkSecurityGroupResource?> AllocateOrGetNsg(
         string region,
         string vmName,
         string rgName,
         ResourceGroupResource rg,
-        AzureSettings settings
+        AzureSettings settings,
+        string nsgName,
+        CancellationToken token = default
     ){
+        var nsgR = await GetResourceAsync(
+            vmName,
+            rgName,
+            a => rg.GetNetworkSecurityGroups().ExistsAsync(a,cancellationToken:token),
+            a => rg.GetNetworkSecurityGroupAsync(a,cancellationToken:token),
+            nsgName
+        );
+
+        if(nsgR!=null) return nsgR;
+
         var nsg = new NetworkSecurityGroupData(){
             Location = region,
             SecurityRules =
@@ -147,20 +291,54 @@ public static class AzureManager
                     DestinationAddressPrefix = rule.DestinationAddressPrefix
                 });
             }
+        
+        //adding ssh rule
+        nsg.SecurityRules.Add(new SecurityRuleData
+        {
+            Name = "AllowSSH",
+            Priority = 100,
+            Access = "Allow",
+            Direction = "Inbound",
+            Protocol = "*",
+            SourcePortRange = "*",
+            DestinationPortRange = "22",
+            SourceAddressPrefix = (await new HttpClient().GetStringAsync(@"https://checkip.amazonaws.com/")).Trim(),
+            DestinationAddressPrefix = "*"
+        });
 
-        _ = Log(vmName,rgName,nameof(AllocateNsg),$"Creating Network Security Group");
-        return (await rg.GetNetworkSecurityGroups().CreateOrUpdateAsync(Azure.WaitUntil.Completed, $"{vmName}NetworkSG", nsg)).Value;
+        _ = Log(vmName,rgName,nameof(AllocateOrGetNsg),$"Creating Network Security Group");
+        try{
+            return (await rg.GetNetworkSecurityGroups().CreateOrUpdateAsync(Azure.WaitUntil.Completed, nsgName, nsg,cancellationToken:token)).Value;
+        } catch (OperationCanceledException){
+            //propagate upward
+            throw;
+        } catch (Exception e){
+            _ = Log(vmName,rgName,nameof(AllocateOrGetRG),$"{e}");
+            return null;
+        }
     }
 
-    private static async Task<NetworkInterfaceResource> AllocateNic(
+    private static async Task<NetworkInterfaceResource?> AllocateOrGetNic(
         string region,
         string vmName,
         string rgName,
         ResourceGroupResource rg,
         VirtualNetworkResource vnet,
         PublicIPAddressResource pip,
-        NetworkSecurityGroupResource nsg
+        NetworkSecurityGroupResource nsg,
+        string nicName,
+        CancellationToken token = default
     ){
+        var nicR = await GetResourceAsync(
+            vmName,
+            rgName,
+            a => rg.GetNetworkInterfaces().ExistsAsync(a,cancellationToken:token),
+            a => rg.GetNetworkInterfaceAsync(a,cancellationToken:token),
+            nicName
+        );
+
+        if(nicR!=null) return nicR;
+
         var nicData = new NetworkInterfaceData()
         {
             Location = region,
@@ -182,19 +360,39 @@ public static class AzureManager
                 }
             }
         };
-        _ = Log(vmName,rgName,nameof(AllocateNic),$"Creating Network Interface");
-        return (await rg.GetNetworkInterfaces().CreateOrUpdateAsync(Azure.WaitUntil.Completed, $"{vmName}NetworkInterface", nicData)).Value;
+
+        _ = Log(vmName,rgName,nameof(AllocateOrGetNic),$"Creating Network Interface");
+        try{
+            return (await rg.GetNetworkInterfaces().CreateOrUpdateAsync(Azure.WaitUntil.Completed, nicName, nicData,cancellationToken:token)).Value;
+        } catch (OperationCanceledException){
+            //propagate upward
+            throw;
+        } catch (Exception e){
+            _ = Log(vmName,rgName,nameof(AllocateOrGetRG),$"{e}");
+            return null;
+        }
     }
 
-    private static async Task<VirtualMachineResource> AllocateVm(
+    private static async Task<VirtualMachineResource?> AllocateOrGetVm(
         string region,
         string vmName,
         string rgName,
         ResourceGroupResource rg,
         NetworkInterfaceResource nic,
-        SshPublicKeyGenerateKeyPairResult key,
-        AzureSettings settings
+        string publicKey,
+        AzureSettings settings,
+        CancellationToken token = default
     ){
+        var vmR = await GetResourceAsync(
+            vmName,
+            rgName,
+            a => rg.GetVirtualMachines().ExistsAsync(a,cancellationToken:token),
+            a => rg.GetVirtualMachineAsync(a,cancellationToken:token),
+            vmName
+        );
+
+        if(vmR!=null) return vmR;
+
         //vm config
         var vmData = new VirtualMachineData(region)
         {
@@ -221,7 +419,7 @@ public static class AzureManager
                         new SshPublicKeyConfiguration
                         {
                             Path = "/home/azureuser/.ssh/authorized_keys",
-                            KeyData = key.PublicKey
+                            KeyData = publicKey
                         }
                     }
                 }
@@ -249,7 +447,7 @@ public static class AzureManager
         if(settings.DataDisks!=null){
             foreach(var disk in settings.DataDisks){
                 var i = vmData.StorageProfile.DataDisks.Count + 1;
-                _ = Log(vmName,rgName,nameof(AllocateVm),$"Attaching Disk {i}");
+                _ = Log(vmName,rgName,nameof(AllocateOrGetVm),$"Attaching Disk {i}");
                 vmData.StorageProfile.DataDisks.Add(
                     new(i, DiskCreateOptionType.Empty)
                     {
@@ -264,41 +462,92 @@ public static class AzureManager
             }
         }
 
-        _ = Log(vmName,rgName,nameof(AllocateVm),$"Creating Virtual Machine");
-        return (await rg.GetVirtualMachines().CreateOrUpdateAsync(Azure.WaitUntil.Completed, vmName, vmData)).Value;
+        //set disks to be deleted with VM deletion
+        vmData.StorageProfile.OSDisk.DeleteOption = DiskDeleteOptionType.Delete;
+
+        foreach(var disk in vmData.StorageProfile.DataDisks){
+            disk.DeleteOption = DiskDeleteOptionType.Delete;
+        }
+
+        _ = Log(vmName,rgName,nameof(AllocateOrGetVm),$"Creating Virtual Machine");
+        try{
+            return (await rg.GetVirtualMachines().CreateOrUpdateAsync(Azure.WaitUntil.Completed, vmName, vmData,cancellationToken:token)).Value;
+        } catch (OperationCanceledException){
+            //propagate upward
+            throw;
+        } catch (Exception e){
+            _ = Log(vmName,rgName,nameof(AllocateOrGetRG),$"{e}");
+            return null;
+        }
     }
 
-    private static async Task<SshPublicKeyGenerateKeyPairResult> GenerateSshKeyPair(
+    private static async Task<string?> AllocateOrGetSshKeyPair(
         string region,
         string vmName,
         string rgName,
-        ResourceGroupResource rg
+        ResourceGroupResource rg,
+        string keyName,
+        CancellationToken token = default
     ){
-        _ = Log(vmName,rgName,nameof(GenerateSshKeyPair),$"Creating Ssh Key Pair");
-        var keyData = new SshPublicKeyData(region)
-        {
-            PublicKey = null // Set this to null to let Azure generate the key
-        };
-        var key = (await rg.GetSshPublicKeys().CreateOrUpdateAsync(Azure.WaitUntil.Completed,$"{vmName}SshKey",keyData)).Value;
-        var pair = (await key.GenerateKeyPairAsync()).Value;
-
-        //saving private key locally
         var sshPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Moonfire",
-            "Ssh",
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            ".ssh",
             $"{rgName}"
         );
         var keyPath = Path.Combine(sshPath,$"{vmName}-Key.pem");
 
-        //Ensure directory exists and delete old key if found
-        if(!Directory.Exists(sshPath)) Directory.CreateDirectory(sshPath);
-        if(File.Exists(keyPath)) File.Delete(keyPath);
+        var sshR = await GetResourceAsync(
+            vmName,
+            rgName,
+            a => rg.GetSshPublicKeys().ExistsAsync(a,cancellationToken:token),
+            a => rg.GetSshPublicKeyAsync(a,cancellationToken:token),
+            keyName
+        );
 
-        await File.WriteAllTextAsync(keyPath, pair.PrivateKey);
-        Syscall.chmod(keyPath, FilePermissions.S_IRUSR | FilePermissions.S_IWUSR);
+        if(sshR!=null){
+            if(File.Exists(keyPath)){
+                _ = Log(vmName,rgName,nameof(AllocateOrGetSshKeyPair),$"Found Private Key");
+                return sshR.Data.PublicKey;
+            }
+            
+            _ = Log(vmName,rgName,nameof(AllocateOrGetSshKeyPair),$"Recreating Ssh Key Pair");
+            try{
+                await sshR.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+            } catch (OperationCanceledException){
+                //propagate upward
+                throw;
+            } catch (Exception e){
+                _ = Log(vmName,rgName,nameof(AllocateOrGetSshKeyPair),$"{e}");
+                return null;
+            }
+        }
 
-        return pair;
+        _ = Log(vmName,rgName,nameof(AllocateOrGetSshKeyPair),$"Creating Ssh Key Pair");
+        var keyData = new SshPublicKeyData(region)
+        {
+            PublicKey = null // Set this to null to let Azure generate the key
+        };
+        try{
+            var key = (await rg.GetSshPublicKeys().CreateOrUpdateAsync(Azure.WaitUntil.Completed,keyName,keyData,cancellationToken:token)).Value;
+            var pair = (await key.GenerateKeyPairAsync(cancellationToken:token)).Value;
+
+            //Ensure directory exists and delete old key if found
+            if(!Directory.Exists(sshPath)) Directory.CreateDirectory(sshPath);
+            if(File.Exists(keyPath)) File.Delete(keyPath);
+
+            await File.WriteAllTextAsync(keyPath, pair.PrivateKey, cancellationToken:token);
+
+            //set key permission
+            if(Syscall.chmod(keyPath, FilePermissions.S_IRUSR | FilePermissions.S_IWUSR)!=0) _ = Log(vmName,rgName,nameof(AllocateOrGetSshKeyPair),"chmod failure");
+
+            return pair.PublicKey;
+        } catch (OperationCanceledException){
+            //propagate upward
+            throw;
+        } catch (Exception e){
+            _ = Log(vmName,rgName,nameof(AllocateOrGetRG),$"{e}");
+            return null;
+        }
     }
 
     private static async Task Log(string vmName, string rgName, string funcName, string input) =>

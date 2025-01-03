@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/home/username/Documents/Moonfire/Moonfire/Moonfire.csproj": {}
+    "/home/username/Documents/Singularity/Moonfire/Moonfire/Moonfire.csproj": {}
   },
   "projects": {
-    "/home/username/Documents/Moonfire/AzureAllocator/AzureAllocator.csproj": {
+    "/home/username/Documents/Singularity/Moonfire/AzureAllocator/AzureAllocator.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/username/Documents/Moonfire/AzureAllocator/AzureAllocator.csproj",
+        "projectUniqueName": "/home/username/Documents/Singularity/Moonfire/AzureAllocator/AzureAllocator.csproj",
         "projectName": "AzureAllocator",
-        "projectPath": "/home/username/Documents/Moonfire/AzureAllocator/AzureAllocator.csproj",
+        "projectPath": "/home/username/Documents/Singularity/Moonfire/AzureAllocator/AzureAllocator.csproj",
         "packagesPath": "/home/username/.nuget/packages/",
-        "outputPath": "/home/username/Documents/Moonfire/AzureAllocator/obj/",
+        "outputPath": "/home/username/Documents/Singularity/Moonfire/AzureAllocator/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/username/.nuget/NuGet/NuGet.Config"
@@ -25,7 +25,11 @@
         "frameworks": {
           "net8.0": {
             "targetAlias": "net8.0",
-            "projectReferences": {}
+            "projectReferences": {
+              "/home/username/Documents/Singularity/Moonfire/FuncExt/FuncExt.csproj": {
+                "projectPath": "/home/username/Documents/Singularity/Moonfire/FuncExt/FuncExt.csproj"
+              }
+            }
           }
         },
         "warningProperties": {
@@ -41,6 +45,10 @@
             "Azure.Core": {
               "target": "Package",
               "version": "[1.44.1, )"
+            },
+            "Azure.Data.Tables": {
+              "target": "Package",
+              "version": "[12.9.1, )"
             },
             "Azure.Identity": {
               "target": "Package",
@@ -101,14 +109,73 @@
         }
       }
     },
-    "/home/username/Documents/Moonfire/Moonfire/Moonfire.csproj": {
+    "/home/username/Documents/Singularity/Moonfire/FuncExt/FuncExt.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/username/Documents/Moonfire/Moonfire/Moonfire.csproj",
-        "projectName": "Moonfire",
-        "projectPath": "/home/username/Documents/Moonfire/Moonfire/Moonfire.csproj",
+        "projectUniqueName": "/home/username/Documents/Singularity/Moonfire/FuncExt/FuncExt.csproj",
+        "projectName": "FuncExt",
+        "projectPath": "/home/username/Documents/Singularity/Moonfire/FuncExt/FuncExt.csproj",
         "packagesPath": "/home/username/.nuget/packages/",
-        "outputPath": "/home/username/Documents/Moonfire/Moonfire/obj/",
+        "outputPath": "/home/username/Documents/Singularity/Moonfire/FuncExt/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/home/username/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[8.0.10, 8.0.10]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/8.0.110/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "/home/username/Documents/Singularity/Moonfire/Moonfire/Moonfire.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/home/username/Documents/Singularity/Moonfire/Moonfire/Moonfire.csproj",
+        "projectName": "Moonfire",
+        "projectPath": "/home/username/Documents/Singularity/Moonfire/Moonfire/Moonfire.csproj",
+        "packagesPath": "/home/username/.nuget/packages/",
+        "outputPath": "/home/username/Documents/Singularity/Moonfire/Moonfire/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/username/.nuget/NuGet/NuGet.Config"
@@ -123,8 +190,11 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "/home/username/Documents/Moonfire/AzureAllocator/AzureAllocator.csproj": {
-                "projectPath": "/home/username/Documents/Moonfire/AzureAllocator/AzureAllocator.csproj"
+              "/home/username/Documents/Singularity/Moonfire/AzureAllocator/AzureAllocator.csproj": {
+                "projectPath": "/home/username/Documents/Singularity/Moonfire/AzureAllocator/AzureAllocator.csproj"
+              },
+              "/home/username/Documents/Singularity/Moonfire/FuncExt/FuncExt.csproj": {
+                "projectPath": "/home/username/Documents/Singularity/Moonfire/FuncExt/FuncExt.csproj"
               }
             }
           }
@@ -139,17 +209,9 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
-            "Azure.Identity": {
-              "target": "Package",
-              "version": "[1.13.1, )"
-            },
             "Azure.ResourceManager": {
               "target": "Package",
               "version": "[1.13.0, )"
-            },
-            "Azure.ResourceManager.Compute": {
-              "target": "Package",
-              "version": "[1.6.0, )"
             },
             "Discord.Net": {
               "target": "Package",
