@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/username/Documents/Singularity/Sunfire/FuncExt/FuncExt.csproj",
+      "projectUniqueName": "/home/username/Documents/Singularity/Moonfire/FuncExt/FuncExt.csproj",
       "projectName": "FuncExt",
-      "projectPath": "/home/username/Documents/Singularity/Sunfire/FuncExt/FuncExt.csproj",
+      "projectPath": "/home/username/Documents/Singularity/Moonfire/FuncExt/FuncExt.csproj",
       "packagesPath": "/home/username/.nuget/packages/",
-      "outputPath": "/home/username/Documents/Singularity/Sunfire/FuncExt/obj/",
+      "outputPath": "/home/username/Documents/Singularity/Moonfire/FuncExt/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/username/.nuget/NuGet/NuGet.Config"

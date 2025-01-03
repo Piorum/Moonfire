@@ -1186,11 +1186,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/username/Documents/Singularity/Sunfire/AzureAllocator/AzureAllocator.csproj",
+      "projectUniqueName": "/home/username/Documents/Singularity/Moonfire/AzureAllocator/AzureAllocator.csproj",
       "projectName": "AzureAllocator",
-      "projectPath": "/home/username/Documents/Singularity/Sunfire/AzureAllocator/AzureAllocator.csproj",
+      "projectPath": "/home/username/Documents/Singularity/Moonfire/AzureAllocator/AzureAllocator.csproj",
       "packagesPath": "/home/username/.nuget/packages/",
-      "outputPath": "/home/username/Documents/Singularity/Sunfire/AzureAllocator/obj/",
+      "outputPath": "/home/username/Documents/Singularity/Moonfire/AzureAllocator/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/username/.nuget/NuGet/NuGet.Config"
@@ -1205,8 +1205,8 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "/home/username/Documents/Singularity/Sunfire/FuncExt/FuncExt.csproj": {
-              "projectPath": "/home/username/Documents/Singularity/Sunfire/FuncExt/FuncExt.csproj"
+            "/home/username/Documents/Singularity/Moonfire/FuncExt/FuncExt.csproj": {
+              "projectPath": "/home/username/Documents/Singularity/Moonfire/FuncExt/FuncExt.csproj"
             }
           }
         }

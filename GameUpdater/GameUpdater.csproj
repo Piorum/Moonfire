@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../AzureAllocator/AzureAllocator.csproj" />
-    <ProjectReference Include="../Sunfire/Sunfire.csproj" />
+    <ProjectReference Include="../Moonfire/Moonfire.csproj" />
   </ItemGroup>
 
 </Project>

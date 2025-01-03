@@ -4,7 +4,7 @@ public class Program{
     
     //entry point
     public static async Task Main(){
-        var ver = nameof(Sunfire);
+        var ver = nameof(Moonfire);
 
         var CONFIG_PATH = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),

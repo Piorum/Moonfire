@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "90nG5rATllGatb43fGlfbLuERV1VCVJ1sAZOU3D9McQLRqIVOtDCXq9VJn3+6+zZilfigiEwsXao4SFOMJqBkQ==",
+  "dgSpecHash": "NW8nV4nygMCGSC5TM+ClWcFgrso/R6xJEV99uZrR684ArZ02vXn6bT1rywMu5WShUIktTX8SRTkHV9W+zOz0IA==",
   "success": true,
-  "projectFilePath": "/home/username/Documents/Singularity/Sunfire/AzureAllocator/AzureAllocator.csproj",
+  "projectFilePath": "/home/username/Documents/Singularity/Moonfire/AzureAllocator/AzureAllocator.csproj",
   "expectedPackageFiles": [
     "/home/username/.nuget/packages/azure.core/1.44.1/azure.core.1.44.1.nupkg.sha512",
     "/home/username/.nuget/packages/azure.data.tables/12.9.1/azure.data.tables.12.9.1.nupkg.sha512",

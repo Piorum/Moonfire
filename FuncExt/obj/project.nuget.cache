@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "KL8rEeODS/7UQHpZiJCwYEjEYXwdP7AmkUeBHniUrE12snqWvKu/fzVAUwnJNFys9jFUp7lU5G625X61n+/rng==",
+  "dgSpecHash": "Sfy5xtPvMq/yb4jg3PJZiosj79a/5xhcv7ABr9VmbMf6kE/ZSNMyc5xdFxEjTRZbNrgpkSSTNicZJw59quSQRg==",
   "success": true,
-  "projectFilePath": "/home/username/Documents/Singularity/Sunfire/FuncExt/FuncExt.csproj",
+  "projectFilePath": "/home/username/Documents/Singularity/Moonfire/FuncExt/FuncExt.csproj",
   "expectedPackageFiles": [
     "/home/username/.nuget/packages/microsoft.aspnetcore.app.ref/8.0.10/microsoft.aspnetcore.app.ref.8.0.10.nupkg.sha512"
   ],
