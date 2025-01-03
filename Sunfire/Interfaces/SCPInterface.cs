@@ -21,11 +21,11 @@ public class SCPInterface : IServer<SCPInterface>
 
 
         //loading settings
-        var tableClient = await TableManager.GetTableClient(nameof(Sunfire) + "SCP");
+        var tableClient = await TableManager.GetTableClient(nameof(Sunfire) + "SCP",token);
 
         //loading hardware settings
         //attempt to get stored settings
-        var hardwareSettingsJson = (await TableManager.GetTableEntity(tableClient,guildId,"config"))?["scphardware"];
+        var hardwareSettingsJson = (await TableManager.GetTableEntity(tableClient,guildId,"config",token))?["scphardware"];
 
         //if settings are null load and store template settings
         if(hardwareSettingsJson==null){
@@ -36,10 +36,10 @@ public class SCPInterface : IServer<SCPInterface>
                 "Config",
                 "SCPSettings.json"
             );
-            hardwareSettingsJson = await File.ReadAllTextAsync(hardwareTemplatePath);
+            hardwareSettingsJson = await File.ReadAllTextAsync(hardwareTemplatePath,token);
             await TableManager.StoreTableEntity(tableClient,new TableEntity(guildId,"config"){
                 { "scphardware", (string)hardwareSettingsJson }
-            });
+            },token);
         }
 
         //create settings object
@@ -47,7 +47,7 @@ public class SCPInterface : IServer<SCPInterface>
 
         //loading game settings
         //attempt to get stored setting
-        var gameSettingsJson = (await TableManager.GetTableEntity(tableClient,guildId,"config"))?["scpgame"];
+        var gameSettingsJson = (await TableManager.GetTableEntity(tableClient,guildId,"config",token))?["scpgame"];
 
         if(gameSettingsJson==null){
             _ = Console.Out.WriteLineAsync($"{nameof(SCPInterface)}: No Game Settings Found For {guildId} Storing Defaults");
@@ -55,7 +55,7 @@ public class SCPInterface : IServer<SCPInterface>
             gameSettingsJson = JsonConvert.SerializeObject(new ScpSettings());
             await TableManager.StoreTableEntity(tableClient,new TableEntity(guildId,"config"){
                 { "scpgame", (string)gameSettingsJson }
-            });
+            },token);
         }
 
         _ = Console.Out.WriteLineAsync($"{(string)hardwareSettingsJson}");
@@ -97,13 +97,13 @@ public class SCPInterface : IServer<SCPInterface>
             await Log(fN,"Game Already Started");
             return true;
         }
-        if(await TableManager.GetBoolDefaultFalse("Updatefire","updating","game","scp")){
+        if(await TableManager.GetBoolDefaultFalse("Updatefire","updating","game","scp",token)){
             await Log(fN,"Game is updating");
             await SendMessage("Game is updating - Try again soon");
             return false;
         }
 
-        if(!await GetAlreadyStarted(vm)){
+        if(!await GetAlreadyStarted(vm,token)){
             if(!await Setup(SendMessage,token)) return false;
         } else {
             return await ReconnectAsync(SendMessage, token);
@@ -133,7 +133,7 @@ public class SCPInterface : IServer<SCPInterface>
         if(configTransferFailed) _ = Log(fN,"Config Transfer Failed");
         _ = Log(fN,"SCP Server Started");
 
-        await SetAlreadyStarted(true,vm);
+        await SetAlreadyStarted(true,vm,token);
         started = true;
         return true;
     }
@@ -152,7 +152,7 @@ public class SCPInterface : IServer<SCPInterface>
         _ = SendMessage($"Deprovisioning Server");
         if(vm!=null){
 
-            await SetAlreadyStarted(false,vm);
+            await SetAlreadyStarted(false,vm,token);
 
             await vm.Deallocate(token);
         }
@@ -183,7 +183,7 @@ public class SCPInterface : IServer<SCPInterface>
             _ = SendMessage("VM Offline - Reset Interface - Try Again");
             _ = Log(nameof(ReconnectAsync),"VM Offline - Reset Interface");
 
-            await SetAlreadyStarted(false,vm);
+            await SetAlreadyStarted(false,vm,token);
 
             await StartServerAsync(SendMessage, token);
             return true;
@@ -247,15 +247,15 @@ public class SCPInterface : IServer<SCPInterface>
         return true;
     }
 
-    private static async Task SetAlreadyStarted(bool value, AzureVM vm){
-        var tableClient = await TableManager.GetTableClient(nameof(Sunfire));
-        await TableManager.StoreTableEntity(tableClient,vm.rgName,"started","scp",value);
+    private static async Task SetAlreadyStarted(bool value, AzureVM vm, CancellationToken token = default){
+        var tableClient = await TableManager.GetTableClient(nameof(Sunfire),token);
+        await TableManager.StoreTableEntity(tableClient,vm.rgName,"started","scp",value,token);
         tableClient = null;
     }
 
-    private static async Task<bool> GetAlreadyStarted(AzureVM vm){
-        var tableClient = await TableManager.GetTableClient(nameof(Sunfire));
-        var entity = await TableManager.GetTableEntity(tableClient, vm.rgName, "started","scp");
+    private static async Task<bool> GetAlreadyStarted(AzureVM vm, CancellationToken token = default){
+        var tableClient = await TableManager.GetTableClient(nameof(Sunfire),token);
+        var entity = await TableManager.GetTableEntity(tableClient, vm.rgName, "started","scp",token);
         tableClient = null;
         //default to false if null
         //if not null alreadyStarted = entity
