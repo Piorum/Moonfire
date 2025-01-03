@@ -10,7 +10,7 @@ public class Program{
     
     //entry point
     public static async Task Main(){
-        var ver = "Moonfire";
+        var ver = "Sunfire";
 
         var CONFIG_PATH = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
