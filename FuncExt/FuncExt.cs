@@ -1,8 +1,8 @@
 using System.Diagnostics;
 
-namespace Sunfire.Utility;
+namespace FuncExt;
 
-public static class FuncExt
+public static class Ext
 {   
     //option for default start/end message
     public static async Task Time(
@@ -88,6 +88,37 @@ public static class FuncExt
         if(warningCondition==null || warningFunc == null) return;
         await Task.Delay(1000); //small delay because async is being weird
         if(warningCondition(stopwatch.Elapsed)) await modifyMessage(tmp, warningFunc());
+    }
+
+    public static async Task TimeoutTask(Task mainTask, Lazy<Task>? cleanupTask, TimeSpan timeoutLength, CancellationTokenSource cts){
+        TaskCompletionSource<bool> finished = new();
+
+        var wrapperTask = Task.Run(async () => {
+            try {
+                await mainTask;
+                finished.TrySetResult(true);
+            } catch (OperationCanceledException){
+                _ = Console.Out.WriteLineAsync($"EXT:TASK_CANCELLED_BY_TIMEOUT");
+                if(cleanupTask!=null) await cleanupTask.Value;
+                finished.TrySetResult(true);
+            } catch (Exception e){
+                _ = Console.Out.WriteLineAsync($"EXT:TASK_ENCOUNTED_EXCEPTION");
+                _ = Console.Out.WriteLineAsync($"{e}");
+                if(cleanupTask!=null) await cleanupTask.Value;
+                finished.TrySetResult(true);
+            }
+        },cts.Token);
+
+        var timeoutTask = Task.Delay(timeoutLength).ContinueWith(_ => {
+            if(!finished.Task.IsCompleted) cts.Cancel();
+        });
+
+        await Task.WhenAny(wrapperTask, timeoutTask);
+        if(!finished.Task.IsCompleted) await wrapperTask;
+    }
+
+    public static async Task TimeoutTask(Task mainTask, TimeSpan timeoutLength, CancellationTokenSource cts){
+        await TimeoutTask(mainTask,null,timeoutLength,cts);
     }
 
 }

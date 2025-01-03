@@ -721,6 +721,7 @@
           "Azure.ResourceManager.Network": "1.9.0",
           "Azure.ResourceManager.Resources": "1.9.0",
           "Azure.Storage.Blobs": "12.23.0",
+          "FuncExt": "1.0.0",
           "Mono.Posix.NETStandard": "1.0.0",
           "Newtonsoft.Json": "13.0.3"
         },
@@ -731,13 +732,24 @@
           "bin/placeholder/AzureAllocator.dll": {}
         }
       },
+      "FuncExt/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "compile": {
+          "bin/placeholder/FuncExt.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/FuncExt.dll": {}
+        }
+      },
       "Sunfire/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v8.0",
         "dependencies": {
           "Azure.ResourceManager": "1.13.0",
           "AzureAllocator": "1.0.0",
-          "Discord.Net": "3.15.3"
+          "Discord.Net": "3.15.3",
+          "FuncExt": "1.0.0"
         },
         "compile": {
           "bin/placeholder/Sunfire.dll": {}
@@ -1715,6 +1727,11 @@
       "type": "project",
       "path": "../AzureAllocator/AzureAllocator.csproj",
       "msbuildProject": "../AzureAllocator/AzureAllocator.csproj"
+    },
+    "FuncExt/1.0.0": {
+      "type": "project",
+      "path": "../FuncExt/FuncExt.csproj",
+      "msbuildProject": "../FuncExt/FuncExt.csproj"
     },
     "Sunfire/1.0.0": {
       "type": "project",

@@ -10,7 +10,8 @@
         "dependencies": {
           "Azure.ResourceManager": "1.13.0",
           "AzureAllocator": "1.0.0",
-          "Discord.Net": "3.15.3"
+          "Discord.Net": "3.15.3",
+          "FuncExt": "1.0.0"
         },
         "runtime": {
           "Sunfire.dll": {}
@@ -497,11 +498,17 @@
           "Azure.ResourceManager.Network": "1.9.0",
           "Azure.ResourceManager.Resources": "1.9.0",
           "Azure.Storage.Blobs": "12.23.0",
+          "FuncExt": "1.0.0",
           "Mono.Posix.NETStandard": "1.0.0",
           "Newtonsoft.Json": "13.0.3"
         },
         "runtime": {
           "AzureAllocator.dll": {}
+        }
+      },
+      "FuncExt/1.0.0": {
+        "runtime": {
+          "FuncExt.dll": {}
         }
       }
     }
@@ -786,6 +793,11 @@
       "hashPath": "system.valuetuple.4.5.0.nupkg.sha512"
     },
     "AzureAllocator/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "FuncExt/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

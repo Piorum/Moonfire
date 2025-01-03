@@ -5,6 +5,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
 using System.Diagnostics;
 using Azure.ResourceManager.Network;
+using FuncExt;
 
 namespace AzureAllocator;
 
@@ -71,10 +72,10 @@ public class AzureVM
         if(!Started) await StartVM();
     }
 
-    public async Task Deallocate(){
+    public async Task Deallocate(CancellationToken token = default){
         if(Started){
             _ = Log(nameof(Deallocate),$"Deallocating VM");
-            await AzureManager.DeAllocate(rg,vm,vnet,pip,nsg,nic,keyName);
+            await AzureManager.DeAllocate(rg,vm,vnet,pip,nsg,nic,keyName,token);
             Connected = false;
             _ = Log(nameof(Deallocate),$"Deallocated VM");
         }
@@ -97,28 +98,24 @@ public class AzureVM
     }
 
     public async Task StartSSH(Process _client){
+        TaskCompletionSource<bool> _connected = new();
+        CancellationTokenSource cts = new();
+
         _ = Log(nameof(StartSSH),$"trying to connect");
         _client.Start();
 
-        TaskCompletionSource<bool> _connectionAttempted = new();
         var monitorTask = Task.Run(async () => {
-            while(!_connectionAttempted.Task.IsCompleted){
+            while(!_connected.Task.IsCompleted){
+                cts.Token.ThrowIfCancellationRequested();
                 string? output = await _client.StandardOutput.ReadLineAsync();
                 if(output!=null && output.Contains("Welcome")){
-                    _connectionAttempted.TrySetResult(true);
                     _ = Log(nameof(StartSSH),$"welcome received");
+                    _connected.TrySetResult(true);
                 }
             };
-        });
+        },cts.Token);
 
-        //FAIL-OPEN logic, assumes welcome message was missed
-        var timeoutTask = Task.Delay(10000).ContinueWith(_ => {
-            if(!_connectionAttempted.Task.IsCompleted)
-                _ = Log(nameof(StartSSH),$"connection attempt timed out");
-            _connectionAttempted.TrySetResult(true);
-        });
-
-        await Task.WhenAny(monitorTask, timeoutTask);
+        await Ext.TimeoutTask(monitorTask,new(0,0,10),cts);
         Connected = true;
 
         _ = Log(nameof(StartSSH),$"ssh connection attempted");
@@ -131,7 +128,7 @@ public class AzureVM
         await _client.StandardInput.WriteLineAsync(input);
     }
     //This runs a bash script on the machine
-    public async Task RunScript(string script){
+    public async Task RunScript(string script, CancellationToken token = default){
         await Start();
         var scriptParams = new RunCommandInput("RunShellScript")
         {
@@ -141,7 +138,7 @@ public class AzureVM
             }
         };
         _ = Log(nameof(RunScript),$"{script}");
-        await vm.RunCommandAsync(Azure.WaitUntil.Completed, scriptParams);
+        await vm.RunCommandAsync(Azure.WaitUntil.Completed, scriptParams,cancellationToken:token);
     }
 
     public static Task<Uri> GetDownloadSas(string container, string name){
@@ -161,9 +158,9 @@ public class AzureVM
         return Task.FromResult(blobClient.GenerateSasUri(sasBuilder));
     }
 
-    public async Task DownloadBlob(string container, string name, string destination){
+    public async Task DownloadBlob(string container, string name, string destination, CancellationToken token = default){
         _ = Log(nameof(DownloadBlob),$"Downloading '{container}/{name}' to '{destination}'");
-        await RunScript($"curl -o {destination} '{await GetDownloadSas(container,name)}'");
+        await RunScript($"curl -o {destination} '{await GetDownloadSas(container,name)}'",token);
     }
 
     private async Task StartVM(){

@@ -59,7 +59,7 @@ public static class SetupHelper{
         var settings = await AzureSettings.CreateAsync(AzureSettingsPath);
         
         //allocating vm
-        var vm = await AzureManager.Allocate(settings, $"{ver}RG", $"{ver}VM");
+        var vm = await AzureManager.Allocate(settings, $"{ver}RG", $"{ver}VM",new());
         _ = Console.Out.WriteLineAsync("VM Allocated");
 
         //check for null, but should never be null here

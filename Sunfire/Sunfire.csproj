@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../AzureAllocator/AzureAllocator.csproj" />
+    <ProjectReference Include="../FuncExt/FuncExt.csproj" />
   </ItemGroup>
 
 </Project>

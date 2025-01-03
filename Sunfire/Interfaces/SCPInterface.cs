@@ -16,7 +16,7 @@ public class SCPInterface : IServer<SCPInterface>
 
     private SCPInterface(){}
 
-    public static async Task<SCPInterface?> CreateInterfaceAsync(string guildId){
+    public static async Task<SCPInterface?> CreateInterfaceAsync(string guildId, CancellationToken token = default){
         SCPInterface obj = new();
 
 
@@ -65,7 +65,7 @@ public class SCPInterface : IServer<SCPInterface>
 
         //allocating vm
         //match RG/VM names in sshClient ProcessStartInfo.Arguments
-        obj.vm = await AzureManager.Allocate(hardwareSettings, $"{guildId}RG", $"SCPVM");
+        obj.vm = await AzureManager.Allocate(hardwareSettings, $"{guildId}RG", $"SCPVM", token);
 
         if(obj.vm == null){
             _ = Console.Out.WriteLineAsync($"{nameof(SCPInterface)}: Azure Allocation Failed");
@@ -80,7 +80,7 @@ public class SCPInterface : IServer<SCPInterface>
         return obj;
     }
 
-    public async Task<bool> StartServerAsync(Func<string, Task> SendMessage){
+    public async Task<bool> StartServerAsync(Func<string, Task> SendMessage, CancellationToken token = default){
         var fN = nameof(StartServerAsync); //used in logging
 
         if(vm==null){
@@ -104,17 +104,18 @@ public class SCPInterface : IServer<SCPInterface>
         }
 
         if(!await GetAlreadyStarted(vm)){
-            if(!await Setup(SendMessage)) return false;
+            if(!await Setup(SendMessage,token)) return false;
         } else {
-            return await ReconnectAsync(SendMessage);
+            return await ReconnectAsync(SendMessage, token);
         }
 
         TaskCompletionSource<bool> _heartbeatReceived = new();
         var configTransferFailed = false;
 
         //Read the output asynchronously to console
-        _ = Task.Run(async () => {
-            while(!sshClient.StandardOutput.EndOfStream){
+        await Task.Run(async () => {
+            while(!_heartbeatReceived.Task.IsCompleted){
+                token.ThrowIfCancellationRequested();
                 string? output = await sshClient.StandardOutput.ReadLineAsync();
                 if(output!=null){
                     Console.WriteLine(output);
@@ -125,7 +126,7 @@ public class SCPInterface : IServer<SCPInterface>
                 }
             }
             _ = Log(fN,"sshClient EndOfStream encountered or halted");
-        });
+        },token);
 
         //Waits for heartbeat report to continue
         await _heartbeatReceived.Task;
@@ -133,12 +134,11 @@ public class SCPInterface : IServer<SCPInterface>
         _ = Log(fN,"SCP Server Started");
 
         await SetAlreadyStarted(true,vm);
-
         started = true;
         return true;
     }
 
-    public async Task<bool> StopServerAsync(Func<string, Task> SendMessage){
+    public async Task<bool> StopServerAsync(Func<string, Task> SendMessage,CancellationToken token = default){
         var fN = nameof(StopServerAsync); //used in logging
 
         scpSettings = null;
@@ -154,7 +154,7 @@ public class SCPInterface : IServer<SCPInterface>
 
             await SetAlreadyStarted(false,vm);
 
-            await vm.Deallocate();
+            await vm.Deallocate(token);
         }
 
         _ = Log(fN,"SCPInterface Reset");
@@ -163,20 +163,20 @@ public class SCPInterface : IServer<SCPInterface>
         return true;
     }
 
-    public async Task<bool> ReconnectAsync(Func<string, Task> SendMessage){
+    public async Task<bool> ReconnectAsync(Func<string, Task> SendMessage, CancellationToken token = default){
         _ = SendMessage("Reconnecting to Server");
         _ = Log(nameof(ReconnectAsync),"Reconnecting to Server");
         
         if(vm==null){
             _ = SendMessage("VM Null - Broken Interface");
             _ = Log(nameof(ReconnectAsync),"VM Null - Broken Interface");
-            await StopServerAsync(SendMessage); //deleting interface
+            await StopServerAsync(SendMessage,token); //deleting interface
             return false;
         }
         if(sshClient==null){
             _ = SendMessage("sshClient Null - Broken Interface");
             _ = Log(nameof(ReconnectAsync),"sshClient Null - Broken Interface");
-            await StopServerAsync(SendMessage); //deleting interface
+            await StopServerAsync(SendMessage,token); //deleting interface
             return false;
         }
         if(!vm.Started){
@@ -185,24 +185,15 @@ public class SCPInterface : IServer<SCPInterface>
 
             await SetAlreadyStarted(false,vm);
 
-            await StartServerAsync(SendMessage);
+            await StartServerAsync(SendMessage, token);
             return true;
         }
         await vm.StartSSH(sshClient);
 
-        //restart log output
-        _ = Task.Run(async () => {
-            while(!sshClient.StandardOutput.EndOfStream){
-                string? output = await sshClient.StandardOutput.ReadLineAsync();
-                if(output!=null) _ = Console.Out.WriteLineAsync(output);
-            }
-            _ = Log(nameof(ReconnectAsync),"sshClient EndOfStream encountered or halted");
-        });
-
         return true;
     }
 
-    private async Task<bool> Setup(Func<string, Task> SendMessage){
+    private async Task<bool> Setup(Func<string, Task> SendMessage, CancellationToken token){
         var fN = nameof(Setup); //used in logging
 
         if(vm==null){
@@ -246,7 +237,7 @@ public class SCPInterface : IServer<SCPInterface>
 
         _ = SendMessage("Setting Up Game Files");
         _ = Log(fN,"Running Setup Script");
-        await vm.RunScript(script);
+        await vm.RunScript(script,token);
 
         _ = SendMessage("Starting Server");
         _ = Log(fN,"Starting SCP Server");

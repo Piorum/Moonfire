@@ -1,11 +1,12 @@
 using Sunfire.Interfaces;
+using FuncExt;
 
 namespace Sunfire;
 
 public class Bot(string token, DiscordSocketConfig? config = null, List<Command>? _commands = null) : BotBase(token,config,_commands)
 {
     private readonly Dictionary<ulong, SCPInterface?> scpInterfaces = [];
-    private readonly Dictionary<ulong, bool> scpStartFlags = [];
+    private readonly Dictionary<ulong, Working> scpWorkingFlags = [];
 
     // Uncomment to do initial population of commands
     /*protected async override Task ClientReadyHandler(){
@@ -60,7 +61,7 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
             "start" => StartCommandHandler(command),
 
             "stop" => StopCommandHandler(command),
-            
+
             _ => SendSlashReplyAsync($"Caught {command.Data.Name} by admin handler but found no command",command),
         };
     }
@@ -86,7 +87,7 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
         return (Game)Convert.ToInt32(command.Data.Options.First().Value) switch
         {
 
-            Game.SCP => StartTaskAsync(scpInterfaces,scpStartFlags,command),
+            Game.SCP => StartTaskAsync(scpInterfaces,scpWorkingFlags,command),
             
             Game.MINECRAFT => SendSlashReplyAsync("Minecraft not available",command),
             
@@ -100,7 +101,7 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
         return (Game)Convert.ToInt32(command.Data.Options.First().Value) switch
         {
             
-            Game.SCP => StopTaskAsync(scpInterfaces,command),
+            Game.SCP => StopTaskAsync(scpInterfaces,scpWorkingFlags,command),
             
             Game.MINECRAFT => SendSlashReplyAsync("Minecraft not available",command),
             
@@ -120,104 +121,129 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
         await SendSlashReplyAsync(help[(help.IndexOf('[')+1)..help.LastIndexOf(']')],command);
     }
 
-    private static async Task StartTaskAsync<TServer>(Dictionary<ulong, TServer?> servers, Dictionary<ulong, bool> startingFlags, SocketSlashCommand command)
+    private static async Task StartTaskAsync<TServer>(Dictionary<ulong, TServer?> servers, Dictionary<ulong, Working> workingFlags, SocketSlashCommand command)
         where TServer : class, IServer<TServer>
     {
         var cts = new CancellationTokenSource();
-        TaskCompletionSource<bool> _started = new();
 
+        //main start task
         var startTask = Task.Run(async () => {
-            try{
-                //ensure initial reply is sent first
-                await SendSlashReplyAsync("Handling Command",command);
+            //ensure initial reply is sent first
+            await SendSlashReplyAsync("Handling Command",command);
 
-                if(await CheckMaintenance(command)) return;
+            if(await CheckMaintenance(command)) return;
+            if(await CheckWorking(command,workingFlags)) return;
 
-                //convert from ulong? to ulong
-                ulong guid = command.GuildId ?? 0;
+            //convert from ulong? to ulong
+            ulong guid = command.GuildId ?? 0;
 
-                startingFlags.TryGetValue(guid,out var starting);
-                if(starting){
-                    await ModifySlashReplyAsync("Already Starting",command);
-                    return;
-                }
-                startingFlags.Add(guid,true);
+            workingFlags.Add(guid,Working.STARTING);
 
-                //if no value, or value = null
-                if(!servers.TryGetValue(guid,out TServer? server) || server == null){
-                    //set server and dictionary value to interface object
-                    await ModifySlashReplyAsync("Provisioning Server",command);
-                    server = await TServer.CreateInterfaceAsync($"{guid}");
-                    servers.Add(guid,server);
-                }
-                //check if provisioning failed
-                if(server==null){
-                    await ModifySlashReplyAsync("Provisioning Failure",command);
-                    startingFlags.Remove(guid);
-                    return;
-                }
-
-                //start server
-                var result = await server.StartServerAsync((string a)=>ModifySlashReplyAsync(a,command));
-                if(result) await ModifySlashReplyAsync($"Started Server at '{server.PublicIp}'",command);
-
-                //remove starting lock
-                startingFlags.Remove(guid);
-
-                _started.TrySetResult(true);
-                await _started.Task;
-
-            } catch (OperationCanceledException){
-                _ = Console.Out.WriteLineAsync($"{nameof(StartTaskAsync)}:Startup Timed Out");
-                //send alert here
-                await ModifySlashReplyAsync($"Server Startup Timed Out]\n [Please Wait One Minute",command);
-                ulong guid = command.GuildId ?? 0;
-
-                if(!servers.TryGetValue(guid,out TServer? server) || server == null){
-                    return;
-                }
-
-                //This needs to run to clean up resources
-                await server.StopServerAsync((string a)=>ModifySlashReplyAsync(a,command));
-
-                servers.Remove(guid);
-
-                startingFlags.Remove(guid);
-                await ModifySlashReplyAsync($"Server Interface Reset]\n   [Please Try Again",command);
-
-            } catch (Exception e){
-                _ = Console.Out.WriteLineAsync($"{e}");
+            //if no value, or value = null
+            if(!servers.TryGetValue(guid,out TServer? server) || server == null){
+                //set server and dictionary value to interface object
+                await ModifySlashReplyAsync("Provisioning Server",command);
+                server = await TServer.CreateInterfaceAsync($"{guid}",cts.Token);
+                servers.Add(guid,server);
             }
+            //check if provisioning failed
+            if(server==null){
+                await ModifySlashReplyAsync("Provisioning Failure",command);
+                workingFlags.Remove(guid);
+                return;
+            }
+
+            //start server
+            var success = await server.StartServerAsync((string a)=>ModifySlashReplyAsync(a,command),cts.Token);
+            if(success) await ModifySlashReplyAsync($"Started Server at '{server.PublicIp}'",command);
+
+            //remove starting lock
+            workingFlags.Remove(guid);
+            
         },cts.Token);
 
-        //1000 * 60 * 5 = 5 Minute delay
-        var timeoutTask = Task.Delay(300000).ContinueWith(_ => {
-            if(!_started.Task.IsCompleted) cts.Cancel();
-        });
+        //cleanup task run after timeout
+        Lazy<Task> cleanupTask = new(() => Task.Run(async () => {
+            _ = Console.Out.WriteLineAsync($"{nameof(StartTaskAsync)}:Startup Timed Out");
+            //send alert here
 
-        await Task.WhenAny(startTask, timeoutTask);
+            await ModifySlashReplyAsync($"Server Startup Timed Out]\n [Please Wait One Minute", command);
+            ulong guid = command.GuildId ?? 0;
+
+            if (!servers.TryGetValue(guid, out TServer? server) || server == null)
+            {
+                return;
+            }
+
+            //This needs to run to clean up resources
+            //remove starting lock
+            workingFlags.Remove(guid);
+
+            var stopcts = new CancellationTokenSource();
+            await Ext.TimeoutTask
+            (
+                server.StopServerAsync((string a) => ModifySlashReplyAsync(a, command), stopcts.Token), 
+                new(0, 10, 0), 
+                stopcts
+            );
+
+            //fully cleans up server object
+            servers.Remove(guid);
+
+        },cts.Token));
+
+        await Ext.TimeoutTask(startTask,cleanupTask,new TimeSpan(0,5,0),cts);
     }
 
-    private static async Task StopTaskAsync<TServer>(Dictionary<ulong, TServer?> servers, SocketSlashCommand command)
+    private static async Task StopTaskAsync<TServer>(Dictionary<ulong, TServer?> servers, Dictionary<ulong, Working> workingFlags, SocketSlashCommand command)
         where TServer : class, IServer<TServer>
     {
-        //ensure initial reply is sent first
-        await SendSlashReplyAsync("Stopping SCP Server",command);
+        var cts = new CancellationTokenSource();
 
-        if(await CheckMaintenance(command)) return;
+        var stopTask = Task.Run(async () => {
+            //ensure initial reply is sent first
+            await SendSlashReplyAsync("Stopping SCP Server",command);
 
-        var guid = command.GuildId ?? 0;
-        if(!servers.TryGetValue(guid,out var server)){
-            await ModifySlashReplyAsync("No Server Found",command);
-            return;
-        }
-        if(server==null){
-            await ModifySlashReplyAsync("Server Was Null",command);
-            return;
-        }
-        var result = await server.StopServerAsync((string a)=>ModifySlashReplyAsync(a,command));
-        servers.Remove(guid);
-        if(result) await ModifySlashReplyAsync("Stopped Server",command);
+            if(await CheckMaintenance(command)) return;
+
+            var guid = command.GuildId ?? 0;
+
+            if(await CheckWorking(command,workingFlags)) return;
+            workingFlags.Add(guid,Working.STOPPING);
+
+            if(!servers.TryGetValue(guid,out var server)){
+                await ModifySlashReplyAsync("No Server Found",command);
+                workingFlags.Remove(guid);
+                return;
+            }
+            if(server==null){
+                await ModifySlashReplyAsync("Server Was Null",command);
+                workingFlags.Remove(guid);
+                return;
+            }
+
+            var result = await server.StopServerAsync((string a)=>ModifySlashReplyAsync(a,command),cts.Token);
+
+            servers.Remove(guid);
+            workingFlags.Remove(guid);
+
+            if(result) await ModifySlashReplyAsync("Stopped Server",command);
+
+        },cts.Token);
+
+        Lazy<Task> cleanupTask = new(() => Task.Run(async () => {
+            _ = Console.Out.WriteLineAsync($"{nameof(StopTaskAsync)}:Stopping Timed Out");
+            //send alert here
+
+            await ModifySlashReplyAsync($"Server Stopping Timed Out]\n    [Please Try Again",command);
+            ulong guid = command.GuildId ?? 0;
+
+            servers.Remove(guid);
+            workingFlags.Remove(guid);
+
+        },cts.Token));
+
+        await Ext.TimeoutTask(stopTask,cleanupTask,new TimeSpan(0,10,0),cts);
     }
 
     private async Task RepopulateTaskAsync(SocketSlashCommand command){
@@ -238,6 +264,24 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
         return false;
     }
 
+    private static async Task<bool> CheckWorking(SocketSlashCommand command, Dictionary<ulong, Working> workingFlags){
+
+        var guid = command.GuildId ?? 0;
+
+        workingFlags.TryGetValue(guid,out var working);
+
+        switch (working){
+            case Working.STARTING:
+                await ModifySlashReplyAsync("Server is Starting",command);
+                return true;
+            case Working.STOPPING:
+                await ModifySlashReplyAsync("Server is Stopping",command);
+                return true;
+            default:
+                return false;
+        }
+    }
+
     private static Task<EmbedBuilder> EmbedMessage(string input, SocketSlashCommand command){
         EmbedBuilder embed = new();
         embed.AddField($"**[{command.Data.Name.ToUpper()}]**",$"**```[{input}]```**");
@@ -249,6 +293,12 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
 
     private static async Task ModifySlashReplyAsync (string a, SocketSlashCommand command) =>
         await command.ModifyOriginalResponseAsync(async msg => msg.Embed = (await EmbedMessage(a,command)).Build());
+
+    private enum Working{
+        NONE,
+        STARTING,
+        STOPPING
+    }
 }
 
 public enum Game{
@@ -262,8 +312,8 @@ public interface IServer<TSelf>
     where TSelf : IServer<TSelf>
 {
     // Static abstract method to “create” an instance of TSelf
-    static abstract Task<TSelf?> CreateInterfaceAsync(string name);
-    Task<bool> StartServerAsync(Func<string, Task> messageSenderCallback);
-    Task<bool> StopServerAsync(Func<string, Task> messageSenderCallback);
+    static abstract Task<TSelf?> CreateInterfaceAsync(string name, CancellationToken cancellationToken = default);
+    Task<bool> StartServerAsync(Func<string, Task> messageSenderCallback, CancellationToken cancellationToken = default);
+    Task<bool> StopServerAsync(Func<string, Task> messageSenderCallback, CancellationToken cancellationToken = default);
     string PublicIp { get; }
 }
