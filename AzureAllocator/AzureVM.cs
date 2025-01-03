@@ -57,18 +57,18 @@ public class AzureVM
                 string? output = await _client.StandardOutput.ReadLineAsync();
                 if(output!=null && output.Contains("Welcome")){
                     _connectionAttempted.TrySetResult(true);
-                    _ = Log(nameof(StartSSH),$"welcome received");
                 }
                 if(_client.StandardOutput.EndOfStream){
                     _client.Start();
                 }
-            };
+            }
+            _ = Log(nameof(StartSSH),$"welcome received");
         });
 
         //FAIL-OPEN logic, assumes welcome message was missed
         var timeoutTask = Task.Delay(10000).ContinueWith(_ => {
-            if(!_connectionAttempted.Task.IsCompleted)
-                _ = Log(nameof(StartSSH),$"connection attempt timed out");
+            if(!_connectionAttempted.Task.IsCompleted) 
+                _ = Log(nameof(StartSSH),$"connection welcome not received.");
             _connectionAttempted.TrySetResult(true);
         });
 
@@ -90,7 +90,7 @@ public class AzureVM
         _ = Log(nameof(RunScript),$"{script}");
         await vm.RunCommandAsync(Azure.WaitUntil.Completed, scriptParams);
     }
-    public Task<Uri> GetDownloadSas(string container, string name){
+    public async Task DownloadBlob(string container, string name, string destination){
         string connectionString = Environment.GetEnvironmentVariable("MOONFIRE_STORAGE_STRING") ?? "";
         var blobClient = new BlobClient(connectionString, container, name);
 
@@ -104,11 +104,10 @@ public class AzureVM
         };
         sasBuilder.SetPermissions(BlobSasPermissions.Read);
 
-        return Task.FromResult(blobClient.GenerateSasUri(sasBuilder));
-    }
-    public async Task DownloadBlob(string container, string name, string destination){
+        Uri sasUri = blobClient.GenerateSasUri(sasBuilder);
+
         _ = Log(nameof(DownloadBlob),$"Downloading '{container}/{name}' to '{destination}'");
-        await RunScript($"curl -o {destination} '{await GetDownloadSas(container,name)}'");
+        await RunScript($"curl -o {destination} '{sasUri}'");
     }
     private async Task StartVM(){
         _ = Log(nameof(StartVM),$"Starting VM");
