@@ -45,13 +45,27 @@ public static class AzureManager
             var nsgTask = AllocateOrGetNsg(region,vmName,rgName,rg,settings,nsgName,token);
             var keyTask = AllocateOrGetSshKeyPair(region,vmName,rgName,rg,keyName,token);
             await Task.WhenAll(vnetTask,pipTask,nsgTask,keyTask);
-            vnet = await vnetTask ?? throw new("Virtual Network Allocation Failed");
-            pip = await pipTask ?? throw new("Public IP Allocation Failed");
-            nsg = await nsgTask ?? throw new("Network Security Group Allocation Failed");
-            key = await keyTask ?? throw new("Shh Key Pair Allocation Failed");
 
-            nic = await AllocateOrGetNic(region,vmName,rgName,rg,vnet,pip,nsg,nicName,token) ?? throw new("Network Interface Allocation Failed");
-            vm = await AllocateOrGetVm(region,vmName,rgName,rg,nic,key,settings,token) ?? throw new("Virtual Machine Allocation Failed");
+            (vnet,var newVnet) = await vnetTask;
+            if(vnet is null) throw new("Virtual Network Allocation Failed");
+
+            (pip,var newPip)= await pipTask;
+            if(pip is null) throw new("Public IP Allocation Failed");
+
+            (nsg,var newNsg) = await nsgTask;
+            if(nsg is null) throw new("Network Security Group Allocation Failed");
+
+            (key,var newKey) = await keyTask;
+            if(key is null) throw new("Shh Key Pair Allocation Failed");
+
+            var completeBase = !(newVnet || newPip || newNsg || newKey);
+
+            (nic,var newNic) = await AllocateOrGetNic(region,vmName,rgName,rg,vnet,pip,nsg,nicName,completeBase,token);
+            if(nic is null) throw new("Network Interface Allocation Failed");
+
+            var completeVM = !(!completeBase || newNic);
+
+            vm = await AllocateOrGetVm(region,vmName,rgName,rg,nic,key,settings,completeVM,token) ?? throw new("Virtual Machine Allocation Failed");
 
             var success = await AzureVM.TryCreateAzureVMAsync(vmName,rgName,rg,vm,vnet,pip,nsg,nic,keyName,out var azureVM);
             return success ? azureVM : throw new("AzureVM Creation Failed");
@@ -188,7 +202,7 @@ public static class AzureManager
         }
     }
 
-    private static async Task<VirtualNetworkResource?> AllocateOrGetVnet(
+    private static async Task<(VirtualNetworkResource?,bool)> AllocateOrGetVnet(
         string region,
         string vmName,
         string rgName,
@@ -204,7 +218,7 @@ public static class AzureManager
             vnetName
         );
 
-        if(vnetR!=null) return vnetR;
+        if(vnetR!=null) return (vnetR,false);
 
         var vnetData = new VirtualNetworkData()
         {
@@ -215,17 +229,17 @@ public static class AzureManager
 
         _ = Log(vmName,rgName,nameof(AllocateOrGetVnet),$"Creating Virtual Network");
         try{
-            return (await rg.GetVirtualNetworks().CreateOrUpdateAsync(Azure.WaitUntil.Completed, vnetName, vnetData,cancellationToken:token)).Value;
+            return ((await rg.GetVirtualNetworks().CreateOrUpdateAsync(Azure.WaitUntil.Completed, vnetName, vnetData,cancellationToken:token)).Value,true);
         } catch (OperationCanceledException){
             //propagate upward
             throw;
         } catch (Exception e){
             _ = Log(vmName,rgName,nameof(AllocateOrGetRG),$"{e}");
-            return null;
+            return (null,true);
         }
     }
 
-    private static async Task<PublicIPAddressResource?> AllocateOrGetPip(
+    private static async Task<(PublicIPAddressResource?,bool)> AllocateOrGetPip(
         string region,
         string vmName,
         string rgName,
@@ -241,7 +255,7 @@ public static class AzureManager
             pipName
         );
 
-        if(pipR!=null) return pipR;
+        if(pipR!=null) return (pipR,false);
 
         var publicIp = new PublicIPAddressData()
         {
@@ -252,17 +266,17 @@ public static class AzureManager
 
         _ = Log(vmName,rgName,nameof(AllocateOrGetPip),$"Creating Public Ip");
         try{
-            return (await rg.GetPublicIPAddresses().CreateOrUpdateAsync(Azure.WaitUntil.Completed, $"{vmName}PublicIP", publicIp,cancellationToken:token)).Value;
+            return ((await rg.GetPublicIPAddresses().CreateOrUpdateAsync(Azure.WaitUntil.Completed, $"{vmName}PublicIP", publicIp,cancellationToken:token)).Value,true);
         } catch (OperationCanceledException){
             //propagate upward
             throw;
         } catch (Exception e){
             _ = Log(vmName,rgName,nameof(AllocateOrGetRG),$"{e}");
-            return null;
+            return (null,true);
         }
     }
 
-    private static async Task<NetworkSecurityGroupResource?> AllocateOrGetNsg(
+    private static async Task<(NetworkSecurityGroupResource?,bool)> AllocateOrGetNsg(
         string region,
         string vmName,
         string rgName,
@@ -279,7 +293,7 @@ public static class AzureManager
             nsgName
         );
 
-        if(nsgR!=null) return nsgR;
+        if(nsgR!=null) return (nsgR,false);
 
         var nsg = new NetworkSecurityGroupData(){
             Location = region,
@@ -321,17 +335,17 @@ public static class AzureManager
 
         _ = Log(vmName,rgName,nameof(AllocateOrGetNsg),$"Creating Network Security Group");
         try{
-            return (await rg.GetNetworkSecurityGroups().CreateOrUpdateAsync(Azure.WaitUntil.Completed, nsgName, nsg,cancellationToken:token)).Value;
+            return ((await rg.GetNetworkSecurityGroups().CreateOrUpdateAsync(Azure.WaitUntil.Completed, nsgName, nsg,cancellationToken:token)).Value,true);
         } catch (OperationCanceledException){
             //propagate upward
             throw;
         } catch (Exception e){
             _ = Log(vmName,rgName,nameof(AllocateOrGetRG),$"{e}");
-            return null;
+            return (null,true);
         }
     }
 
-    private static async Task<NetworkInterfaceResource?> AllocateOrGetNic(
+    private static async Task<(NetworkInterfaceResource?,bool)> AllocateOrGetNic(
         string region,
         string vmName,
         string rgName,
@@ -340,6 +354,7 @@ public static class AzureManager
         PublicIPAddressResource pip,
         NetworkSecurityGroupResource nsg,
         string nicName,
+        bool completeBase,
         CancellationToken token = default
     ){
         var nicR = await GetResourceAsync(
@@ -350,7 +365,8 @@ public static class AzureManager
             nicName
         );
 
-        if(nicR!=null) return nicR;
+        //recreate nic if base resources had to be remade
+        if(nicR!=null && completeBase) return (nicR,false);
 
         var nicData = new NetworkInterfaceData()
         {
@@ -376,13 +392,13 @@ public static class AzureManager
 
         _ = Log(vmName,rgName,nameof(AllocateOrGetNic),$"Creating Network Interface");
         try{
-            return (await rg.GetNetworkInterfaces().CreateOrUpdateAsync(Azure.WaitUntil.Completed, nicName, nicData,cancellationToken:token)).Value;
+            return ((await rg.GetNetworkInterfaces().CreateOrUpdateAsync(Azure.WaitUntil.Completed, nicName, nicData,cancellationToken:token)).Value,true);
         } catch (OperationCanceledException){
             //propagate upward
             throw;
         } catch (Exception e){
             _ = Log(vmName,rgName,nameof(AllocateOrGetRG),$"{e}");
-            return null;
+            return (null,true);
         }
     }
 
@@ -394,6 +410,7 @@ public static class AzureManager
         NetworkInterfaceResource nic,
         string publicKey,
         AzureSettings settings,
+        bool completeVM,
         CancellationToken token = default
     ){
         var vmR = await GetResourceAsync(
@@ -404,7 +421,8 @@ public static class AzureManager
             vmName
         );
 
-        if(vmR!=null) return vmR;
+        //need to recreate VM resource if any other part was recreated
+        if(vmR!=null && completeVM) return vmR;
 
         //vm config
         var vmData = new VirtualMachineData(region)
@@ -494,7 +512,7 @@ public static class AzureManager
         }
     }
 
-    private static async Task<string?> AllocateOrGetSshKeyPair(
+    private static async Task<(string?,bool)> AllocateOrGetSshKeyPair(
         string region,
         string vmName,
         string rgName,
@@ -520,7 +538,7 @@ public static class AzureManager
         if(sshR!=null){
             if(File.Exists(keyPath)){
                 _ = Log(vmName,rgName,nameof(AllocateOrGetSshKeyPair),$"Found Private Key");
-                return sshR.Data.PublicKey;
+                return (sshR.Data.PublicKey,false);
             }
             
             _ = Log(vmName,rgName,nameof(AllocateOrGetSshKeyPair),$"Recreating Ssh Key Pair");
@@ -531,7 +549,7 @@ public static class AzureManager
                 throw;
             } catch (Exception e){
                 _ = Log(vmName,rgName,nameof(AllocateOrGetSshKeyPair),$"{e}");
-                return null;
+                return (null,true);
             }
         }
 
@@ -553,13 +571,13 @@ public static class AzureManager
             //set key permission
             if(Syscall.chmod(keyPath, FilePermissions.S_IRUSR | FilePermissions.S_IWUSR)!=0) _ = Log(vmName,rgName,nameof(AllocateOrGetSshKeyPair),"chmod failure");
 
-            return pair.PublicKey;
+            return (pair.PublicKey,true);
         } catch (OperationCanceledException){
             //propagate upward
             throw;
         } catch (Exception e){
             _ = Log(vmName,rgName,nameof(AllocateOrGetRG),$"{e}");
-            return null;
+            return (null,true);
         }
     }
 

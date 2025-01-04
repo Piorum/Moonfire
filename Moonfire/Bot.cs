@@ -30,15 +30,18 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
         foreach(var server in runningServers){
             if(server.RowKey==null || server.PartitionKey==null) continue;
 
-            _ = Console.Out.WriteLineAsync($"Recreating {server.PartitionKey}:{server.RowKey}");
+            var guidString = server.PartitionKey;
+            var guid = ulong.TryParse(guidString,out var result) ? result : 0;
+            var serverType = server.RowKey;
+
+            _ = Console.Out.WriteLineAsync($"Recreating {guid}:{serverType}");
             var reconnectTask = Task.Run(async () =>{
                 //create and validate interface creation
-                var serverInterface = await CreateServerInterfaceAsync(server.PartitionKey,server.RowKey);
-                if(serverInterface==null) return;
+                var serverInterface = await CreateServerInterfaceAsync(guidString,serverType)
+                    ?? throw new($"{guid}:{serverType}:Interface Creation Failure");
 
                 //add interface to correct dictionary
-                var guid = ulong.TryParse(server.PartitionKey,out var result) ? result : 0;
-                switch(server.RowKey){
+                switch (serverType){
                     case "scp":
                         _ = Console.Out.WriteLineAsync($"Added scp interface at {guid}");
                         scpInterfaces.TryAdd(guid,(SCPInterface)serverInterface);
@@ -48,12 +51,13 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
                         mcInterfaces.TryAdd(guid,(MCInterface)serverInterface);
                         break;
                     default:
-                        _ = Console.Out.WriteLineAsync($"{server.PartitionKey}:{server.RowKey}Failed to add to dictionary");
+                        _ = Console.Out.WriteLineAsync($"{guid}:{serverType}Failed to add to dictionary");
                         break;
                 }
 
                 //reconnect to server
-                await serverInterface.StartServerAsync((a) => _ = Console.Out.WriteLineAsync($"{a}"));
+                var success = await serverInterface.StartServerAsync((a) => _ = Console.Out.WriteLineAsync($"{a}"));
+                if(!success) throw new($"{guid}:{serverType}:Startup Failure");
             });
 
             reconnectionTasks.Add(reconnectTask);
@@ -63,6 +67,17 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
             await Task.WhenAll(reconnectionTasks);
         } catch (Exception e) {
             await Console.Out.WriteLineAsync($"{nameof(Bot)}:{ReconnectTaskAsync}:Reconnection Failed\n{e}");
+
+            //attempt to reset server entities to a recoverable state
+            foreach(var server in runningServers){
+                server.IsRunning = false;
+                await TableManager.StoreITableEntity
+                (
+                    $"{nameof(Moonfire)}Servers",
+                    server
+                );
+            }
+
             return;
         }
     }
