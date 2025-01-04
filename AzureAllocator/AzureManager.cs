@@ -12,17 +12,22 @@ namespace AzureAllocator;
 
 public static class AzureManager
 {
+    private static ArmClient? armClient = null;
+
     public static async Task<AzureVM?> Allocate(AzureSettings settings, string rgName, string vmName, CancellationToken token = default){
         //defaults if settings are null
         var region = settings.Region ?? "centralus";
-        var client = await BuildArmClient();
+        var client = await GetArmClient();
 
+        //component names specificed here
+        //rgName and vmName specified by function caller
         var vnetName = $"{vmName}Vnet";
         var pipName = $"{vmName}PublicIP";
         var nsgName = $"{vmName}NetworkSG";
         var nicName = $"{vmName}NetworkInterface";
         var keyName = $"{vmName}SshKey";
 
+        //defined here for use in try/catch statements
         ResourceGroupResource? rg = null;
         VirtualMachineResource? vm = null;
         VirtualNetworkResource? vnet = null;
@@ -99,7 +104,7 @@ public static class AzureManager
                 await foreach (var _ in rg.GetGenericResourcesAsync(cancellationToken:token)){
                     return;
                 }
-
+                //otherwise delete resource group
                 await rg.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
             }
         } catch (OperationCanceledException){
@@ -113,18 +118,26 @@ public static class AzureManager
         }
     }
 
-    private static Task<ArmClient> BuildArmClient(){
-        var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID") ?? "";
-        var clientSecret = Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET") ?? "";
-        var tenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID") ?? "";
-        var subscription = Environment.GetEnvironmentVariable("AZURE_SUBSCRIPTION_ID") ?? "";
-        ClientSecretCredential credential = new(tenantId, clientId, clientSecret);
-        ArmClient client = new(credential, subscription);
-        return Task.FromResult(client);
+    private static Task<ArmClient> GetArmClient(){
+        if (armClient != null){
+            
+            return Task.FromResult(armClient);
+
+        }else{
+
+            var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID") ?? "";
+            var clientSecret = Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET") ?? "";
+            var tenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID") ?? "";
+            var subscription = Environment.GetEnvironmentVariable("AZURE_SUBSCRIPTION_ID") ?? "";
+            ClientSecretCredential credential = new(tenantId, clientId, clientSecret);
+            armClient = new(credential, subscription);
+            return Task.FromResult(armClient);
+
+        }
     }
 
     private static async Task<SubscriptionResource> GetSubscriptionAsync() =>
-        (await BuildArmClient()).GetSubscriptionResource(new($"/subscriptions/{Environment.GetEnvironmentVariable("AZURE_SUBSCRIPTION_ID")}"));
+        (await GetArmClient()).GetSubscriptionResource(new($"/subscriptions/{Environment.GetEnvironmentVariable("AZURE_SUBSCRIPTION_ID")}"));
 
     private static async Task<TResource?> GetResourceAsync<TResource>(
         string vmName,

@@ -56,7 +56,8 @@ public static class SetupHelper{
             "Config",
             "Bot.json"
         );
-        var settings = await AzureSettings.CreateAsync(AzureSettingsPath);
+        var AzureSettingsJsonString = await File.ReadAllTextAsync(AzureSettingsPath);
+        var settings = await AzureSettings.CreateAsync(AzureSettingsJsonString);
         
         //allocating vm
         var vm = await AzureManager.Allocate(settings, $"{ver}RG", $"{ver}VM",new());

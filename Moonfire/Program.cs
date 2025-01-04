@@ -1,6 +1,4 @@
-﻿using Azure.Data.Tables;
-
-namespace Moonfire;
+﻿namespace Moonfire;
 
 public class Program{
     

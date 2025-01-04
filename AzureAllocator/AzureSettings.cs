@@ -24,19 +24,9 @@ public class AzureSettings{
 
     private AzureSettings(){}
 
-    public static async Task<AzureSettings> CreateAsync(string filepath, string region){
-        var settings = await CreateAsync(filepath);
-        settings.Region = region;
-        return settings;
-    }
-
-    //Json filepath
-    public static async Task<AzureSettings> CreateAsync(string jsonPath) =>
-        await Task.Run(async () => JsonConvert.DeserializeObject<AzureSettings>(await File.ReadAllTextAsync(jsonPath)) ?? new());
-
     //rawJson string
-    public static async Task<AzureSettings> CreateAsync(string jsonRaw, bool _) =>
-        await Task.Run(() => JsonConvert.DeserializeObject<AzureSettings>(jsonRaw) ?? new());
+    public static async Task<AzureSettings> CreateAsync(string jsonString) =>
+        await Task.Run(() => JsonConvert.DeserializeObject<AzureSettings>(jsonString) ?? new());
 
 }
 

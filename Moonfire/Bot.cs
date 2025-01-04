@@ -1,12 +1,12 @@
 using Moonfire.Interfaces;
-using FuncExt;
+using System.Collections.Concurrent;
 
 namespace Moonfire;
 
 public class Bot(string token, DiscordSocketConfig? config = null, List<Command>? _commands = null) : BotBase(token,config,_commands)
 {
-    private readonly Dictionary<ulong, SCPInterface?> scpInterfaces = [];
-    private readonly Dictionary<ulong, Working> scpWorkingFlags = [];
+    private readonly ConcurrentDictionary<ulong, SCPInterface?> scpInterfaces = [];
+    private readonly ConcurrentDictionary<ulong, Working> scpWorkingFlags = [];
 
     // Uncomment to do initial population of commands
     /*protected async override Task ClientReadyHandler(){
@@ -121,7 +121,7 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
         await SendSlashReplyAsync(help[(help.IndexOf('[')+1)..help.LastIndexOf(']')],command);
     }
 
-    private static async Task StartTaskAsync<TServer>(Dictionary<ulong, TServer?> servers, Dictionary<ulong, Working> workingFlags, SocketSlashCommand command)
+    private static async Task StartTaskAsync<TServer>(ConcurrentDictionary<ulong, TServer?> servers, ConcurrentDictionary<ulong, Working> workingFlags, SocketSlashCommand command)
         where TServer : class, IServer<TServer>
     {
         var cts = new CancellationTokenSource();
@@ -137,19 +137,19 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
             //convert from ulong? to ulong
             ulong guid = command.GuildId ?? 0;
 
-            workingFlags.Add(guid,Working.STARTING);
+            workingFlags.TryAdd(guid,Working.STARTING);
 
             //if no value, or value = null
             if(!servers.TryGetValue(guid,out TServer? server) || server == null){
                 //set server and dictionary value to interface object
                 await ModifySlashReplyAsync("Provisioning Server",command);
                 server = await TServer.CreateInterfaceAsync($"{guid}",cts.Token);
-                servers.Add(guid,server);
+                servers.TryAdd(guid,server);
             }
             //check if provisioning failed
             if(server==null){
                 await ModifySlashReplyAsync("Provisioning Failure",command);
-                workingFlags.Remove(guid);
+                workingFlags.TryRemove(guid,out _);
                 return;
             }
 
@@ -158,7 +158,7 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
             if(success) await ModifySlashReplyAsync($"Started Server at '{server.PublicIp}'",command);
 
             //remove starting lock
-            workingFlags.Remove(guid);
+            workingFlags.TryRemove(guid,out _);
             
         },cts.Token);
 
@@ -170,12 +170,12 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
             await ModifySlashReplyAsync($"Server Startup Failed]\n   [Try Again Soon", command);
             ulong guid = command.GuildId ?? 0;
 
-            workingFlags.Remove(guid);
-            workingFlags.Add(guid,Working.RECOVERING);
+            workingFlags.TryRemove(guid,out _);
+            workingFlags.TryAdd(guid,Working.RECOVERING);
 
             if (!servers.TryGetValue(guid, out TServer? server) || server == null)
             {
-                workingFlags.Remove(guid);
+                workingFlags.Remove(guid,out _);
                 return;
             }
 
@@ -189,17 +189,17 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
             );
 
             //fully cleans up server object
-            servers.Remove(guid);
+            servers.TryRemove(guid,out _);
 
             //remove recovery lock
-            workingFlags.Remove(guid);
+            workingFlags.TryRemove(guid,out _);
 
         },cts.Token));
 
         await Ext.TimeoutTask(startTask,cleanupTask,new TimeSpan(0,5,0),cts);
     }
 
-    private static async Task StopTaskAsync<TServer>(Dictionary<ulong, TServer?> servers, Dictionary<ulong, Working> workingFlags, SocketSlashCommand command)
+    private static async Task StopTaskAsync<TServer>(ConcurrentDictionary<ulong, TServer?> servers, ConcurrentDictionary<ulong, Working> workingFlags, SocketSlashCommand command)
         where TServer : class, IServer<TServer>
     {
         var cts = new CancellationTokenSource();
@@ -213,23 +213,23 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
             var guid = command.GuildId ?? 0;
 
             if(await CheckWorking(command,workingFlags)) return;
-            workingFlags.Add(guid,Working.STOPPING);
+            workingFlags.TryAdd(guid,Working.STOPPING);
 
             if(!servers.TryGetValue(guid,out var server)){
                 await ModifySlashReplyAsync("No Server Found",command);
-                workingFlags.Remove(guid);
+                workingFlags.TryRemove(guid,out _);
                 return;
             }
             if(server==null){
                 await ModifySlashReplyAsync("Server Was Null",command);
-                workingFlags.Remove(guid);
+                workingFlags.TryRemove(guid,out _);
                 return;
             }
 
             var result = await server.StopServerAsync((string a)=>ModifySlashReplyAsync(a,command),cts.Token);
 
-            servers.Remove(guid);
-            workingFlags.Remove(guid);
+            servers.TryRemove(guid,out _);
+            workingFlags.TryRemove(guid,out _);
 
             if(result) await ModifySlashReplyAsync("Stopped Server",command);
 
@@ -241,12 +241,12 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
 
             var guid = command.GuildId ?? 0;
 
-            workingFlags.Remove(guid);
-            workingFlags.Add(guid,Working.RECOVERING);
+            workingFlags.TryRemove(guid,out _);
+            workingFlags.TryAdd(guid,Working.RECOVERING);
 
             await ModifySlashReplyAsync($"Server Stopping Failure]\n     [Try Again Soon",command);
-            servers.Remove(guid);
-            workingFlags.Remove(guid);
+            servers.TryRemove(guid,out _);
+            workingFlags.TryRemove(guid,out _);
 
         },cts.Token));
 
@@ -271,7 +271,7 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
         return false;
     }
 
-    private static async Task<bool> CheckWorking(SocketSlashCommand command, Dictionary<ulong, Working> workingFlags){
+    private static async Task<bool> CheckWorking(SocketSlashCommand command, ConcurrentDictionary<ulong, Working> workingFlags){
 
         var guid = command.GuildId ?? 0;
 

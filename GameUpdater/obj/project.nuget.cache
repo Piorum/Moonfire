@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "NpysVr6mDHnA16v36BrjgaTgtdBNazYbJGZgcbkC2WV2zzSw4C0ZydAHRZR8X0mcksXAh8v1jkb2lr4rBshCEw==",
+  "dgSpecHash": "TMM0lMT4yawdKMQRDnRm/da1W8OdWakNWxOFbJSfXb8E3rh7LZcmnMI5lvXctqzQO2hYqqP7twtFVBSiyyheuw==",
   "success": true,
-  "projectFilePath": "/home/username/Documents/Singularity/Sunfire/GameUpdater/GameUpdater.csproj",
+  "projectFilePath": "/home/username/Documents/Singularity/Moonfire/GameUpdater/GameUpdater.csproj",
   "expectedPackageFiles": [
     "/home/username/.nuget/packages/azure.core/1.44.1/azure.core.1.44.1.nupkg.sha512",
     "/home/username/.nuget/packages/azure.data.tables/12.9.1/azure.data.tables.12.9.1.nupkg.sha512",

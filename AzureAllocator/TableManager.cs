@@ -1,17 +1,29 @@
+using System.Collections.Concurrent;
 using Azure;
 using Azure.Data.Tables;
-
 
 namespace AzureAllocator;
 
 public static class TableManager
 {
-    public async static Task<TableClient> GetTableClient(string table, CancellationToken token = default){
+    private static readonly ConcurrentDictionary<string, TableClient> tableClients = new();
+
+    private async static Task<TableClient> CreateTableClient(string tableName, CancellationToken token = default){
+
         string connectionString = Environment.GetEnvironmentVariable("MOONFIRE_STORAGE_STRING") ?? "";
-        var client = new TableClient(connectionString, table);
+        var client = new TableClient(connectionString, tableName);
+
+        //create table if doesn't exist
         await client.CreateIfNotExistsAsync(cancellationToken:token);
+
+        //store in dictionary
+        tableClients.TryAdd(tableName,client);
+
         return client;
     }
+
+    private async static Task<TableClient> GetTableClient(string tableName, CancellationToken token = default) =>
+        tableClients.TryGetValue(tableName,out var client) ? client : await CreateTableClient(tableName,token);
     
     public static async Task<TableEntity?> GetTableEntity(TableClient client, string key, string row, CancellationToken token = default){
         try{

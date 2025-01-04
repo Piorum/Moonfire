@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using Newtonsoft.Json;
 using Azure.Data.Tables;
-using Azure.ResourceManager.Compute;
 
 namespace Moonfire.Interfaces;
 
@@ -19,17 +18,15 @@ public class SCPInterface : IServer<SCPInterface>
     public static async Task<SCPInterface?> CreateInterfaceAsync(string guildId, CancellationToken token = default){
         SCPInterface obj = new();
 
-
         //loading settings
-        var tableClient = await TableManager.GetTableClient(nameof(Moonfire) + "SCP",token);
+        string tableName = nameof(Moonfire) + "SCP";
 
-        //loading hardware settings
-        //attempt to get stored settings
-        var hardwareSettingsJson = (await TableManager.GetTableEntity(tableClient,guildId,"config",token))?["scphardware"];
+        var hardwareSettingsJson = await TableManager.GetTableEntity(tableName,guildId,"config","scphardware",token);
 
         //if settings are null load and store template settings
         if(hardwareSettingsJson==null){
             _ = Console.Out.WriteLineAsync($"{nameof(SCPInterface)}: No Hardware Settings Found For {guildId} Storing Defaults");
+
             //use template settings if none are found
             var hardwareTemplatePath = Path.Combine(
                 Environment.GetEnvironmentVariable("CONFIG_PATH") ?? "",
@@ -37,29 +34,30 @@ public class SCPInterface : IServer<SCPInterface>
                 "SCPSettings.json"
             );
             hardwareSettingsJson = await File.ReadAllTextAsync(hardwareTemplatePath,token);
-            await TableManager.StoreTableEntity(tableClient,new TableEntity(guildId,"config"){
-                { "scphardware", (string)hardwareSettingsJson }
-            },token);
+
+            await TableManager.StoreTableEntity(tableName,guildId,"config","scphardware",hardwareSettingsJson,token);
         }
 
-        //create settings object
-        var hardwareSettings = await AzureSettings.CreateAsync((string)hardwareSettingsJson,true);
+        //create azure settings object
+        var hardwareSettings = await AzureSettings.CreateAsync((string)hardwareSettingsJson);
 
         //loading game settings
         //attempt to get stored setting
-        var gameSettingsJson = (await TableManager.GetTableEntity(tableClient,guildId,"config",token))?["scpgame"];
+        var gameSettingsJson = await TableManager.GetTableEntity(tableName,guildId,"config","scpgame",token);
 
         if(gameSettingsJson==null){
             _ = Console.Out.WriteLineAsync($"{nameof(SCPInterface)}: No Game Settings Found For {guildId} Storing Defaults");
-            //use default settings if none is found
+
+            //use template settings if none are found
             gameSettingsJson = JsonConvert.SerializeObject(new ScpSettings());
-            await TableManager.StoreTableEntity(tableClient,new TableEntity(guildId,"config"){
-                { "scpgame", (string)gameSettingsJson }
-            },token);
+
+            await TableManager.StoreTableEntity(tableName,guildId,"config","scpgame",gameSettingsJson,token);
         }
 
+        //log settings
         _ = Console.Out.WriteLineAsync($"{(string)hardwareSettingsJson}");
         _ = Console.Out.WriteLineAsync($"{(string)gameSettingsJson}");
+
         //deserialize json string into obj
         obj.scpSettings = JsonConvert.DeserializeObject<ScpSettings>((string)gameSettingsJson);
 
@@ -103,7 +101,9 @@ public class SCPInterface : IServer<SCPInterface>
             return false;
         }
 
-        if(!await GetAlreadyStarted(vm,token)){
+        //gets already started flag, defaults to false if no entry, if not alreadyStarted : else
+        if(!await TableManager.GetBoolDefaultFalse(nameof(Moonfire), vm.rgName, "started","scp",token)){
+            //runs setup, if fails returns failure
             if(!await Setup(SendMessage,token)) return false;
         } else {
             return await ReconnectAsync(SendMessage, token);
@@ -133,7 +133,8 @@ public class SCPInterface : IServer<SCPInterface>
         if(configTransferFailed) _ = Log(fN,"Config Transfer Failed");
         _ = Log(fN,"SCP Server Started");
 
-        await SetAlreadyStarted(true,vm,token);
+        //set already started flag true
+        await TableManager.StoreTableEntity(nameof(Moonfire),vm.rgName,"started","scp",true,token);
         started = true;
         return true;
     }
@@ -152,7 +153,8 @@ public class SCPInterface : IServer<SCPInterface>
         _ = SendMessage($"Deprovisioning Server");
         if(vm!=null){
 
-            await SetAlreadyStarted(false,vm,token);
+            //set already started flag false
+            await TableManager.StoreTableEntity(nameof(Moonfire),vm.rgName,"started","scp",false,token);
 
             await vm.Deallocate(token);
         }
@@ -183,7 +185,8 @@ public class SCPInterface : IServer<SCPInterface>
             _ = SendMessage("VM Offline - Reset Interface - Try Again");
             _ = Log(nameof(ReconnectAsync),"VM Offline - Reset Interface");
 
-            await SetAlreadyStarted(false,vm,token);
+            //set already started flag false
+            await TableManager.StoreTableEntity(nameof(Moonfire),vm.rgName,"started","scp",false,token);
 
             await StartServerAsync(SendMessage, token);
             return true;
@@ -245,22 +248,6 @@ public class SCPInterface : IServer<SCPInterface>
         await vm.ConsoleDirect(@"./LocalAdmin 7777",sshClient);
 
         return true;
-    }
-
-    private static async Task SetAlreadyStarted(bool value, AzureVM vm, CancellationToken token = default){
-        var tableClient = await TableManager.GetTableClient(nameof(Moonfire),token);
-        await TableManager.StoreTableEntity(tableClient,vm.rgName,"started","scp",value,token);
-        tableClient = null;
-    }
-
-    private static async Task<bool> GetAlreadyStarted(AzureVM vm, CancellationToken token = default){
-        var tableClient = await TableManager.GetTableClient(nameof(Moonfire),token);
-        var entity = await TableManager.GetTableEntity(tableClient, vm.rgName, "started","scp",token);
-        tableClient = null;
-        //default to false if null
-        //if not null alreadyStarted = entity
-        bool alreadyStarted = entity != null && (bool)entity;
-        return alreadyStarted;
     }
 
     private async Task Log(string funcName, string input) =>
