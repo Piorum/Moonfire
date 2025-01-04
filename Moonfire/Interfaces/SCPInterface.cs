@@ -1,10 +1,10 @@
 using System.Diagnostics;
+using Moonfire.TableEntities;
 using Newtonsoft.Json;
-using Azure.Data.Tables;
 
 namespace Moonfire.Interfaces;
 
-public class SCPInterface : IServer<SCPInterface>
+public class SCPInterface : IServer<SCPInterface>, IServerBase
 {   
     public string PublicIp => vm?.ip ?? "Not Found";
     private string Name => $"{vm?.rgName ?? "RG Name Not Found"}:{vm?.vmName ?? "VM Name Not Found"}:";
@@ -102,7 +102,16 @@ public class SCPInterface : IServer<SCPInterface>
         }
 
         //gets already started flag, defaults to false if no entry, if not alreadyStarted : else
-        if(!await TableManager.GetBoolDefaultFalse(nameof(Moonfire), vm.rgName, "started","scp",token)){
+        var alreadyStartedEntity = await TableManager.GetITableEntity<ServerEntity>
+            (
+                $"{nameof(Moonfire)}Servers",
+                vm.Guid.ToString()??"",
+                "scp",
+                token
+            );
+        alreadyStartedEntity ??= new();
+
+        if(!alreadyStartedEntity.IsRunning){
             //runs setup, if fails returns failure
             if(!await Setup(SendMessage,token)) return false;
         } else {
@@ -134,7 +143,7 @@ public class SCPInterface : IServer<SCPInterface>
         _ = Log(fN,"SCP Server Started");
 
         //set already started flag true
-        await TableManager.StoreTableEntity(nameof(Moonfire),vm.rgName,"started","scp",true,token);
+        await TableManager.StoreITableEntity($"{nameof(Moonfire)}Servers",new ServerEntity(vm.Guid.ToString()??"","scp",true),token);
         started = true;
         return true;
     }
@@ -154,7 +163,7 @@ public class SCPInterface : IServer<SCPInterface>
         if(vm!=null){
 
             //set already started flag false
-            await TableManager.StoreTableEntity(nameof(Moonfire),vm.rgName,"started","scp",false,token);
+            await TableManager.StoreITableEntity($"{nameof(Moonfire)}Servers",new ServerEntity(vm.Guid.ToString()??"","scp",false),token);
 
             await vm.Deallocate(token);
         }
@@ -186,7 +195,7 @@ public class SCPInterface : IServer<SCPInterface>
             _ = Log(nameof(ReconnectAsync),"VM Offline - Reset Interface");
 
             //set already started flag false
-            await TableManager.StoreTableEntity(nameof(Moonfire),vm.rgName,"started","scp",false,token);
+            await TableManager.StoreITableEntity($"{nameof(Moonfire)}Servers",new ServerEntity(vm.Guid.ToString()??"","scp",false),token);
 
             await StartServerAsync(SendMessage, token);
             return true;

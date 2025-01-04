@@ -1,4 +1,5 @@
 using Moonfire.Interfaces;
+using Moonfire.TableEntities;
 using System.Collections.Concurrent;
 
 namespace Moonfire;
@@ -7,12 +8,71 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
 {
     private readonly ConcurrentDictionary<ulong, SCPInterface?> scpInterfaces = [];
     private readonly ConcurrentDictionary<ulong, Working> scpWorkingFlags = [];
+    private readonly ConcurrentDictionary<ulong, MCInterface?> mcInterfaces = [];
+    private readonly ConcurrentDictionary<ulong, Working> mcWorkingFlags = [];
 
+    
     // Uncomment to do initial population of commands
     /*protected async override Task ClientReadyHandler(){
         await PopulateCommandsAsync(ownerServerId);
         return;
     }*/
+
+    protected async override Task PreStartupTasks(){
+        await ReconnectTaskAsync();
+    }
+
+    private async Task ReconnectTaskAsync(){
+        var runningServers = await TableManager.QueryTableAsync<ServerEntity>($"{nameof(Moonfire)}Servers",e=>e.IsRunning);
+
+        var reconnectionTasks = new List<Task>();
+
+        foreach(var server in runningServers){
+            if(server.RowKey==null || server.PartitionKey==null) continue;
+
+            _ = Console.Out.WriteLineAsync($"Recreating {server.PartitionKey}:{server.RowKey}");
+            var reconnectTask = Task.Run(async () =>{
+                //create and validate interface creation
+                var serverInterface = await CreateServerInterfaceAsync(server.PartitionKey,server.RowKey);
+                if(serverInterface==null) return;
+
+                //add interface to correct dictionary
+                var guid = ulong.TryParse(server.PartitionKey,out var result) ? result : 0;
+                switch(server.RowKey){
+                    case "scp":
+                        _ = Console.Out.WriteLineAsync($"Added scp interface at {guid}");
+                        scpInterfaces.TryAdd(guid,(SCPInterface)serverInterface);
+                        break;
+                    case "mc":
+                        _ = Console.Out.WriteLineAsync($"Added mc interface at {guid}");
+                        mcInterfaces.TryAdd(guid,(MCInterface)serverInterface);
+                        break;
+                    default:
+                        _ = Console.Out.WriteLineAsync($"{server.PartitionKey}:{server.RowKey}Failed to add to dictionary");
+                        break;
+                }
+
+                //reconnect to server
+                await serverInterface.StartServerAsync((a) => _ = Console.Out.WriteLineAsync($"{a}"));
+            });
+
+            reconnectionTasks.Add(reconnectTask);
+        }
+
+        try{
+            await Task.WhenAll(reconnectionTasks);
+        } catch (Exception e) {
+            await Console.Out.WriteLineAsync($"{nameof(Bot)}:{ReconnectTaskAsync}:Reconnection Failed\n{e}");
+            return;
+        }
+    }
+
+    private static async Task<IServerBase?> CreateServerInterfaceAsync(string guid, string serverType) =>
+        serverType switch{
+            "scp" => await SCPInterface.CreateInterfaceAsync(guid),
+            "mc" => await MCInterface.CreateInterfaceAsync(guid),
+            _ => null
+        };
 
     protected override Task SlashCommandHandler(SocketSlashCommand command){
         //finds first command that matches name of passed command
@@ -317,14 +377,4 @@ public enum Game{
         SCP,
         MINECRAFT,
         GMOD
-}
-
-public interface IServer<TSelf> 
-    where TSelf : IServer<TSelf>
-{
-    // Static abstract method to “create” an instance of TSelf
-    static abstract Task<TSelf?> CreateInterfaceAsync(string name, CancellationToken cancellationToken = default);
-    Task<bool> StartServerAsync(Func<string, Task> messageSenderCallback, CancellationToken cancellationToken = default);
-    Task<bool> StopServerAsync(Func<string, Task> messageSenderCallback, CancellationToken cancellationToken = default);
-    string PublicIp { get; }
 }

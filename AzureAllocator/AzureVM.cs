@@ -1,18 +1,21 @@
+using System.Diagnostics;
+using System.Text.RegularExpressions;
 using Azure.ResourceManager.Compute;
 using Azure.ResourceManager.Compute.Models;
 using Azure.ResourceManager.Resources;
 using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
-using System.Diagnostics;
 using Azure.ResourceManager.Network;
 using FuncExt;
 
 namespace AzureAllocator;
 
-public class AzureVM
+public partial class AzureVM
 {
     public bool Connected = false;
     public bool Started => CheckStarted();
+    public ulong? Guid => CheckGuid();
+
     public readonly string vmName;
     public readonly string rgName;
     public readonly string? ip;
@@ -173,6 +176,13 @@ public class AzureVM
     
     private bool CheckStarted(){
         return "VM running" == vm.InstanceView().Value.Statuses.FirstOrDefault(status => status.Code.StartsWith("PowerState/"))?.DisplayStatus;
+    }
+
+    [GeneratedRegex(@"\d+")]
+    private static partial Regex NumericRegex();
+
+    private ulong? CheckGuid(){
+        return ulong.TryParse(NumericRegex().Match(rgName).Value,out var guid) ? guid : null;
     }
 
     private async Task Log(string funcName, string input) =>

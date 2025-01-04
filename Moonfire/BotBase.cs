@@ -34,6 +34,8 @@ public abstract class BotBase{
     }
 
     public async Task StartBotAsync(){
+        await PreStartupTasks();
+
         //Starting Bot
         await _client.LoginAsync(TokenType.Bot, _token);
         await _client.StartAsync();
@@ -42,6 +44,8 @@ public abstract class BotBase{
         //Block this task until program is closed
         await Task.Delay(-1);
     }
+
+    protected virtual Task PreStartupTasks(){return Task.CompletedTask;}
 
     protected virtual Task ClientReadyHandler(){return Task.CompletedTask;}
 
