@@ -58,12 +58,12 @@ public static class AzureManager
             (key,var newKey) = await keyTask;
             if(key is null) throw new("Shh Key Pair Allocation Failed");
 
-            var completeBase = !(newVnet || newPip || newNsg || newKey);
+            var completeBaseNetwork = !(newVnet || newPip || newNsg || newKey);
 
-            (nic,var newNic) = await AllocateOrGetNic(region,vmName,rgName,rg,vnet,pip,nsg,nicName,completeBase,token);
+            (nic,var newNic) = await AllocateOrGetNic(region,vmName,rgName,rg,vnet,pip,nsg,nicName,completeBaseNetwork,token);
             if(nic is null) throw new("Network Interface Allocation Failed");
 
-            var completeVM = !(!completeBase || newNic);
+            var completeVM = completeBaseNetwork && !newNic;
 
             vm = await AllocateOrGetVm(region,vmName,rgName,rg,nic,key,settings,completeVM,token) ?? throw new("Virtual Machine Allocation Failed");
 

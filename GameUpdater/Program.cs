@@ -4,7 +4,7 @@ public class Program{
     
     //entry point
     public static async Task Main(){
-        var ver = nameof(Moonfire);
+        var ver = "Moonfire";
 
         var CONFIG_PATH = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -37,8 +37,6 @@ public class Program{
 
                 Options.MINECRAFT => UpdateHelper.UpdateMINECRAFT(),
 
-                Options.GMOD => UpdateHelper.UpdateGMOD(),
-
                 Options.MAINTENANCE_LOCK => UpdateHelper.MaintenanceLock(ver),
 
                 _ => Console.Out.WriteLineAsync("Invalid Option")
@@ -53,7 +51,6 @@ public class Program{
             NONE,
             SCP,
             MINECRAFT,
-            GMOD,
             MAINTENANCE_LOCK
     }
 }

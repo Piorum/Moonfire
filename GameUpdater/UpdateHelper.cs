@@ -26,10 +26,6 @@ public static class UpdateHelper
         await Console.Out.WriteLineAsync("Updating MINECRAFT");
     }
 
-    public static async Task UpdateGMOD(){
-        await Console.Out.WriteLineAsync("Updating GMOD");
-    }
-
     public static async Task MaintenanceLock(string ver){
         await Console.Out.WriteLineAsync("Locking Bot For Maintenance");
 

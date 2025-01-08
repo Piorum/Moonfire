@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Text.RegularExpressions;
 using Azure.ResourceManager.Compute;
 using Azure.ResourceManager.Compute.Models;
 using Azure.ResourceManager.Resources;
@@ -10,7 +9,7 @@ using FuncExt;
 
 namespace AzureAllocator;
 
-public partial class AzureVM
+public class AzureVM
 {
     public bool Connected = false;
     public bool Started => CheckStarted();
@@ -50,6 +49,7 @@ public partial class AzureVM
         ip = pip.Data.IPAddress;
     }
 
+    //use AzureManager allocator
     public static Task<bool> TryCreateAzureVMAsync(
         string vmName, 
         string rgName, 
@@ -84,21 +84,25 @@ public partial class AzureVM
         }
     }
 
-    public static Task<ProcessStartInfo> BuildSshClient(string guid, AzureVM vm){
-        return Task.FromResult(new ProcessStartInfo
+    public static Task<Process> BuildSshClient(string guid, AzureVM vm) =>
+        Task.FromResult(
+            new Process()
             {
-                FileName = "ssh", 
-                Arguments =
-                    $"-t " +
-                    $"-o StrictHostKeyChecking=no " +
-                    $"-i {Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}/.ssh/{guid}RG/{vm?.vmName}-Key.pem " +
-                    $"azureuser@{vm?.ip}",
-                CreateNoWindow = true,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            });
-    }
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "ssh", 
+                    Arguments =
+                        $"-t " +
+                        $"-o StrictHostKeyChecking=no " +
+                        $"-i {Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}/.ssh/{guid}RG/{vm?.vmName}-Key.pem " +
+                        $"azureuser@{vm?.ip}",
+                    CreateNoWindow = true,
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                }
+            }
+        );
 
     public async Task StartSSH(Process _client){
         TaskCompletionSource<bool> _connected = new();
@@ -178,11 +182,8 @@ public partial class AzureVM
         return "VM running" == vm.InstanceView().Value.Statuses.FirstOrDefault(status => status.Code.StartsWith("PowerState/"))?.DisplayStatus;
     }
 
-    [GeneratedRegex(@"\d+")]
-    private static partial Regex NumericRegex();
-
     private ulong? CheckGuid(){
-        return ulong.TryParse(NumericRegex().Match(rgName).Value,out var guid) ? guid : null;
+        return ulong.TryParse(Reg.NumericRegex().Match(rgName).Value,out var guid) ? guid : null;
     }
 
     private async Task Log(string funcName, string input) =>

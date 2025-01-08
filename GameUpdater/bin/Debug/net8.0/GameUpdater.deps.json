@@ -9,8 +9,7 @@
       "GameUpdater/1.0.0": {
         "dependencies": {
           "Azure.Storage.Blobs": "12.23.0",
-          "AzureAllocator": "1.0.0",
-          "Sunfire": "1.0.0"
+          "AzureAllocator": "1.0.0"
         },
         "runtime": {
           "GameUpdater.dll": {}
@@ -141,102 +140,9 @@
           }
         }
       },
-      "Discord.Net/3.15.3": {
-        "dependencies": {
-          "Discord.Net.Commands": "3.15.3",
-          "Discord.Net.Core": "3.15.3",
-          "Discord.Net.Interactions": "3.15.3",
-          "Discord.Net.Rest": "3.15.3",
-          "Discord.Net.WebSocket": "3.15.3",
-          "Discord.Net.Webhook": "3.15.3"
-        }
-      },
-      "Discord.Net.Commands/3.15.3": {
-        "dependencies": {
-          "Discord.Net.Core": "3.15.3"
-        },
-        "runtime": {
-          "lib/net6.0/Discord.Net.Commands.dll": {
-            "assemblyVersion": "3.15.3.0",
-            "fileVersion": "3.15.3.0"
-          }
-        }
-      },
-      "Discord.Net.Core/3.15.3": {
-        "dependencies": {
-          "Newtonsoft.Json": "13.0.3",
-          "System.Collections.Immutable": "6.0.0",
-          "System.Interactive.Async": "6.0.1",
-          "System.ValueTuple": "4.5.0"
-        },
-        "runtime": {
-          "lib/net6.0/Discord.Net.Core.dll": {
-            "assemblyVersion": "3.15.3.0",
-            "fileVersion": "3.15.3.0"
-          }
-        }
-      },
-      "Discord.Net.Interactions/3.15.3": {
-        "dependencies": {
-          "Discord.Net.Core": "3.15.3",
-          "Discord.Net.Rest": "3.15.3",
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "6.0.0",
-          "System.Collections.Immutable": "6.0.0",
-          "System.Reactive": "6.0.0"
-        },
-        "runtime": {
-          "lib/net6.0/Discord.Net.Interactions.dll": {
-            "assemblyVersion": "3.15.3.0",
-            "fileVersion": "3.15.3.0"
-          }
-        }
-      },
-      "Discord.Net.Rest/3.15.3": {
-        "dependencies": {
-          "Discord.Net.Core": "3.15.3"
-        },
-        "runtime": {
-          "lib/net6.0/Discord.Net.Rest.dll": {
-            "assemblyVersion": "3.15.3.0",
-            "fileVersion": "3.15.3.0"
-          }
-        }
-      },
-      "Discord.Net.Webhook/3.15.3": {
-        "dependencies": {
-          "Discord.Net.Core": "3.15.3",
-          "Discord.Net.Rest": "3.15.3"
-        },
-        "runtime": {
-          "lib/net6.0/Discord.Net.Webhook.dll": {
-            "assemblyVersion": "3.15.3.0",
-            "fileVersion": "3.15.3.0"
-          }
-        }
-      },
-      "Discord.Net.WebSocket/3.15.3": {
-        "dependencies": {
-          "Discord.Net.Core": "3.15.3",
-          "Discord.Net.Rest": "3.15.3"
-        },
-        "runtime": {
-          "lib/net6.0/Discord.Net.WebSocket.dll": {
-            "assemblyVersion": "3.15.3.0",
-            "fileVersion": "3.15.3.0"
-          }
-        }
-      },
       "Microsoft.Bcl.AsyncInterfaces/6.0.0": {
         "runtime": {
           "lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll": {
-            "assemblyVersion": "6.0.0.0",
-            "fileVersion": "6.0.21.52210"
-          }
-        }
-      },
-      "Microsoft.Extensions.DependencyInjection.Abstractions/6.0.0": {
-        "runtime": {
-          "lib/net6.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll": {
             "assemblyVersion": "6.0.0.0",
             "fileVersion": "6.0.21.52210"
           }
@@ -396,25 +302,9 @@
           }
         }
       },
-      "System.Collections.Immutable/6.0.0": {
-        "dependencies": {
-          "System.Runtime.CompilerServices.Unsafe": "6.0.0"
-        }
-      },
       "System.Diagnostics.DiagnosticSource/6.0.1": {
         "dependencies": {
           "System.Runtime.CompilerServices.Unsafe": "6.0.0"
-        }
-      },
-      "System.Interactive.Async/6.0.1": {
-        "dependencies": {
-          "System.Linq.Async": "6.0.1"
-        },
-        "runtime": {
-          "lib/net6.0/System.Interactive.Async.dll": {
-            "assemblyVersion": "6.0.0.0",
-            "fileVersion": "6.0.1.35981"
-          }
         }
       },
       "System.IO.Hashing/6.0.0": {
@@ -422,17 +312,6 @@
           "lib/net6.0/System.IO.Hashing.dll": {
             "assemblyVersion": "6.0.0.0",
             "fileVersion": "6.0.21.52210"
-          }
-        }
-      },
-      "System.Linq.Async/6.0.1": {
-        "dependencies": {
-          "Microsoft.Bcl.AsyncInterfaces": "6.0.0"
-        },
-        "runtime": {
-          "lib/net6.0/System.Linq.Async.dll": {
-            "assemblyVersion": "6.0.0.0",
-            "fileVersion": "6.0.1.35981"
           }
         }
       },
@@ -449,14 +328,6 @@
         }
       },
       "System.Numerics.Vectors/4.5.0": {},
-      "System.Reactive/6.0.0": {
-        "runtime": {
-          "lib/net6.0/System.Reactive.dll": {
-            "assemblyVersion": "6.0.0.0",
-            "fileVersion": "6.0.0.1"
-          }
-        }
-      },
       "System.Runtime.CompilerServices.Unsafe/6.0.0": {},
       "System.Security.Cryptography.ProtectedData/4.5.0": {
         "runtime": {
@@ -486,7 +357,6 @@
         }
       },
       "System.Threading.Tasks.Extensions/4.5.4": {},
-      "System.ValueTuple/4.5.0": {},
       "AzureAllocator/1.0.0": {
         "dependencies": {
           "Azure.Core": "1.44.1",
@@ -497,6 +367,7 @@
           "Azure.ResourceManager.Network": "1.9.0",
           "Azure.ResourceManager.Resources": "1.9.0",
           "Azure.Storage.Blobs": "12.23.0",
+          "FuncExt": "1.0.0",
           "Mono.Posix.NETStandard": "1.0.0",
           "Newtonsoft.Json": "13.0.3"
         },
@@ -504,14 +375,9 @@
           "AzureAllocator.dll": {}
         }
       },
-      "Sunfire/1.0.0": {
-        "dependencies": {
-          "Azure.ResourceManager": "1.13.0",
-          "AzureAllocator": "1.0.0",
-          "Discord.Net": "3.15.3"
-        },
+      "FuncExt/1.0.0": {
         "runtime": {
-          "Sunfire.dll": {}
+          "FuncExt.dll": {}
         }
       }
     }
@@ -585,68 +451,12 @@
       "path": "azure.storage.common/12.22.0",
       "hashPath": "azure.storage.common.12.22.0.nupkg.sha512"
     },
-    "Discord.Net/3.15.3": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-qXnqM8Hh2/FH44zz8P2cte5ti63CTLdwDaU3WB+S24m9yQ27mjHSDYb8jlSJbK/RMCNmCOyRFA57uTwaKk73jQ==",
-      "path": "discord.net/3.15.3",
-      "hashPath": "discord.net.3.15.3.nupkg.sha512"
-    },
-    "Discord.Net.Commands/3.15.3": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-g3OFzjWx7xxl+EXm7UmqQWM2RKOlTWEhadwc89B1SyYjbN72U9pU8pXvZbZLe29Psqd2k5neFVc25GwiCBjbmQ==",
-      "path": "discord.net.commands/3.15.3",
-      "hashPath": "discord.net.commands.3.15.3.nupkg.sha512"
-    },
-    "Discord.Net.Core/3.15.3": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-FvOEC1Buam9C+aJ5CaLb5FEPKVdXjaNrEmgexo02n9bSRILQNi8iBM6f3K/Ziq2SLEZn+tujEHwNH8zFMzZwVA==",
-      "path": "discord.net.core/3.15.3",
-      "hashPath": "discord.net.core.3.15.3.nupkg.sha512"
-    },
-    "Discord.Net.Interactions/3.15.3": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-Bo8nX2Ho0sypNCPJ6jb/Bvx7LlVZc3bN70Fq31q5uWjK+DSKTIPsSOacPuxGCHAeq7VZCPbEqaGLb8EZ+YnmHw==",
-      "path": "discord.net.interactions/3.15.3",
-      "hashPath": "discord.net.interactions.3.15.3.nupkg.sha512"
-    },
-    "Discord.Net.Rest/3.15.3": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-sMfO42ZqzRHmVSEgbAG+FbkeKDorvfksH+1D0ds8hG1IWhK3mzZIeE8FkVLRputRxcAnP5eHbiBOhtgbN4hRMA==",
-      "path": "discord.net.rest/3.15.3",
-      "hashPath": "discord.net.rest.3.15.3.nupkg.sha512"
-    },
-    "Discord.Net.Webhook/3.15.3": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-69dvN5L0aKyATSET3lFemQd2ZyYBAxr9kde4PPhpiyx58N/AKsBQRqeBQE9PUIuIdEcFwllmgorHaVTBKLw6lw==",
-      "path": "discord.net.webhook/3.15.3",
-      "hashPath": "discord.net.webhook.3.15.3.nupkg.sha512"
-    },
-    "Discord.Net.WebSocket/3.15.3": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-sR7Apa1I0IgpDG4TgJZ6Amd35FQIzbpN+W6+1XpnXOo58KcrSM3v1hODrKr/wkYHtm1zpeBqBbKfZCvLIsdRww==",
-      "path": "discord.net.websocket/3.15.3",
-      "hashPath": "discord.net.websocket.3.15.3.nupkg.sha512"
-    },
     "Microsoft.Bcl.AsyncInterfaces/6.0.0": {
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-UcSjPsst+DfAdJGVDsu346FX0ci0ah+lw3WRtn18NUwEqRt70HaOQ7lI72vy3+1LxtqI3T5GWwV39rQSrCzAeg==",
       "path": "microsoft.bcl.asyncinterfaces/6.0.0",
       "hashPath": "microsoft.bcl.asyncinterfaces.6.0.0.nupkg.sha512"
-    },
-    "Microsoft.Extensions.DependencyInjection.Abstractions/6.0.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-xlzi2IYREJH3/m6+lUrQlujzX8wDitm4QGnUu6kUXTQAWPuZY8i+ticFJbzfqaetLA6KR/rO6Ew/HuYD+bxifg==",
-      "path": "microsoft.extensions.dependencyinjection.abstractions/6.0.0",
-      "hashPath": "microsoft.extensions.dependencyinjection.abstractions.6.0.0.nupkg.sha512"
     },
     "Microsoft.Identity.Client/4.66.1": {
       "type": "package",
@@ -690,13 +500,6 @@
       "path": "system.clientmodel/1.1.0",
       "hashPath": "system.clientmodel.1.1.0.nupkg.sha512"
     },
-    "System.Collections.Immutable/6.0.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-l4zZJ1WU2hqpQQHXz1rvC3etVZN+2DLmQMO79FhOTZHMn8tDRr+WU287sbomD0BETlmKDn0ygUgVy9k5xkkJdA==",
-      "path": "system.collections.immutable/6.0.0",
-      "hashPath": "system.collections.immutable.6.0.0.nupkg.sha512"
-    },
     "System.Diagnostics.DiagnosticSource/6.0.1": {
       "type": "package",
       "serviceable": true,
@@ -704,26 +507,12 @@
       "path": "system.diagnostics.diagnosticsource/6.0.1",
       "hashPath": "system.diagnostics.diagnosticsource.6.0.1.nupkg.sha512"
     },
-    "System.Interactive.Async/6.0.1": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-f8H1O4ZWDQo344y5NQU76G4SIjWMuKDVXL9OM1dg6K5YZnLkc8iCdQDybBvMcC6ufk61jzXGVAX6UCDu0qDSjA==",
-      "path": "system.interactive.async/6.0.1",
-      "hashPath": "system.interactive.async.6.0.1.nupkg.sha512"
-    },
     "System.IO.Hashing/6.0.0": {
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-Rfm2jYCaUeGysFEZjDe7j1R4x6Z6BzumS/vUT5a1AA/AWJuGX71PoGB0RmpyX3VmrGqVnAwtfMn39OHR8Y/5+g==",
       "path": "system.io.hashing/6.0.0",
       "hashPath": "system.io.hashing.6.0.0.nupkg.sha512"
-    },
-    "System.Linq.Async/6.0.1": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-0YhHcaroWpQ9UCot3Pizah7ryAzQhNvobLMSxeDIGmnXfkQn8u5owvpOH0K6EVB+z9L7u6Cc4W17Br/+jyttEQ==",
-      "path": "system.linq.async/6.0.1",
-      "hashPath": "system.linq.async.6.0.1.nupkg.sha512"
     },
     "System.Memory/4.5.5": {
       "type": "package",
@@ -745,13 +534,6 @@
       "sha512": "sha512-QQTlPTl06J/iiDbJCiepZ4H//BVraReU4O4EoRw1U02H5TLUIT7xn3GnDp9AXPSlJUDyFs4uWjWafNX6WrAojQ==",
       "path": "system.numerics.vectors/4.5.0",
       "hashPath": "system.numerics.vectors.4.5.0.nupkg.sha512"
-    },
-    "System.Reactive/6.0.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-31kfaW4ZupZzPsI5PVe77VhnvFF55qgma7KZr/E0iFTs6fmdhhG8j0mgEx620iLTey1EynOkEfnyTjtNEpJzGw==",
-      "path": "system.reactive/6.0.0",
-      "hashPath": "system.reactive.6.0.0.nupkg.sha512"
     },
     "System.Runtime.CompilerServices.Unsafe/6.0.0": {
       "type": "package",
@@ -788,19 +570,12 @@
       "path": "system.threading.tasks.extensions/4.5.4",
       "hashPath": "system.threading.tasks.extensions.4.5.4.nupkg.sha512"
     },
-    "System.ValueTuple/4.5.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-okurQJO6NRE/apDIP23ajJ0hpiNmJ+f0BwOlB/cSqTLQlw5upkf+5+96+iG2Jw40G1fCVCyPz/FhIABUjMR+RQ==",
-      "path": "system.valuetuple/4.5.0",
-      "hashPath": "system.valuetuple.4.5.0.nupkg.sha512"
-    },
     "AzureAllocator/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "Sunfire/1.0.0": {
+    "FuncExt/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

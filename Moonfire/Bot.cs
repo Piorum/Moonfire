@@ -7,9 +7,9 @@ namespace Moonfire;
 public class Bot(string token, DiscordSocketConfig? config = null, List<Command>? _commands = null) : BotBase(token,config,_commands)
 {
     private readonly ConcurrentDictionary<ulong, SCPInterface?> scpInterfaces = [];
-    private readonly ConcurrentDictionary<ulong, Working> scpWorkingFlags = [];
+    private readonly ConcurrentDictionary<ulong, WorkingFlag> scpWorkingFlags = [];
     private readonly ConcurrentDictionary<ulong, MCInterface?> mcInterfaces = [];
-    private readonly ConcurrentDictionary<ulong, Working> mcWorkingFlags = [];
+    private readonly ConcurrentDictionary<ulong, WorkingFlag> mcWorkingFlags = [];
 
     
     // Uncomment to do initial population of commands
@@ -165,8 +165,6 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
             Game.SCP => StartTaskAsync(scpInterfaces,scpWorkingFlags,command),
             
             Game.MINECRAFT => SendSlashReplyAsync("Minecraft not available",command),
-            
-            Game.GMOD => SendSlashReplyAsync("GMOD not available",command),
 
             _ => SendSlashReplyAsync($"Caught {command.Data.Options.First().Value} by start command handler but found no game",command),
         };
@@ -179,8 +177,6 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
             Game.SCP => StopTaskAsync(scpInterfaces,scpWorkingFlags,command),
             
             Game.MINECRAFT => SendSlashReplyAsync("Minecraft not available",command),
-            
-            Game.GMOD => SendSlashReplyAsync("GMOD not available",command),
 
             _ => SendSlashReplyAsync($"Caught {command.Data.Options.First().Value} by stop command handler but found no game",command),
         };
@@ -196,7 +192,7 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
         await SendSlashReplyAsync(help[(help.IndexOf('[')+1)..help.LastIndexOf(']')],command);
     }
 
-    private static async Task StartTaskAsync<TServer>(ConcurrentDictionary<ulong, TServer?> servers, ConcurrentDictionary<ulong, Working> workingFlags, SocketSlashCommand command)
+    private static async Task StartTaskAsync<TServer>(ConcurrentDictionary<ulong, TServer?> servers, ConcurrentDictionary<ulong, WorkingFlag> workingFlags, SocketSlashCommand command)
         where TServer : class, IServer<TServer>
     {
         var cts = new CancellationTokenSource();
@@ -212,7 +208,7 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
             //convert from ulong? to ulong
             ulong guid = command.GuildId ?? 0;
 
-            workingFlags.TryAdd(guid,Working.STARTING);
+            workingFlags.TryAdd(guid,WorkingFlag.STARTING);
 
             //if no value, or value = null
             if(!servers.TryGetValue(guid,out TServer? server) || server == null){
@@ -246,7 +242,7 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
             ulong guid = command.GuildId ?? 0;
 
             workingFlags.TryRemove(guid,out _);
-            workingFlags.TryAdd(guid,Working.RECOVERING);
+            workingFlags.TryAdd(guid,WorkingFlag.RECOVERING);
 
             if (!servers.TryGetValue(guid, out TServer? server) || server == null)
             {
@@ -258,7 +254,7 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
             var stopcts = new CancellationTokenSource();
             await Ext.TimeoutTask
             (
-                server.StopServerAsync((string a) => ModifySlashReplyAsync(a, command), stopcts.Token), 
+                server.StopServerAsync((string a) => Console.Out.WriteLineAsync(a), stopcts.Token), 
                 new(0, 10, 0), 
                 stopcts
             );
@@ -274,7 +270,7 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
         await Ext.TimeoutTask(startTask,cleanupTask,new TimeSpan(0,5,0),cts);
     }
 
-    private static async Task StopTaskAsync<TServer>(ConcurrentDictionary<ulong, TServer?> servers, ConcurrentDictionary<ulong, Working> workingFlags, SocketSlashCommand command)
+    private static async Task StopTaskAsync<TServer>(ConcurrentDictionary<ulong, TServer?> servers, ConcurrentDictionary<ulong, WorkingFlag> workingFlags, SocketSlashCommand command)
         where TServer : class, IServer<TServer>
     {
         var cts = new CancellationTokenSource();
@@ -288,7 +284,7 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
             var guid = command.GuildId ?? 0;
 
             if(await CheckWorking(command,workingFlags)) return;
-            workingFlags.TryAdd(guid,Working.STOPPING);
+            workingFlags.TryAdd(guid,WorkingFlag.STOPPING);
 
             if(!servers.TryGetValue(guid,out var server)){
                 await ModifySlashReplyAsync("No Server Found",command);
@@ -317,7 +313,7 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
             var guid = command.GuildId ?? 0;
 
             workingFlags.TryRemove(guid,out _);
-            workingFlags.TryAdd(guid,Working.RECOVERING);
+            workingFlags.TryAdd(guid,WorkingFlag.RECOVERING);
 
             await ModifySlashReplyAsync($"Server Stopping Failure]\n     [Try Again Soon",command);
             servers.TryRemove(guid,out _);
@@ -346,20 +342,20 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
         return false;
     }
 
-    private static async Task<bool> CheckWorking(SocketSlashCommand command, ConcurrentDictionary<ulong, Working> workingFlags){
+    private static async Task<bool> CheckWorking(SocketSlashCommand command, ConcurrentDictionary<ulong, WorkingFlag> workingFlags){
 
         var guid = command.GuildId ?? 0;
 
         workingFlags.TryGetValue(guid,out var working);
 
         switch (working){
-            case Working.STARTING:
+            case WorkingFlag.STARTING:
                 await ModifySlashReplyAsync("Server is Starting",command);
                 return true;
-            case Working.STOPPING:
+            case WorkingFlag.STOPPING:
                 await ModifySlashReplyAsync("Server is Stopping",command);
                 return true;
-            case Working.RECOVERING:
+            case WorkingFlag.RECOVERING:
                 await ModifySlashReplyAsync("Server is Recovering From Failure",command);
                 return true;
             default:
@@ -379,7 +375,7 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
     private static async Task ModifySlashReplyAsync (string a, SocketSlashCommand command) =>
         await command.ModifyOriginalResponseAsync(async msg => msg.Embed = (await EmbedMessage(a,command)).Build());
 
-    private enum Working{
+    private enum WorkingFlag{
         NONE,
         STARTING,
         STOPPING,
@@ -390,6 +386,5 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
 public enum Game{
         NONE,
         SCP,
-        MINECRAFT,
-        GMOD
+        MINECRAFT
 }

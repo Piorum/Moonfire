@@ -16,11 +16,40 @@ public class SCPInterface : IServer<SCPInterface>, IServerBase
     private SCPInterface(){}
 
     public static async Task<SCPInterface?> CreateInterfaceAsync(string guildId, CancellationToken token = default){
+        //create empty new interface object
         SCPInterface obj = new();
 
-        //loading settings
+        //single table name definition
         string tableName = nameof(Moonfire) + "SCP";
 
+        //game settings/vm building tasks
+        var buildGameSettings = LoadGameSettingsAsync(tableName,guildId,token);
+        var buildVM = Task.Run(async () => 
+            {
+                return await AzureManager.Allocate(await LoadHardwareSettingsAsync(tableName,guildId,token), $"{guildId}RG", $"SCPVM", token);
+            },token);
+
+        //await tasks
+        await Task.WhenAll(buildGameSettings,buildVM);
+
+        //assign results
+        obj.scpSettings = await buildGameSettings;
+        obj.vm = await buildVM;
+
+        //check for failure
+        if(obj.vm is null){
+            _ = Console.Out.WriteLineAsync($"{nameof(SCPInterface)}: Azure Allocation Failed");
+            return null;
+        }
+
+        //build ssh client and assign result
+        obj.sshClient = await AzureVM.BuildSshClient(guildId,obj.vm);
+
+        //return complete interface object
+        return obj;
+    }
+
+    private static async Task<AzureSettings> LoadHardwareSettingsAsync(string tableName,string guildId,CancellationToken token = default){
         var hardwareSettingsJson = await TableManager.GetTableEntity(tableName,guildId,"config","scphardware",token);
 
         //if settings are null load and store template settings
@@ -38,44 +67,40 @@ public class SCPInterface : IServer<SCPInterface>, IServerBase
             await TableManager.StoreTableEntity(tableName,guildId,"config","scphardware",hardwareSettingsJson,token);
         }
 
+        //log settings retreived
+        _ = Console.Out.WriteLineAsync($"{(string)hardwareSettingsJson}");
         //create azure settings object
-        var hardwareSettings = await AzureSettings.CreateAsync((string)hardwareSettingsJson);
+        return await AzureSettings.CreateAsync((string)hardwareSettingsJson);
+    }
 
-        //loading game settings
-        //attempt to get stored setting
+    private static async Task<ScpSettings> LoadGameSettingsAsync(string tableName,string guildId,CancellationToken token = default){
         var gameSettingsJson = await TableManager.GetTableEntity(tableName,guildId,"config","scpgame",token);
 
-        if(gameSettingsJson==null){
+        ScpSettings? gameSettings;
+        if(gameSettingsJson is null){
             _ = Console.Out.WriteLineAsync($"{nameof(SCPInterface)}: No Game Settings Found For {guildId} Storing Defaults");
 
             //use template settings if none are found
-            gameSettingsJson = JsonConvert.SerializeObject(new ScpSettings());
+            gameSettings = new();
+            gameSettingsJson = JsonConvert.SerializeObject(gameSettings);
 
             await TableManager.StoreTableEntity(tableName,guildId,"config","scpgame",gameSettingsJson,token);
+        } else {
+            //deserialize json string into obj
+            gameSettings = JsonConvert.DeserializeObject<ScpSettings>((string)gameSettingsJson);
+            //ensure not null
+            gameSettings ??= new();
         }
 
-        //log settings
-        _ = Console.Out.WriteLineAsync($"{(string)hardwareSettingsJson}");
+        gameSettings.AdminUsers.Add(new ScpSettings.AdminUser { Id = 76561198106953472, Role = "owner"});
+        gameSettings.AdminUsers.Add(new ScpSettings.AdminUser { Id = 76561198081856781, Role = "admin"});
+        gameSettings.AdminUsers.Add(new ScpSettings.AdminUser { Id = 76561198214110297, Role = "admin"});
+        gameSettings.AdminUsers.Add(new ScpSettings.AdminUser { Id = 76561198058387107, Role = "admin"});
+
+        //log settings retrieved
         _ = Console.Out.WriteLineAsync($"{(string)gameSettingsJson}");
-
-        //deserialize json string into obj
-        obj.scpSettings = JsonConvert.DeserializeObject<ScpSettings>((string)gameSettingsJson);
-
-        //allocating vm
-        //match RG/VM names in sshClient ProcessStartInfo.Arguments
-        obj.vm = await AzureManager.Allocate(hardwareSettings, $"{guildId}RG", $"SCPVM", token);
-
-        if(obj.vm == null){
-            _ = Console.Out.WriteLineAsync($"{nameof(SCPInterface)}: Azure Allocation Failed");
-            return null;
-        }
-
-        obj.sshClient = new()
-        {
-            StartInfo = await AzureVM.BuildSshClient(guildId,obj.vm)
-        };
-
-        return obj;
+        
+        return gameSettings;
     }
 
     public async Task<bool> StartServerAsync(Func<string, Task> SendMessage, CancellationToken token = default){
@@ -240,6 +265,12 @@ public class SCPInterface : IServer<SCPInterface>, IServerBase
 
         f(@"    chmod -R 777 ~/.config");
         f(@"    chmod -R 777 ~/scpcontainer");
+
+        f(@"    echo -e 'Members:\n - SomeId@steam: admin' >> ~/.config/SCP\ Secret\ Laboratory/config/7777/config_remoteadmin.txt");
+
+        if(scpSettings is not null)
+            foreach(var adminUser in scpSettings.AdminUsers)
+                f($@"    echo -e ' - {adminUser.Id}@steam: {adminUser.Role}' >> ~/.config/SCP\ Secret\ Laboratory/config/7777/config_remoteadmin.txt");
         
         f(@"else");
 
@@ -264,9 +295,11 @@ public class SCPInterface : IServer<SCPInterface>, IServerBase
 }
 
 public class ScpSettings{
-    [JsonProperty(nameof(id))]
-    public List<ulong> id = [];
+    [JsonProperty(nameof(AdminUsers))]
+    public List<AdminUser> AdminUsers  = [];
 
-    [JsonProperty(nameof(role))]
-    public List<string> role = [];
+    public record AdminUser {
+        public required ulong Id {get; init;}
+        public required string Role {get; init;}
+    }
 }
