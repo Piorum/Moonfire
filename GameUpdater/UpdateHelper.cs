@@ -13,8 +13,8 @@ public static class UpdateHelper
         await Console.Out.WriteLineAsync("Updating SCP");
         await TableManager.StoreTableEntity("Updatefire","updating","game","scp",true);
         await RunBash($"steamcmd",$"+force_install_dir {home}/Documents/SCP +login anonymous +app_update 996560 -beta public validate +quit");
-        await RunBash($"rm",$"-rf {home}/Documents/scpcontainer");
-        await RunBash($"rm",$"-rf {home}/Documents/scpcontainer.tar.gz");
+        await RunBash($"rm",$"-rf {home}/Documents/AzureContainers/scpcontainer");
+        await RunBash($"rm",$"-rf {home}/Documents/AzureContainers/scpcontainer.tar.gz");
         await RunBash($"cp",$"-r {home}/Documents/SCP {home}/Documents/AzureContainers/scpcontainer");
         await RunBash($"cp",$"-r {home}/Documents/AzureContainers/SCPFILES/config {home}/Documents/AzureContainers/scpcontainer/config");
         await RunBash($"tar",$"-czvf {home}/Documents/AzureContainers/scpcontainer.tar.gz ./scpcontainer",$"{home}/Documents/AzureContainers");

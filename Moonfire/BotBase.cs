@@ -1,9 +1,11 @@
+using Moonfire.Interfaces;
+
 namespace Moonfire;
 
 public abstract class BotBase{
-    protected const string helpCmd = $"help";
+    public const string helpCmd = $"help";
     protected readonly DiscordSocketClient _client;
-    protected readonly List<Command> commands;
+    public readonly List<Command> commands;
     protected ulong ownerId;
     protected ulong ownerServerId;
     private readonly string _token;
@@ -99,6 +101,24 @@ public abstract class BotBase{
             await guild.DeleteApplicationCommandsAsync();
         }
         Console.WriteLine("Commands Unregistered");
+    }
+
+    public static async Task PrintHelpTaskAsync(SocketSlashCommand command, BotBase bot){
+        //empty string in case no commands
+        string help = "";
+        //formats and get information for every command
+        foreach(var cmd in bot.commands.Where(p => p.Rank == Rank.User || p.Rank == Rank.Admin).ToList())
+            help += $"[{cmd.Name} - {cmd.Description}]\n";
+        //to reduce code this removes the first/last bracket and last newline to match expected formatting
+        await DI.SendSlashReplyAsync(help[(help.IndexOf('[')+1)..help.LastIndexOf(']')],command);
+    }
+
+    public static async Task RepopulateTaskAsync(SocketSlashCommand command, BotBase bot){
+        //ensure initial reply is sent first
+        await DI.SendSlashReplyAsync("Repopulating Commands",command);
+        await bot.UnregisterCommandsAsync();
+        await bot.PopulateCommandsAsync(bot.ownerServerId);
+        _ = DI.SendSlashReplyAsync("Commands Repopulated",command);
     }
     
 }

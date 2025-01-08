@@ -104,16 +104,16 @@ public static class AzureManager
     ){
         try{
             //order here is important
-            if(vm!=null) await vm.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
-            if(nic!=null) await nic.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
-            if(pip!=null) await pip.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
-            if(nsg!=null) await nsg.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
-            if(vnet!=null) await vnet.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+            if(vm is not null) await vm.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+            if(nic is not null) await nic.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+            if(pip is not null) await pip.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+            if(nsg is not null) await nsg.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+            if(vnet is not null) await vnet.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
 
             bool keyExists = await rg.GetSshPublicKeys().ExistsAsync(keyName,cancellationToken:token);
             if(keyExists) await (await rg.GetSshPublicKeyAsync(keyName,cancellationToken:token)).Value.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
 
-            if(rg!=null){
+            if(rg is not null){
                 //return if any other resources are found
                 await foreach (var _ in rg.GetGenericResourcesAsync(cancellationToken:token)){
                     return;

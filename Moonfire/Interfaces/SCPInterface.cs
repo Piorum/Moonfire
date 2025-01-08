@@ -230,6 +230,16 @@ public class SCPInterface : IServer<SCPInterface>, IServerBase
         return true;
     }
 
+    public async Task<bool> AddAdmin(Func<string, Task> SendMessage, ulong id, string role, CancellationToken token){
+        if(scpSettings is null){
+            await SendMessage("Broken Settings Object");
+            return false;
+        }
+        scpSettings.AdminUsers.Add(new ScpSettings.AdminUser { Id = id, Role = role});
+        await SendMessage($"Granted {id} {role} role");
+        return true;
+    }
+
     private async Task<bool> Setup(Func<string, Task> SendMessage, CancellationToken token){
         var fN = nameof(Setup); //used in logging
 
