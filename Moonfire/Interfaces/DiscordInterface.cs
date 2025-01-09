@@ -1,6 +1,4 @@
-using Discord.Interactions;
-using Discord;
-using Discord.WebSocket;
+using Moonfire.Types;
 
 namespace Moonfire.Interfaces;
 
@@ -18,27 +16,90 @@ public static class DI
     public static async Task SendSlashReplyAsync (string input, SocketSlashCommand command) =>
         await command.ModifyOriginalResponseAsync(async msg => msg.Embed = (await EmbedMessage(input,command)).Build());
 
-    public static async Task SendModalResponseAsync (string input, SocketSlashCommand command){
-        var mb = new ModalBuilder()
-            .WithTitle("Fav Food")
-            .WithCustomId("food_menu")
-            .AddTextInput("What??", "food_name", placeholder:"Pizza")
-            .AddTextInput("Why??", "food_reason", TextInputStyle.Paragraph,"Kus it's so tasty");
+    public static async Task SendModalResponseAsync (MoonfireModal modal, SocketSlashCommand command){
+        var modalBuilder = new ModalBuilder();
 
-        await command.RespondWithModalAsync(mb.Build());
+        modalBuilder
+            .WithTitle(modal.Title)
+            .WithCustomId(modal.CustomId);
+
+        foreach(var textInput in modal.TextInputs){
+            var textInputBuilder = new TextInputBuilder();
+
+            textInputBuilder
+                .WithLabel(textInput.Label)
+                .WithCustomId(textInput.CustomId)
+                .WithStyle(textInput.Style)
+                .WithRequired(textInput.Required);
+
+            if(textInput.Placeholder is not null)
+                textInputBuilder.WithPlaceholder(textInput.Placeholder);
+
+            if(textInput.MinLength is not null)
+                textInputBuilder.WithMinLength((int)textInput.MinLength);
+
+            if(textInput.MaxLength is not null)
+                textInputBuilder.WithMinLength((int)textInput.MaxLength);
+
+            modalBuilder.AddTextInput(textInputBuilder);
+        }
+
+        await command.RespondWithModalAsync(modalBuilder.Build());
     }
 
-    public static async Task SendComponentResponseAsync (string input, SocketSlashCommand command){
-        var menuBuilder = new SelectMenuBuilder()
-            .WithPlaceholder("Select an option")
-            .WithCustomId("testmenu")
-            .WithMinValues(1)
-            .WithMaxValues(1)
-            .AddOption("Option A", "opt1", "Option B is lying!")
-            .AddOption("Option B", "opt2", "Option A is telling the truth!");
+    public static async Task SendComponentResponseAsync (MoonfireComponent components, SocketSlashCommand command){
+        var builder = new ComponentBuilder();
 
-        var builder = new ComponentBuilder()
-            .WithSelectMenu(menuBuilder);
+        foreach(var selectMenu in components.SelectMenus){
+            var menuBuilder = new SelectMenuBuilder();
+
+            menuBuilder
+                .WithCustomId(selectMenu.CustomId)
+                .WithDisabled(selectMenu.Disabled)
+                .WithType(selectMenu.Type);
+
+            foreach(var option in selectMenu.Options){
+                var optionBuilder = new SelectMenuOptionBuilder();
+
+                optionBuilder
+                    .WithLabel(option.Label)
+                    .WithValue(option.Value)
+                    .WithDefault(option.IsDefault);
+
+                if(option.Description is not null)
+                    optionBuilder.WithDescription(option.Description);
+
+                if(option.Emote is not null)
+                    optionBuilder.WithEmote(option.Emote);
+    
+                menuBuilder.AddOption(optionBuilder);
+            }
+
+            if(selectMenu.Placeholder is not null)
+                menuBuilder.WithPlaceholder(selectMenu.Placeholder);
+
+            if(selectMenu.ChannelTypes is not [])
+                menuBuilder.WithChannelTypes(selectMenu.ChannelTypes);
+
+            builder.WithSelectMenu(menuBuilder);
+        }
+        foreach(var button in components.Buttons){
+            var buttonBuilder = new ButtonBuilder();
+
+            buttonBuilder
+                .WithLabel(button.Label)
+                .WithCustomId(button.CustomId)
+                .WithStyle(button.Style)
+                .WithDisabled(button.Disabled);
+
+            if(button.Emote is not null)
+                buttonBuilder.WithEmote(button.Emote);
+
+            if(button.Url is not null && button.Style is ButtonStyle.Link)
+                buttonBuilder.WithUrl(button.Url);
+            
+            builder.WithButton(buttonBuilder);
+        }
 
         await command.RespondAsync(" ", components: builder.Build(), ephemeral: true);
     }

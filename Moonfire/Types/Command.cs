@@ -1,14 +1,14 @@
 namespace Moonfire.Types;
 
-public class Command(string _name, string _description, Rank _rank, List<CommandOption>? _options = null)
+public class MoonfireCommand(string _name, string _description, MoonfireCommandRank _rank, List<MoonfireCommandOption>? _options = null)
 {
     public readonly string Name = _name;
     public readonly string Description = _description;
-    public readonly Rank Rank = _rank;
-    public readonly List<CommandOption> Options = _options ?? [];
+    public readonly MoonfireCommandRank Rank = _rank;
+    public readonly List<MoonfireCommandOption> Options = _options ?? [];
 }
 
-public class CommandOption(string name = "", ApplicationCommandOptionType type = ApplicationCommandOptionType.String, string description = "", bool isRequired = false, List<string>? choices = null)
+public class MoonfireCommandOption(string name = "", ApplicationCommandOptionType type = ApplicationCommandOptionType.String, string description = "", bool isRequired = false, List<string>? choices = null)
 {
     public string Name{ get; set; } = name;
     public ApplicationCommandOptionType Type { get; set; } = type;
@@ -18,7 +18,7 @@ public class CommandOption(string name = "", ApplicationCommandOptionType type =
 
 }
 
-public enum Rank{
+public enum MoonfireCommandRank{
         User,
         Admin,
         Owner

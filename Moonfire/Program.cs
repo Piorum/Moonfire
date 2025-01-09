@@ -24,7 +24,6 @@ public class Program{
             Environment.SetEnvironmentVariable(line[0..line.IndexOf('=')], line[(line.IndexOf('=') + 2)..line.LastIndexOf('"')], EnvironmentVariableTarget.Process);
         }
 
-        //strongly defined to avoid nullable string
         var token = Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN") ?? "";
         var config = new DiscordSocketConfig
         {
@@ -35,20 +34,20 @@ public class Program{
         //Need to match SlashCommandHandler switch cases to be caught
         //Choices need to match Game Enum in Bot.cs
         List<string>? _choices = ["SCP", "MINECRAFT"];
-        var commands = new List<Command>{
-            new("help", "Prints help information", Rank.User),
+        var commands = new List<MoonfireCommand>{
+            new("help", "Prints help information", MoonfireCommandRank.User),
 
-            new("start", "#Admin - Provisions and Starts Game Server", Rank.Admin,
+            new("start", "#Admin - Provisions and Starts Game Server", MoonfireCommandRank.Admin,
                 [new(name: "game", description: "select game", isRequired: true, choices: _choices)]),
-            new("stop", "#Admin - Deprovisions and Stops Game Server", Rank.Admin,
+            new("stop", "#Admin - Deprovisions and Stops Game Server", MoonfireCommandRank.Admin,
                 [new(name: "game", description: "select game", isRequired: true, choices: _choices)]),
 
-            new("console", "#Owner - WIP", Rank.Owner,
+            new("console", "#Owner - WIP", MoonfireCommandRank.Owner,
                 [new(name: "input", description: "Input sent to the console", isRequired: true )]),
-            new("repopulate", "#Owner - Refreshes bot commands", Rank.Owner),
+            new("repopulate", "#Owner - Refreshes bot commands", MoonfireCommandRank.Owner),
 
-            new("modaltest", "modal testing", Rank.Owner),
-            new("componenttest", "modal testing", Rank.Owner)
+            new("modaltest", "modal testing", MoonfireCommandRank.Owner),
+            new("componenttest", "modal testing", MoonfireCommandRank.Owner)
         };
 
         var _application = new Bot(token, config, commands);

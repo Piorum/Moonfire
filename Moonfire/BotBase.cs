@@ -6,12 +6,12 @@ namespace Moonfire;
 public abstract class BotBase{
     public const string helpCmd = $"help";
     protected readonly DiscordSocketClient _client;
-    public readonly List<Command> commands;
+    public readonly List<MoonfireCommand> commands;
     protected ulong ownerId;
     protected ulong ownerServerId;
     private readonly string _token;
 
-    public BotBase(string t,DiscordSocketConfig? c = null, List<Command>? _commands = null){
+    public BotBase(string t,DiscordSocketConfig? c = null, List<MoonfireCommand>? _commands = null){
         ownerId = ulong.Parse(Environment.GetEnvironmentVariable("BOT_OWNER_ID") ?? "0");
         ownerServerId = ulong.Parse(Environment.GetEnvironmentVariable("BOT_OWNER_SERVER_ID") ?? "0");
 
@@ -65,24 +65,24 @@ public abstract class BotBase{
 
     private Task JoinedGuildHandler(SocketGuild guild){
         //add each user/admin command in commands list to server
-        foreach (var command in commands.Where(p => p.Rank == Rank.User || p.Rank == Rank.Admin).ToList())
+        foreach (var command in commands.Where(p => p.Rank == MoonfireCommandRank.User || p.Rank == MoonfireCommandRank.Admin).ToList())
             _ = PopulateCommandAsync(command, guild);
         return Task.CompletedTask;
     }
 
     protected async Task PopulateCommandsAsync(ulong ownerServer){
-        foreach (var command in commands.Where(p => p.Rank == Rank.User || p.Rank == Rank.Admin).ToList())
+        foreach (var command in commands.Where(p => p.Rank == MoonfireCommandRank.User || p.Rank == MoonfireCommandRank.Admin).ToList())
             foreach (var guild in _client.Guilds)
                 await PopulateCommandAsync(command, guild);
 
         // Register owner commands for a specified server
-        foreach (var command in commands.Where(p => p.Rank == Rank.Owner).ToList())
+        foreach (var command in commands.Where(p => p.Rank == MoonfireCommandRank.Owner).ToList())
             await PopulateCommandAsync(command, _client.GetGuild(ownerServer));
 
         Console.WriteLine("All Commands Registered");
     }
 
-    private static async Task PopulateCommandAsync(Command _command, SocketGuild guild){
+    private static async Task PopulateCommandAsync(MoonfireCommand _command, SocketGuild guild){
         var command = new SlashCommandBuilder().WithName(_command.Name.ToLower()).WithDescription(_command.Description);
         
         foreach(var option in _command.Options){
@@ -117,7 +117,7 @@ public abstract class BotBase{
         //empty string in case no commands
         string help = "";
         //formats and get information for every command
-        foreach(var cmd in bot.commands.Where(p => p.Rank == Rank.User || p.Rank == Rank.Admin).ToList())
+        foreach(var cmd in bot.commands.Where(p => p.Rank == MoonfireCommandRank.User || p.Rank == MoonfireCommandRank.Admin).ToList())
             help += $"[{cmd.Name} - {cmd.Description}]\n";
         //to reduce code this removes the first/last bracket and last newline to match expected formatting
         await DI.SendSlashReplyAsync(help[(help.IndexOf('[')+1)..help.LastIndexOf(']')],command);

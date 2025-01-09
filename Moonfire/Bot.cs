@@ -7,7 +7,7 @@ using System.Collections.Concurrent;
 
 namespace Moonfire;
 
-public class Bot(string token, DiscordSocketConfig? config = null, List<Command>? _commands = null) : BotBase(token,config,_commands)
+public class Bot(string token, DiscordSocketConfig? config = null, List<MoonfireCommand>? _commands = null) : BotBase(token,config,_commands)
 {
     public readonly ConcurrentDictionary<ulong, IServerWorker.InterfacePair<SCPInterface>> scpIPairs = [];
     public readonly ConcurrentDictionary<ulong, IServerWorker.InterfacePair<MCInterface>> mcIPairs = [];

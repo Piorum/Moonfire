@@ -12,11 +12,11 @@ public static class CommandSorter
         //gets proper task to run as background task
         return bot.commands.FirstOrDefault(p => p.Name == command.Data.Name)?.Rank switch
         {
-            Rank.User => UserCommandHandler(command, bot),
+            MoonfireCommandRank.User => UserCommandHandler(command, bot),
 
-            Rank.Admin => AdminCommandHandler(command, bot),
+            MoonfireCommandRank.Admin => AdminCommandHandler(command, bot),
 
-            Rank.Owner => OwnerCommandHandler(command, bot),
+            MoonfireCommandRank.Owner => OwnerCommandHandler(command, bot),
 
             _ => Task.FromResult((DI.SendSlashReplyAsync("Failed to find command in commands list",command),ResponseType.BASIC))
         };
@@ -61,9 +61,9 @@ public static class CommandSorter
 
             "console" => Task.FromResult((DI.SendSlashReplyAsync("WIP",command),ResponseType.BASIC)),
 
-            "modaltest" => Task.FromResult((DI.SendModalResponseAsync("",command),ResponseType.MODAL)),
+            "modaltest" => Task.FromResult((DI.SendModalResponseAsync(new("test","modaltest",[new("TestLabel","texttest")]),command),ResponseType.MODAL)),
 
-            "componenttest" => Task.FromResult((DI.SendComponentResponseAsync("",command),ResponseType.COMPONENT)),
+            "componenttest" => Task.FromResult((DI.SendComponentResponseAsync(new(),command),ResponseType.COMPONENT)),
 
             _ => Task.FromResult((DI.SendSlashReplyAsync($"Caught {command.Data.Name} by owner handler but found no command",command),ResponseType.BASIC)),
         };
