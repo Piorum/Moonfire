@@ -1,6 +1,7 @@
 using Moonfire.Interfaces;
 using Moonfire.Workers;
-using Moonfire.Types;
+using Moonfire.Types.Discord;
+using Moonfire.ComponentBuilders;
 
 namespace Moonfire.Sorters;
 
@@ -44,7 +45,9 @@ public static class CommandSorter
 
             "stop" => StopCommandHandler(command,bot),
 
-            _ => Task.FromResult((DI.SendSlashReplyAsync($"Caught {command.Data.Name} by admin handler but found no command",command),ResponseType.BASIC)),
+            "configure" => ConfigureCommandHandler(command),
+
+            _ => Task.FromResult((DI.SendSlashReplyAsync($"Caught {command.Data.Name} by admin handler but found no command",command),ResponseType.BASIC))
         };
     }
 
@@ -61,35 +64,51 @@ public static class CommandSorter
 
             "console" => Task.FromResult((DI.SendSlashReplyAsync("WIP",command),ResponseType.BASIC)),
 
-            "modaltest" => Task.FromResult((DI.SendModalResponseAsync(new("test","modaltest",[new("TestLabel","texttest")]),command),ResponseType.MODAL)),
+            "modaltest" => Task.FromResult((DI.SendModalAsync(new("test","modaltest",[new("TestLabel","texttest")]),command),ResponseType.MODAL)),
 
-            "componenttest" => Task.FromResult((DI.SendComponentResponseAsync(new(),command),ResponseType.COMPONENT)),
+            "componenttest" => Task.FromResult((DI.SendComponentsAsync(new(),command),ResponseType.COMPONENT)),
 
-            _ => Task.FromResult((DI.SendSlashReplyAsync($"Caught {command.Data.Name} by owner handler but found no command",command),ResponseType.BASIC)),
+            _ => Task.FromResult((DI.SendSlashReplyAsync($"Caught {command.Data.Name} by owner handler but found no command",command),ResponseType.BASIC))
         };
     }
 
-    private static Task<(Task,ResponseType)> StartCommandHandler(SocketSlashCommand command, Bot bot){
-        return (Game)Convert.ToInt32(command.Data.Options.First().Value) switch
+    private async static Task<(Task,ResponseType)> StartCommandHandler(SocketSlashCommand command, Bot bot){
+        return await GetGame(command) switch
         {
-            Game.SCP => Task.FromResult((IServerWorker.StartTaskAsync(bot.scpIPairs,command),ResponseType.BASIC)),
+            Game.SCP => (IServerWorker.StartTaskAsync(bot.scpIPairs,command),ResponseType.BASIC),
             
-            Game.MINECRAFT => Task.FromResult((DI.SendSlashReplyAsync("Minecraft not available",command),ResponseType.BASIC)),
+            Game.MINECRAFT => (DI.SendSlashReplyAsync("Minecraft not available",command),ResponseType.BASIC),
 
-            _ => Task.FromResult((DI.SendSlashReplyAsync($"Caught {command.Data.Options.First().Value} by start command handler but found no game",command),ResponseType.BASIC)),
+            _ => (DI.SendSlashReplyAsync($"Caught {command.Data.Options.First().Value} by start command handler but found no game",command),ResponseType.BASIC)
         };
     }
 
-    private static Task<(Task,ResponseType)> StopCommandHandler(SocketSlashCommand command, Bot bot){
-        return (Game)Convert.ToInt32(command.Data.Options.First().Value) switch
+    private async static Task<(Task,ResponseType)> StopCommandHandler(SocketSlashCommand command, Bot bot){
+        return await GetGame(command) switch
         {
-            Game.SCP => Task.FromResult((IServerWorker.StopTaskAsync(bot.scpIPairs,command),ResponseType.BASIC)),
+            Game.SCP => (IServerWorker.StopTaskAsync(bot.scpIPairs,command),ResponseType.BASIC),
             
-            Game.MINECRAFT => Task.FromResult((DI.SendSlashReplyAsync("Minecraft not available",command),ResponseType.BASIC)),
+            Game.MINECRAFT => (DI.SendSlashReplyAsync("Minecraft not available",command),ResponseType.BASIC),
 
-            _ => Task.FromResult((DI.SendSlashReplyAsync($"Caught {command.Data.Options.First().Value} by stop command handler but found no game",command),ResponseType.BASIC)),
+            _ => (DI.SendSlashReplyAsync($"Caught {command.Data.Options.First().Value} by stop command handler but found no game",command),ResponseType.BASIC)
         };
     }
+
+    private async static Task<(Task,ResponseType)> ConfigureCommandHandler(SocketSlashCommand command){
+        return await GetGame(command) switch{
+
+            //create configuration prompt to change all settings associated with SCPInterface
+            Game.SCP => (DI.SendComponentsAsync(await SCPComponentBuilder.GetConfigurationComponents(command.GuildId),command),ResponseType.COMPONENT),
+
+            Game.MINECRAFT => (DI.SendSlashReplyAsync("Minecraft not available",command),ResponseType.BASIC),
+
+            _ => (DI.SendSlashReplyAsync($"Caught {command.Data.Options.First().Value} by stop command handler but found no game",command),ResponseType.BASIC)
+        
+        };
+    }
+
+    private static Task<Game> GetGame(SocketSlashCommand command) =>
+        Task.FromResult((Game)Convert.ToInt32(command.Data.Options.First().Value));
 
     public enum ResponseType{
         BASIC,

@@ -1,9 +1,9 @@
-namespace Moonfire.Types;
+namespace Moonfire.Types.Discord;
 
 public class MoonfireComponent(List<MoonfireSelectMenuComponent>? selectMenus = default, List<MoonfireButtonComponent>? buttons = default)
 {
-    public readonly List<MoonfireSelectMenuComponent> SelectMenus = selectMenus is null || selectMenus is [] ? [new("emptymenu")] : selectMenus;
-    public readonly List<MoonfireButtonComponent> Buttons = buttons is null || buttons is [] ? [new("emptybutton","emptybutton")] : buttons;
+    public readonly List<MoonfireSelectMenuComponent> SelectMenus = selectMenus ?? [];
+    public readonly List<MoonfireButtonComponent> Buttons = buttons ?? [];
 }
 
 public class MoonfireSelectMenuComponent(

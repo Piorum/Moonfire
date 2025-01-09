@@ -1,4 +1,4 @@
-﻿using Moonfire.Types;
+﻿using Moonfire.Types.Discord;
 
 namespace Moonfire;
 
@@ -37,17 +37,16 @@ public class Program{
         var commands = new List<MoonfireCommand>{
             new("help", "Prints help information", MoonfireCommandRank.User),
 
-            new("start", "#Admin - Provisions and Starts Game Server", MoonfireCommandRank.Admin,
+            new("start", "#Admin - Provisions and starts game server", MoonfireCommandRank.Admin,
                 [new(name: "game", description: "select game", isRequired: true, choices: _choices)]),
-            new("stop", "#Admin - Deprovisions and Stops Game Server", MoonfireCommandRank.Admin,
+            new("stop", "#Admin - Deprovisions and stops game server", MoonfireCommandRank.Admin,
+                [new(name: "game", description: "select game", isRequired: true, choices: _choices)]),
+            new("configure", "#Admin - Opens game configuration dialogue", MoonfireCommandRank.Admin,
                 [new(name: "game", description: "select game", isRequired: true, choices: _choices)]),
 
             new("console", "#Owner - WIP", MoonfireCommandRank.Owner,
                 [new(name: "input", description: "Input sent to the console", isRequired: true )]),
             new("repopulate", "#Owner - Refreshes bot commands", MoonfireCommandRank.Owner),
-
-            new("modaltest", "modal testing", MoonfireCommandRank.Owner),
-            new("componenttest", "modal testing", MoonfireCommandRank.Owner)
         };
 
         var _application = new Bot(token, config, commands);

@@ -1,4 +1,4 @@
-using Moonfire.Types;
+using Moonfire.Types.Discord;
 
 namespace Moonfire.Interfaces;
 
@@ -10,13 +10,48 @@ public static class DI
         return Task.FromResult(embed);
     }
 
-    public static async Task SendInitialSlashReplyAsync(string input, SocketSlashCommand command)=>
+    public static Task<EmbedBuilder> EmbedMessage(string input, string title){
+        EmbedBuilder embed = new();
+        embed.AddField($"**[{title}]**",$"**```[{input}]```**");
+        return Task.FromResult(embed);
+    }
+
+    public static async Task SendSlashResponseAsync(string input, SocketSlashCommand command)=>
         await command.RespondAsync(" ", embed: (await EmbedMessage(input,command)).Build(), ephemeral: true);
 
     public static async Task SendSlashReplyAsync (string input, SocketSlashCommand command) =>
         await command.ModifyOriginalResponseAsync(async msg => msg.Embed = (await EmbedMessage(input,command)).Build());
 
-    public static async Task SendModalResponseAsync (MoonfireModal modal, SocketSlashCommand command){
+    public static async Task SendComponentResponseAsync (string input, string title, SocketMessageComponent component) =>
+        await component.RespondAsync(" ", embed: (await EmbedMessage(input,title)).Build(), ephemeral:true);
+
+    public static async Task SendComponentReplyAsync (string input, string title, SocketMessageComponent component) =>
+        await component.ModifyOriginalResponseAsync(async msg => msg.Embed = (await EmbedMessage(input,title)).Build());
+
+    public static async Task SendComponentResponseAsync (string input, SocketMessageComponent component) =>
+        await component.RespondAsync(" ", embed: (await EmbedMessage(input,"Component Response")).Build(), ephemeral:true);
+
+    public static async Task SendComponentReplyAsync (string input, SocketMessageComponent component) =>
+        await component.ModifyOriginalResponseAsync(async msg => msg.Embed = (await EmbedMessage(input,"Component Response")).Build());
+
+    public static async Task SendModalResponseAsync(string input, string title, SocketModal modal) =>
+        await modal.RespondAsync(" ", embed: (await EmbedMessage(input,title)).Build(), ephemeral:true);
+
+    public static async Task SendModalReplyAsync(string input, string title, SocketModal modal) =>
+        await modal.ModifyOriginalResponseAsync(async msg => msg.Embed = (await EmbedMessage(input,title)).Build());
+
+    public static async Task SendModalResponseAsync(string input, SocketModal modal) =>
+        await modal.RespondAsync(" ", embed: (await EmbedMessage(input,"Modal Response")).Build(), ephemeral:true);
+
+    public static async Task SendModalReplyAsync(string input, SocketModal modal) =>
+        await modal.ModifyOriginalResponseAsync(async msg => msg.Embed = (await EmbedMessage(input,"Modal Response")).Build());
+
+    public static async Task SendModalAsync (MoonfireModal modal, SocketSlashCommand command) =>
+        await command.RespondWithModalAsync(await BuildModal(modal));
+    public static async Task SendModalAsync (MoonfireModal modal, SocketMessageComponent component) =>
+        await component.RespondWithModalAsync(await BuildModal(modal));
+
+    private static Task<Modal> BuildModal(MoonfireModal modal){
         var modalBuilder = new ModalBuilder();
 
         modalBuilder
@@ -39,15 +74,24 @@ public static class DI
                 textInputBuilder.WithMinLength((int)textInput.MinLength);
 
             if(textInput.MaxLength is not null)
-                textInputBuilder.WithMinLength((int)textInput.MaxLength);
+                textInputBuilder.WithMaxLength((int)textInput.MaxLength);
 
             modalBuilder.AddTextInput(textInputBuilder);
         }
 
-        await command.RespondWithModalAsync(modalBuilder.Build());
+        return Task.FromResult(modalBuilder.Build());
     }
 
-    public static async Task SendComponentResponseAsync (MoonfireComponent components, SocketSlashCommand command){
+    public static async Task SendComponentsAsync(MoonfireComponent components, SocketSlashCommand command) =>
+        await command.RespondAsync(" ", components: await BuildComponent(components), ephemeral: true);
+
+    public static async Task SendComponentsAsync(MoonfireComponent components, SocketModal modal) =>
+        await modal.RespondAsync(" ", components: await BuildComponent(components), ephemeral: true);
+
+    public static async Task SendComponentsAsync(MoonfireComponent components, SocketMessageComponent component) =>
+        await component.RespondAsync(" ", components: await BuildComponent(components), ephemeral: true);
+
+    public static Task<MessageComponent> BuildComponent(MoonfireComponent components){
         var builder = new ComponentBuilder();
 
         foreach(var selectMenu in components.SelectMenus){
@@ -101,6 +145,6 @@ public static class DI
             builder.WithButton(buttonBuilder);
         }
 
-        await command.RespondAsync(" ", components: builder.Build(), ephemeral: true);
+        return Task.FromResult(builder.Build());
     }
 }

@@ -1,4 +1,4 @@
-namespace Moonfire.Types;
+namespace Moonfire.Types.Discord;
 
 public class MoonfireCommand(string _name, string _description, MoonfireCommandRank _rank, List<MoonfireCommandOption>? _options = null)
 {

@@ -1,4 +1,4 @@
-namespace Moonfire.Types;
+namespace Moonfire.Types.Discord;
 
 public class MoonfireModal(
     string title,

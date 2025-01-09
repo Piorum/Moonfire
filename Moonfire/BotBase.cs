@@ -1,5 +1,5 @@
 using Moonfire.Interfaces;
-using Moonfire.Types;
+using Moonfire.Types.Discord;
 
 namespace Moonfire;
 

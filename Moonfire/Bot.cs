@@ -2,7 +2,7 @@ using Moonfire.Interfaces;
 using Moonfire.TableEntities;
 using Moonfire.Workers;
 using Moonfire.Sorters;
-using Moonfire.Types;
+using Moonfire.Types.Discord;
 using System.Collections.Concurrent;
 
 namespace Moonfire;
@@ -24,7 +24,7 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Moonfire
 
             //ensure initial reply is sent for basic response types
             if(responseType is CommandSorter.ResponseType.BASIC)
-                await DI.SendInitialSlashReplyAsync("Handling Command",command);
+                await DI.SendSlashResponseAsync("Handling Command",command);
 
             await commandTask;
         });
