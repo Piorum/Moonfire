@@ -182,8 +182,8 @@ public class AzureVM
         return "VM running" == vm.InstanceView().Value.Statuses.FirstOrDefault(status => status.Code.StartsWith("PowerState/"))?.DisplayStatus;
     }
 
-    private ulong? CheckGuid(){
-        return ulong.TryParse(Reg.NumericRegex().Match(rgName).Value,out var guid) ? guid : null;
+    private ulong CheckGuid(){
+        return ulong.TryParse(Reg.NumericRegex().Match(rgName).Value,out var guid) ? guid : 0;
     }
 
     private async Task Log(string funcName, string input) =>

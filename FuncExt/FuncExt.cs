@@ -121,4 +121,15 @@ public static class Ext
         await TimeoutTask(mainTask,null,timeoutLength,cts);
     }
 
+    public static async Task RunUnderTry(Task mainTask){
+        await Task.Run(async () => {
+            try{
+                await mainTask;
+            }catch(Exception e){
+                //log here to prevent silent failure of background task
+                await Console.Out.WriteLineAsync($"{e}");
+            }
+        });
+    }
+
 }

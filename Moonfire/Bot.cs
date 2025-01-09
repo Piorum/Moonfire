@@ -1,6 +1,8 @@
 using Moonfire.Interfaces;
 using Moonfire.TableEntities;
 using Moonfire.Workers;
+using Moonfire.Sorters;
+using Moonfire.Types;
 using System.Collections.Concurrent;
 
 namespace Moonfire;
@@ -17,21 +19,44 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Command>
     }*/
 
     protected override Task SlashCommandHandler(SocketSlashCommand command){
-        //ensure initial reply is sent to avoid timeout
-        _ = Task.Run(async () => {await DI.SendInitialSlashReplyAsync("Handling Command",command);});
+        var taskHandler = Task.Run(async () => {
+            (var commandTask,var responseType) = await CommandSorter.GetTask(command,this);
 
-        //gets task associated with command parameters
-        var commandTask = CommandSorter.GetTask(command,this);
+            //ensure initial reply is sent for basic response types
+            if(responseType is CommandSorter.ResponseType.BASIC)
+                await DI.SendInitialSlashReplyAsync("Handling Command",command);
 
-        //run returned task as background task with crash logging
-        _ = Task.Run(async () => {
-            try{
-                await commandTask;
-            }catch(Exception e){
-                //log here to prevent silent failure of background task
-                await Console.Out.WriteLineAsync($"{e}");
-            }
+            await commandTask;
         });
+
+        //run task as background task with crash logging
+        _ = Ext.RunUnderTry(taskHandler);
+
+        return Task.CompletedTask;
+    }
+
+    protected override Task ModalSubmissionHandler(SocketModal modal){
+        var taskHandler = Task.Run(async () => {
+            var modalTask = await ModalSorter.GetTask(modal);
+
+            await modalTask;
+        });
+
+        //run task as background task with crash logging
+        _ = Ext.RunUnderTry(taskHandler);
+
+        return Task.CompletedTask;
+    }
+
+    protected override Task ComponentHandler(SocketMessageComponent component){
+        var taskHandler = Task.Run(async () => {
+            var componentTask = await ComponentSorter.GetTask(component);
+
+            await componentTask;
+        });
+
+        //run task as background task with crash logging
+        _ = Ext.RunUnderTry(taskHandler);
 
         return Task.CompletedTask;
     }

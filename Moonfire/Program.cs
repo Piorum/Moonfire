@@ -1,4 +1,6 @@
-﻿namespace Moonfire;
+﻿using Moonfire.Types;
+
+namespace Moonfire;
 
 public class Program{
     
@@ -43,7 +45,10 @@ public class Program{
 
             new("console", "#Owner - WIP", Rank.Owner,
                 [new(name: "input", description: "Input sent to the console", isRequired: true )]),
-            new("repopulate", "#Owner - Refreshes bot commands", Rank.Owner)
+            new("repopulate", "#Owner - Refreshes bot commands", Rank.Owner),
+
+            new("modaltest", "modal testing", Rank.Owner),
+            new("componenttest", "modal testing", Rank.Owner)
         };
 
         var _application = new Bot(token, config, commands);

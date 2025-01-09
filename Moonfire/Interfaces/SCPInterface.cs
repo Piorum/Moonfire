@@ -92,10 +92,12 @@ public class SCPInterface : IServer<SCPInterface>, IServerBase
             gameSettings ??= new();
         }
 
+        /*
         gameSettings.AdminUsers.Add(new ScpSettings.AdminUser { Id = 76561198106953472, Role = "owner"});
         gameSettings.AdminUsers.Add(new ScpSettings.AdminUser { Id = 76561198081856781, Role = "admin"});
         gameSettings.AdminUsers.Add(new ScpSettings.AdminUser { Id = 76561198214110297, Role = "admin"});
         gameSettings.AdminUsers.Add(new ScpSettings.AdminUser { Id = 76561198058387107, Role = "admin"});
+        */
 
         //log settings retrieved
         _ = Console.Out.WriteLineAsync($"{(string)gameSettingsJson}");
@@ -188,7 +190,7 @@ public class SCPInterface : IServer<SCPInterface>, IServerBase
         if(vm!=null){
 
             //set already started flag false
-            await TableManager.StoreITableEntity($"{nameof(Moonfire)}Servers",new ServerEntity(vm.Guid.ToString()??"","scp",false),token);
+            await TableManager.StoreITableEntity($"{nameof(Moonfire)}Servers",new ServerEntity(vm.Guid.ToString()??string.Empty,"scp",false),token);
 
             await vm.Deallocate(token);
         }
@@ -220,7 +222,7 @@ public class SCPInterface : IServer<SCPInterface>, IServerBase
             _ = Log(nameof(ReconnectAsync),"VM Offline - Reset Interface");
 
             //set already started flag false
-            await TableManager.StoreITableEntity($"{nameof(Moonfire)}Servers",new ServerEntity(vm.Guid.ToString()??"","scp",false),token);
+            await TableManager.StoreITableEntity($"{nameof(Moonfire)}Servers",new ServerEntity(vm.Guid.ToString()??string.Empty,"scp",false),token);
 
             await StartServerAsync(SendMessage, token);
             return true;
@@ -236,6 +238,7 @@ public class SCPInterface : IServer<SCPInterface>, IServerBase
             return false;
         }
         scpSettings.AdminUsers.Add(new ScpSettings.AdminUser { Id = id, Role = role});
+        await TableManager.StoreTableEntity($"{nameof(Moonfire)}SCP",vm?.Guid.ToString()??string.Empty,"config","scpgame",JsonConvert.SerializeObject(scpSettings),token);
         await SendMessage($"Granted {id} {role} role");
         return true;
     }
