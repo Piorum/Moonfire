@@ -23,6 +23,8 @@ public class ModalSorter
         string steamIdString = component?.Value ?? "";
 
         var valid = ulong.TryParse(steamIdString,out var steamId);
+        //checks to make sure value is a 17 number long value
+        valid = valid && steamId >= 10000000000000000 && steamId < 100000000000000000; 
 
         if(!valid){
             await DI.SendModalResponseAsync($"Invalid Id","SCP Assign Role",modal);

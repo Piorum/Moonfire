@@ -31,7 +31,6 @@ public abstract class BotBase{
         _client.ButtonExecuted += ComponentHandler;
         _client.SelectMenuExecuted += ComponentHandler;
 
-        _client.JoinedGuild += JoinedGuildHandler;
         _client.Log += message => {
             Console.WriteLine(message);
             return Task.CompletedTask;
@@ -63,26 +62,19 @@ public abstract class BotBase{
 
     protected virtual Task ComponentHandler(SocketMessageComponent component){return Task.CompletedTask;}
 
-    private Task JoinedGuildHandler(SocketGuild guild){
-        //add each user/admin command in commands list to server
-        foreach (var command in commands.Where(p => p.Rank == MoonfireCommandRank.User || p.Rank == MoonfireCommandRank.Admin).ToList())
-            _ = PopulateCommandAsync(command, guild);
-        return Task.CompletedTask;
-    }
-
     protected async Task PopulateCommandsAsync(ulong ownerServer){
+        // Register normal commands globally
         foreach (var command in commands.Where(p => p.Rank == MoonfireCommandRank.User || p.Rank == MoonfireCommandRank.Admin).ToList())
-            foreach (var guild in _client.Guilds)
-                await PopulateCommandAsync(command, guild);
+            await PopulateGlobalCommandAsync(command);
 
         // Register owner commands for a specified server
         foreach (var command in commands.Where(p => p.Rank == MoonfireCommandRank.Owner).ToList())
-            await PopulateCommandAsync(command, _client.GetGuild(ownerServer));
+            await PopulateGuildCommandAsync(command, _client.GetGuild(ownerServer));
 
         Console.WriteLine("All Commands Registered");
     }
 
-    private static async Task PopulateCommandAsync(MoonfireCommand _command, SocketGuild guild){
+    private static Task<SlashCommandProperties> BuildCommand(MoonfireCommand _command){
         var command = new SlashCommandBuilder().WithName(_command.Name.ToLower()).WithDescription(_command.Description);
         
         foreach(var option in _command.Options){
@@ -99,10 +91,17 @@ public abstract class BotBase{
             command.AddOption(optionBuilder);
         }
 
+        return Task.FromResult(command.Build());
+    }
 
-        await guild.CreateApplicationCommandAsync(command.Build());
-
+    private static async Task PopulateGuildCommandAsync(MoonfireCommand _command, SocketGuild guild){
+        await guild.CreateApplicationCommandAsync(await BuildCommand(_command));
         Console.WriteLine($"Command {_command.Name} registered at {guild.Id}");
+    }
+
+    private async Task PopulateGlobalCommandAsync(MoonfireCommand _command){
+        await _client.CreateGlobalApplicationCommandAsync(await BuildCommand(_command));
+        Console.WriteLine($"Command {_command.Name} registered globally");
     }
 
     protected async Task UnregisterCommandsAsync(){

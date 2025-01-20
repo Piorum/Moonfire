@@ -53,21 +53,21 @@ public class SCPInterface : IServer<SCPInterface>, IServerBase
 
         if(vm==null){
             await Log(fN,"VM does not exist");
-            await SendMessage("VM does not exist");
+            await SendMessage("Broken Interface - Resetting - Try Again Soon");
             return false;
         }
         if(sshClient==null){
             await Log(fN,"sshClient does not exist");
-            await SendMessage("sshClient does not exist");
+            await SendMessage("Broken Interface - Resetting - Try Again Soon");
             return false;
         }
         if(started){
             await Log(fN,"Game Already Started");
             return true;
         }
-        if(await TableManager.GetBoolDefaultFalse("Updatefire","updating","game","scp",token)){
+        if(await Updating(token:token)){
             await Log(fN,"Game is updating");
-            await SendMessage("Game is updating - Try again soon");
+            await SendMessage("Game is updating - Resetting - Try Again Soon");
             return false;
         }
 
@@ -142,6 +142,11 @@ public class SCPInterface : IServer<SCPInterface>, IServerBase
         vm = null;
 
         return true;
+    }
+
+    public static async Task<bool> Updating(CancellationToken token = default)
+    {
+        return await TableManager.GetBoolDefaultFalse("Updatefire","updating","game","scp",token);
     }
 
     public async Task<bool> ReconnectAsync(Func<string, Task> SendMessage, CancellationToken token = default){

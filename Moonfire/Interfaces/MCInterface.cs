@@ -20,4 +20,9 @@ public class MCInterface : IServer<MCInterface>, IServerBase
     {
         throw new NotImplementedException();
     }
+
+    public static Task<bool> Updating(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 }

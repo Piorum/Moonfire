@@ -74,14 +74,18 @@ public static class SCPConfigHandler
     public static async Task SetHardwareSettings(ulong? guildId, AzureSettings scphardwareSettings, CancellationToken token = default) =>
         await SetHardwareSettings(guildId.ToString() ?? "", scphardwareSettings, token);
 
-    public static async Task AssignRole(ulong? guildId, ulong SteamId, string roleName, CancellationToken token = default){
+    public static async Task<bool> AssignRole(ulong? guildId, ulong SteamId, string roleName, CancellationToken token = default){
         var gameSettings = await GetGameSettings(guildId,token);
+
+        //cap admins at 25 due to discord select menu limitations
+        if(gameSettings.AdminUsers.Count is 25) return false;
 
         var existingUser = gameSettings.AdminUsers.Where(AdminUser => AdminUser.Id == SteamId).FirstOrDefault();
         if(existingUser is not null) gameSettings.AdminUsers.Remove(existingUser);
 
         gameSettings.AdminUsers.Add(new SCPSettings.AdminUser { Id = SteamId, Role = roleName } );
         await SetGameSettings(guildId,gameSettings,token);
+        return true;
     }
 
     public static async Task RemoveRole(ulong? guildId, ulong? SteamId, CancellationToken token = default){

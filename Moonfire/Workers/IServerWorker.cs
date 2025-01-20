@@ -13,6 +13,12 @@ public static class IServerWorker
     {
         var cts = new CancellationTokenSource();
 
+        //check for updating status
+        if (await TServer.Updating(cts.Token)){
+            await DI.SendSlashReplyAsync("Game is updating - Try Again Soon",command);
+            return;
+        }
+
         //main start task
         var startTask = Task.Run(async () => {
             await DI.SendSlashReplyAsync("Starting Server",command);
@@ -48,20 +54,28 @@ public static class IServerWorker
             }
 
             //start server
-            var success = await serverPair.Interface.StartServerAsync((string a)=>DI.SendSlashReplyAsync(a,command),cts.Token);
-            if(success) await DI.SendSlashReplyAsync($"Started Server at '{serverPair.Interface.PublicIp}'",command);
+            var success = await serverPair.Interface.StartServerAsync((string a)=>DI.SendSlashReplyAsync(a,command), cts.Token);
+            
+            if(success) 
+                await DI.SendSlashReplyAsync($"Started Server at '{serverPair.Interface.PublicIp}'",command);
+            else
+                throw new OperationCanceledException(); //cancels task, runs cleanup task
 
             //remove starting lock
             serverIPairs[guid] = serverPair with {WorkingFlag = WorkingFlag.NONE};
             
         },cts.Token);
 
-        //cleanup task run after timeout
+        //cleanup task run after timeout or failure
         Lazy<Task> cleanupTask = new(() => Task.Run(async () => {
             _ = Console.Out.WriteLineAsync($"{nameof(StartTaskAsync)}:Startup Timed Out");
             //send alert here
 
-            await DI.SendSlashReplyAsync($"Server Startup Failed]\n   [Try Again Soon", command);
+            //output error on timeout, otherwise interface give more verbose failure message
+            if(cts.Token.IsCancellationRequested){
+                await DI.SendSlashReplyAsync($"Server Startup Failed]\n   [Try Again Soon", command);
+            }
+
             ulong guid = command.GuildId ?? 0;
 
             (var serverPair, var found) = await PullIServerPairAsync(serverIPairs,guid);
@@ -81,6 +95,8 @@ public static class IServerWorker
 
             //fully cleans up interface pair
             serverIPairs.TryRemove(guid,out _);
+
+            await DI.SendSlashReplyAsync($"Interface Reset", command);
 
         },cts.Token));
 

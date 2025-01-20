@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "NW8nV4nygMCGSC5TM+ClWcFgrso/R6xJEV99uZrR684ArZ02vXn6bT1rywMu5WShUIktTX8SRTkHV9W+zOz0IA==",
+  "dgSpecHash": "5y3Imu98WVajABNgqISyd98rWqfs2XMJUdaUwwCpHYPkDEvyCWu0kWqQIVbJ7wTmXQfrnLKvj15//KbS3ZiXZg==",
   "success": true,
   "projectFilePath": "/home/username/Documents/Singularity/Moonfire/AzureAllocator/AzureAllocator.csproj",
   "expectedPackageFiles": [
@@ -30,7 +30,7 @@
     "/home/username/.nuget/packages/system.text.encodings.web/6.0.0/system.text.encodings.web.6.0.0.nupkg.sha512",
     "/home/username/.nuget/packages/system.text.json/6.0.10/system.text.json.6.0.10.nupkg.sha512",
     "/home/username/.nuget/packages/system.threading.tasks.extensions/4.5.4/system.threading.tasks.extensions.4.5.4.nupkg.sha512",
-    "/home/username/.nuget/packages/microsoft.aspnetcore.app.ref/8.0.10/microsoft.aspnetcore.app.ref.8.0.10.nupkg.sha512"
+    "/home/username/.nuget/packages/microsoft.aspnetcore.app.ref/8.0.11/microsoft.aspnetcore.app.ref.8.0.11.nupkg.sha512"
   ],
   "logs": []
 }

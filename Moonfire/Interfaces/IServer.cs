@@ -5,6 +5,7 @@ public interface IServer<TSelf>
 {
     // Static abstract method to “create” an instance of TSelf
     static abstract Task<TSelf?> CreateInterfaceAsync(string name, CancellationToken cancellationToken = default);
+    static abstract Task<bool> Updating(CancellationToken cancellationToken = default);
     Task<bool> StartServerAsync(Func<string, Task> messageSenderCallback, CancellationToken cancellationToken = default);
     Task<bool> StopServerAsync(Func<string, Task> messageSenderCallback, CancellationToken cancellationToken = default);
     string PublicIp { get; }
