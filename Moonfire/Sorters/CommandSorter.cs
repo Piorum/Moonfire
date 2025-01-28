@@ -64,10 +64,6 @@ public static class CommandSorter
 
             "console" => Task.FromResult((DI.SendSlashReplyAsync("WIP",command),ResponseType.BASIC)),
 
-            "modaltest" => Task.FromResult((DI.SendModalAsync(new("test","modaltest",[new("TestLabel","texttest")]),command),ResponseType.MODAL)),
-
-            "componenttest" => Task.FromResult((DI.SendComponentsAsync(new(),command),ResponseType.COMPONENT)),
-
             _ => Task.FromResult((DI.SendSlashReplyAsync($"Caught {command.Data.Name} by owner handler but found no command",command),ResponseType.BASIC))
         };
     }

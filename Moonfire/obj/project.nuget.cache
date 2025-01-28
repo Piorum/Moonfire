@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "iTQ9RK4Hdra52MrBpY30Uzqp2d1F98LEkam6B6u1k5kJsviHm9cmdApu9HZrHboa2zs9oVSqLu03GxbjnTOMqw==",
+  "dgSpecHash": "qDdxcE66CR0=",
   "success": true,
   "projectFilePath": "/home/username/Documents/Singularity/Moonfire/Moonfire/Moonfire.csproj",
   "expectedPackageFiles": [
@@ -43,7 +43,9 @@
     "/home/username/.nuget/packages/system.text.json/6.0.10/system.text.json.6.0.10.nupkg.sha512",
     "/home/username/.nuget/packages/system.threading.tasks.extensions/4.5.4/system.threading.tasks.extensions.4.5.4.nupkg.sha512",
     "/home/username/.nuget/packages/system.valuetuple/4.5.0/system.valuetuple.4.5.0.nupkg.sha512",
-    "/home/username/.nuget/packages/microsoft.aspnetcore.app.ref/8.0.11/microsoft.aspnetcore.app.ref.8.0.11.nupkg.sha512"
+    "/home/username/.nuget/packages/microsoft.netcore.app.ref/8.0.12/microsoft.netcore.app.ref.8.0.12.nupkg.sha512",
+    "/home/username/.nuget/packages/microsoft.aspnetcore.app.ref/8.0.12/microsoft.aspnetcore.app.ref.8.0.12.nupkg.sha512",
+    "/home/username/.nuget/packages/microsoft.netcore.app.host.linux-x64/8.0.12/microsoft.netcore.app.host.linux-x64.8.0.12.nupkg.sha512"
   ],
   "logs": []
 }
