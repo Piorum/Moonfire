@@ -49,6 +49,17 @@ public class Program{
             new("repopulate", "#Owner - Refreshes bot commands", MoonfireCommandRank.Owner),
         };
 
+        AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
+        {
+            Console.Error.WriteLine("Unhandled exception: " + args.ExceptionObject);
+        };
+
+        TaskScheduler.UnobservedTaskException += (sender, args) =>
+        {
+            Console.Error.WriteLine("Unobserved task exception: " + args.Exception);
+            args.SetObserved(); //may prevent process termination?
+        };
+
         var _application = new Bot(token, config, commands);
         try{
             await _application.StartBotAsync();

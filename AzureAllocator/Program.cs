@@ -106,7 +106,7 @@ public static class SetupHelper{
         f(@"chmod -R 777 ~/.config");
         f($"chmod -R 777 ~/{Program.NetVersionString}");
 
-        f($"[ -e \"{ver}.log\" ] && mv \"{ver}.log\" \"{ver}.log_backup\"");
+        f($"[ -e ~/\"{ver}.log\" ] && mv ~/\"{ver}.log\" ~/\"{ver}.log.backup\"");
 
         f($"sudo -u azureuser ~/{Program.NetVersionString}/{ver} > ~/{ver}.log 2>&1 &");
         
