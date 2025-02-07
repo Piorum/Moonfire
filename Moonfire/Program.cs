@@ -55,5 +55,7 @@ public class Program{
         } catch (Exception e){
             await Console.Out.WriteLineAsync($"{e}");
         }
+
+        await Console.Out.WriteLineAsync("Done.");
     }
 }

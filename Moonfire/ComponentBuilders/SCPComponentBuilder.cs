@@ -24,6 +24,28 @@ public static class SCPComponentBuilder
                                 description:"Main Public Branch - Default"
                             )
                         ]
+                    ),
+                    new(
+                        customId:"scp_serversize_menu",
+                        placeholder:"Server Size",
+                        options:
+                        [
+                            new(
+                                label:"Standard (1-20 Players)",
+                                value:"Standard_B2s",
+                                description:"2x vCPU, 4GiB RAM - 0.12c/hr - Default"
+                            ),
+                            new(
+                                label:"Standard+ (21+ Players)",
+                                value:"Standard_B2ms",
+                                description:"2x vCPU, 8GiB RAM - 0.18c/hr"
+                            ),
+                            new(
+                                label:"Premium (21+ Players)",
+                                value:"Standard_B4als_v2",
+                                description:"4x vCPU, 8GiB RAM - 0.24c/hr"
+                            )
+                        ]
                     )
                 ],
                 buttons:[

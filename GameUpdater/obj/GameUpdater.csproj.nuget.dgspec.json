@@ -17,14 +17,14 @@
           "/home/username/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
-          "net8.0"
+          "net9.0"
         ],
         "sources": {
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "net8.0": {
-            "targetAlias": "net8.0",
+          "net9.0": {
+            "targetAlias": "net9.0",
             "projectReferences": {
               "/home/username/Documents/Singularity/Moonfire/FuncExt/FuncExt.csproj": {
                 "projectPath": "/home/username/Documents/Singularity/Moonfire/FuncExt/FuncExt.csproj"
@@ -45,8 +45,8 @@
         "SdkAnalysisLevel": "9.0.100"
       },
       "frameworks": {
-        "net8.0": {
-          "targetAlias": "net8.0",
+        "net9.0": {
+          "targetAlias": "net9.0",
           "dependencies": {
             "Azure.Core": {
               "target": "Package",
@@ -54,11 +54,11 @@
             },
             "Azure.Data.Tables": {
               "target": "Package",
-              "version": "[12.9.1, )"
+              "version": "[12.10.0, )"
             },
             "Azure.Identity": {
               "target": "Package",
-              "version": "[1.13.1, )"
+              "version": "[1.13.2, )"
             },
             "Azure.ResourceManager": {
               "target": "Package",
@@ -66,11 +66,11 @@
             },
             "Azure.ResourceManager.Compute": {
               "target": "Package",
-              "version": "[1.6.0, )"
+              "version": "[1.7.0, )"
             },
             "Azure.ResourceManager.Network": {
               "target": "Package",
-              "version": "[1.9.0, )"
+              "version": "[1.10.0, )"
             },
             "Azure.ResourceManager.Resources": {
               "target": "Package",
@@ -103,15 +103,7 @@
           "downloadDependencies": [
             {
               "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[8.0.12, 8.0.12]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Host.linux-x64",
-              "version": "[8.0.12, 8.0.12]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Ref",
-              "version": "[8.0.12, 8.0.12]"
+              "version": "[9.0.1, 9.0.1]"
             }
           ],
           "frameworkReferences": {
@@ -136,14 +128,14 @@
           "/home/username/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
-          "net8.0"
+          "net9.0"
         ],
         "sources": {
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "net8.0": {
-            "targetAlias": "net8.0",
+          "net9.0": {
+            "targetAlias": "net9.0",
             "projectReferences": {}
           }
         },
@@ -160,8 +152,8 @@
         "SdkAnalysisLevel": "9.0.100"
       },
       "frameworks": {
-        "net8.0": {
-          "targetAlias": "net8.0",
+        "net9.0": {
+          "targetAlias": "net9.0",
           "imports": [
             "net461",
             "net462",
@@ -176,15 +168,7 @@
           "downloadDependencies": [
             {
               "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[8.0.12, 8.0.12]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Host.linux-x64",
-              "version": "[8.0.12, 8.0.12]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Ref",
-              "version": "[8.0.12, 8.0.12]"
+              "version": "[9.0.1, 9.0.1]"
             }
           ],
           "frameworkReferences": {
@@ -209,14 +193,14 @@
           "/home/username/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
-          "net8.0"
+          "net9.0"
         ],
         "sources": {
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "net8.0": {
-            "targetAlias": "net8.0",
+          "net9.0": {
+            "targetAlias": "net9.0",
             "projectReferences": {
               "/home/username/Documents/Singularity/Moonfire/AzureAllocator/AzureAllocator.csproj": {
                 "projectPath": "/home/username/Documents/Singularity/Moonfire/AzureAllocator/AzureAllocator.csproj"
@@ -237,8 +221,8 @@
         "SdkAnalysisLevel": "9.0.100"
       },
       "frameworks": {
-        "net8.0": {
-          "targetAlias": "net8.0",
+        "net9.0": {
+          "targetAlias": "net9.0",
           "dependencies": {
             "Azure.Storage.Blobs": {
               "target": "Package",
@@ -259,15 +243,7 @@
           "downloadDependencies": [
             {
               "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[8.0.12, 8.0.12]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Host.linux-x64",
-              "version": "[8.0.12, 8.0.12]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Ref",
-              "version": "[8.0.12, 8.0.12]"
+              "version": "[9.0.1, 9.0.1]"
             }
           ],
           "frameworkReferences": {

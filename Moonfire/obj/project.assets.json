@@ -1,7 +1,7 @@
 {
   "version": 3,
   "targets": {
-    "net8.0": {
+    "net9.0": {
       "Azure.Core/1.44.1": {
         "type": "package",
         "dependencies": {
@@ -25,40 +25,38 @@
           }
         }
       },
-      "Azure.Data.Tables/12.9.1": {
+      "Azure.Data.Tables/12.10.0": {
         "type": "package",
         "dependencies": {
-          "Azure.Core": "1.43.0",
-          "System.Text.Json": "6.0.9"
+          "Azure.Core": "1.44.1"
         },
         "compile": {
-          "lib/netstandard2.0/Azure.Data.Tables.dll": {
+          "lib/net8.0/Azure.Data.Tables.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/Azure.Data.Tables.dll": {
+          "lib/net8.0/Azure.Data.Tables.dll": {
             "related": ".xml"
           }
         }
       },
-      "Azure.Identity/1.13.1": {
+      "Azure.Identity/1.13.2": {
         "type": "package",
         "dependencies": {
           "Azure.Core": "1.44.1",
-          "Microsoft.Identity.Client": "4.66.1",
-          "Microsoft.Identity.Client.Extensions.Msal": "4.66.1",
+          "Microsoft.Identity.Client": "4.67.2",
+          "Microsoft.Identity.Client.Extensions.Msal": "4.67.2",
           "System.Memory": "4.5.5",
-          "System.Text.Json": "6.0.10",
           "System.Threading.Tasks.Extensions": "4.5.4"
         },
         "compile": {
-          "lib/netstandard2.0/Azure.Identity.dll": {
+          "lib/net8.0/Azure.Identity.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/Azure.Identity.dll": {
+          "lib/net8.0/Azure.Identity.dll": {
             "related": ".xml"
           }
         }
@@ -81,40 +79,40 @@
           }
         }
       },
-      "Azure.ResourceManager.Compute/1.6.0": {
+      "Azure.ResourceManager.Compute/1.7.0": {
         "type": "package",
         "dependencies": {
-          "Azure.Core": "1.42.0",
-          "Azure.ResourceManager": "1.12.0",
-          "System.ClientModel": "1.0.0",
-          "System.Text.Json": "4.7.2"
+          "Azure.Core": "1.44.1",
+          "Azure.ResourceManager": "1.13.0",
+          "System.ClientModel": "1.2.1",
+          "System.Text.Json": "6.0.10"
         },
         "compile": {
-          "lib/netstandard2.0/Azure.ResourceManager.Compute.dll": {
+          "lib/net8.0/Azure.ResourceManager.Compute.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/Azure.ResourceManager.Compute.dll": {
+          "lib/net8.0/Azure.ResourceManager.Compute.dll": {
             "related": ".xml"
           }
         }
       },
-      "Azure.ResourceManager.Network/1.9.0": {
+      "Azure.ResourceManager.Network/1.10.0": {
         "type": "package",
         "dependencies": {
-          "Azure.Core": "1.42.0",
+          "Azure.Core": "1.44.1",
           "Azure.ResourceManager": "1.13.0",
-          "System.ClientModel": "1.0.0",
-          "System.Text.Json": "6.0.9"
+          "System.ClientModel": "1.2.1",
+          "System.Text.Json": "6.0.10"
         },
         "compile": {
-          "lib/netstandard2.0/Azure.ResourceManager.Network.dll": {
+          "lib/net8.0/Azure.ResourceManager.Network.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/Azure.ResourceManager.Network.dll": {
+          "lib/net8.0/Azure.ResourceManager.Network.dll": {
             "related": ".xml"
           }
         }
@@ -172,118 +170,119 @@
           }
         }
       },
-      "Discord.Net/3.15.3": {
+      "Discord.Net/3.17.1": {
         "type": "package",
         "dependencies": {
-          "Discord.Net.Commands": "3.15.3",
-          "Discord.Net.Core": "3.15.3",
-          "Discord.Net.Interactions": "3.15.3",
-          "Discord.Net.Rest": "3.15.3",
-          "Discord.Net.WebSocket": "3.15.3",
-          "Discord.Net.Webhook": "3.15.3"
+          "Discord.Net.Commands": "3.17.1",
+          "Discord.Net.Core": "3.17.1",
+          "Discord.Net.Interactions": "3.17.1",
+          "Discord.Net.Rest": "3.17.1",
+          "Discord.Net.WebSocket": "3.17.1",
+          "Discord.Net.Webhook": "3.17.1"
         }
       },
-      "Discord.Net.Commands/3.15.3": {
+      "Discord.Net.Commands/3.17.1": {
         "type": "package",
         "dependencies": {
-          "Discord.Net.Core": "3.15.3"
+          "Discord.Net.Core": "3.17.1",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.0"
         },
         "compile": {
-          "lib/net6.0/Discord.Net.Commands.dll": {
+          "lib/net9.0/Discord.Net.Commands.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/net6.0/Discord.Net.Commands.dll": {
+          "lib/net9.0/Discord.Net.Commands.dll": {
             "related": ".xml"
           }
         }
       },
-      "Discord.Net.Core/3.15.3": {
+      "Discord.Net.Core/3.17.1": {
         "type": "package",
         "dependencies": {
           "Newtonsoft.Json": "13.0.3",
-          "System.Collections.Immutable": "6.0.0",
+          "System.Collections.Immutable": "8.0.0",
           "System.Interactive.Async": "6.0.1",
           "System.ValueTuple": "4.5.0"
         },
         "compile": {
-          "lib/net6.0/Discord.Net.Core.dll": {
+          "lib/net9.0/Discord.Net.Core.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/net6.0/Discord.Net.Core.dll": {
+          "lib/net9.0/Discord.Net.Core.dll": {
             "related": ".xml"
           }
         }
       },
-      "Discord.Net.Interactions/3.15.3": {
+      "Discord.Net.Interactions/3.17.1": {
         "type": "package",
         "dependencies": {
-          "Discord.Net.Core": "3.15.3",
-          "Discord.Net.Rest": "3.15.3",
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "6.0.0",
-          "System.Collections.Immutable": "6.0.0",
-          "System.Reactive": "6.0.0"
+          "Discord.Net.Core": "3.17.1",
+          "Discord.Net.Rest": "3.17.1",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.0",
+          "System.Collections.Immutable": "8.0.0",
+          "System.Reactive": "6.0.1"
         },
         "compile": {
-          "lib/net6.0/Discord.Net.Interactions.dll": {
+          "lib/net9.0/Discord.Net.Interactions.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/net6.0/Discord.Net.Interactions.dll": {
+          "lib/net9.0/Discord.Net.Interactions.dll": {
             "related": ".xml"
           }
         }
       },
-      "Discord.Net.Rest/3.15.3": {
+      "Discord.Net.Rest/3.17.1": {
         "type": "package",
         "dependencies": {
-          "Discord.Net.Core": "3.15.3"
+          "Discord.Net.Core": "3.17.1"
         },
         "compile": {
-          "lib/net6.0/Discord.Net.Rest.dll": {
+          "lib/net9.0/Discord.Net.Rest.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/net6.0/Discord.Net.Rest.dll": {
+          "lib/net9.0/Discord.Net.Rest.dll": {
             "related": ".xml"
           }
         }
       },
-      "Discord.Net.Webhook/3.15.3": {
+      "Discord.Net.Webhook/3.17.1": {
         "type": "package",
         "dependencies": {
-          "Discord.Net.Core": "3.15.3",
-          "Discord.Net.Rest": "3.15.3"
+          "Discord.Net.Core": "3.17.1",
+          "Discord.Net.Rest": "3.17.1"
         },
         "compile": {
-          "lib/net6.0/Discord.Net.Webhook.dll": {
+          "lib/net9.0/Discord.Net.Webhook.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/net6.0/Discord.Net.Webhook.dll": {
+          "lib/net9.0/Discord.Net.Webhook.dll": {
             "related": ".xml"
           }
         }
       },
-      "Discord.Net.WebSocket/3.15.3": {
+      "Discord.Net.WebSocket/3.17.1": {
         "type": "package",
         "dependencies": {
-          "Discord.Net.Core": "3.15.3",
-          "Discord.Net.Rest": "3.15.3"
+          "Discord.Net.Core": "3.17.1",
+          "Discord.Net.Rest": "3.17.1"
         },
         "compile": {
-          "lib/net6.0/Discord.Net.WebSocket.dll": {
+          "lib/net9.0/Discord.Net.WebSocket.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/net6.0/Discord.Net.WebSocket.dll": {
+          "lib/net9.0/Discord.Net.WebSocket.dll": {
             "related": ".xml"
           }
         }
@@ -301,52 +300,52 @@
           }
         }
       },
-      "Microsoft.Extensions.DependencyInjection.Abstractions/6.0.0": {
+      "Microsoft.Extensions.DependencyInjection.Abstractions/8.0.0": {
         "type": "package",
         "compile": {
-          "lib/net6.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll": {
+          "lib/net8.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/net6.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll": {
+          "lib/net8.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll": {
             "related": ".xml"
           }
         },
         "build": {
-          "buildTransitive/netcoreapp3.1/_._": {}
+          "buildTransitive/net6.0/_._": {}
         }
       },
-      "Microsoft.Identity.Client/4.66.1": {
+      "Microsoft.Identity.Client/4.67.2": {
         "type": "package",
         "dependencies": {
           "Microsoft.IdentityModel.Abstractions": "6.35.0",
           "System.Diagnostics.DiagnosticSource": "6.0.1"
         },
         "compile": {
-          "lib/net6.0/Microsoft.Identity.Client.dll": {
+          "lib/net8.0/Microsoft.Identity.Client.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/net6.0/Microsoft.Identity.Client.dll": {
+          "lib/net8.0/Microsoft.Identity.Client.dll": {
             "related": ".xml"
           }
         }
       },
-      "Microsoft.Identity.Client.Extensions.Msal/4.66.1": {
+      "Microsoft.Identity.Client.Extensions.Msal/4.67.2": {
         "type": "package",
         "dependencies": {
-          "Microsoft.Identity.Client": "4.66.1",
+          "Microsoft.Identity.Client": "4.67.2",
           "System.Security.Cryptography.ProtectedData": "4.5.0"
         },
         "compile": {
-          "lib/net6.0/Microsoft.Identity.Client.Extensions.Msal.dll": {
+          "lib/net8.0/Microsoft.Identity.Client.Extensions.Msal.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/net6.0/Microsoft.Identity.Client.Extensions.Msal.dll": {
+          "lib/net8.0/Microsoft.Identity.Client.Extensions.Msal.dll": {
             "related": ".xml"
           }
         }
@@ -457,11 +456,11 @@
           }
         }
       },
-      "System.ClientModel/1.1.0": {
+      "System.ClientModel/1.2.1": {
         "type": "package",
         "dependencies": {
-          "System.Memory.Data": "1.0.2",
-          "System.Text.Json": "6.0.9"
+          "System.Memory.Data": "6.0.0",
+          "System.Text.Json": "6.0.10"
         },
         "compile": {
           "lib/net6.0/System.ClientModel.dll": {
@@ -474,23 +473,20 @@
           }
         }
       },
-      "System.Collections.Immutable/6.0.0": {
+      "System.Collections.Immutable/8.0.0": {
         "type": "package",
-        "dependencies": {
-          "System.Runtime.CompilerServices.Unsafe": "6.0.0"
-        },
         "compile": {
-          "lib/net6.0/System.Collections.Immutable.dll": {
+          "lib/net8.0/System.Collections.Immutable.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/net6.0/System.Collections.Immutable.dll": {
+          "lib/net8.0/System.Collections.Immutable.dll": {
             "related": ".xml"
           }
         },
         "build": {
-          "buildTransitive/netcoreapp3.1/_._": {}
+          "buildTransitive/net6.0/_._": {}
         }
       },
       "System.Diagnostics.DiagnosticSource/6.0.1": {
@@ -597,7 +593,7 @@
           "lib/netcoreapp2.0/_._": {}
         }
       },
-      "System.Reactive/6.0.0": {
+      "System.Reactive/6.0.1": {
         "type": "package",
         "compile": {
           "lib/net6.0/System.Reactive.dll": {
@@ -711,14 +707,14 @@
       },
       "AzureAllocator/1.0.0": {
         "type": "project",
-        "framework": ".NETCoreApp,Version=v8.0",
+        "framework": ".NETCoreApp,Version=v9.0",
         "dependencies": {
           "Azure.Core": "1.44.1",
-          "Azure.Data.Tables": "12.9.1",
-          "Azure.Identity": "1.13.1",
+          "Azure.Data.Tables": "12.10.0",
+          "Azure.Identity": "1.13.2",
           "Azure.ResourceManager": "1.13.0",
-          "Azure.ResourceManager.Compute": "1.6.0",
-          "Azure.ResourceManager.Network": "1.9.0",
+          "Azure.ResourceManager.Compute": "1.7.0",
+          "Azure.ResourceManager.Network": "1.10.0",
           "Azure.ResourceManager.Resources": "1.9.0",
           "Azure.Storage.Blobs": "12.23.0",
           "FuncExt": "1.0.0",
@@ -734,7 +730,7 @@
       },
       "FuncExt/1.0.0": {
         "type": "project",
-        "framework": ".NETCoreApp,Version=v8.0",
+        "framework": ".NETCoreApp,Version=v9.0",
         "compile": {
           "bin/placeholder/FuncExt.dll": {}
         },
@@ -767,34 +763,38 @@
         "lib/netstandard2.0/Azure.Core.xml"
       ]
     },
-    "Azure.Data.Tables/12.9.1": {
-      "sha512": "d5529gg24alnMKbE8Aw7NY3q9dxFvzfhCMW+TtQA7GGIqASFSIh+536p2qdyJNPEQDFYtqfoLqIBlP9IGqgLfA==",
+    "Azure.Data.Tables/12.10.0": {
+      "sha512": "fW6873rvhpAYUGXzu7JmbfSkYfppvfkKkiZqifSyOVJ0SsAWBMqHWL9VbUPsApP3DWTwakpU35nfpKTPqvFVww==",
       "type": "package",
-      "path": "azure.data.tables/12.9.1",
+      "path": "azure.data.tables/12.10.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "CHANGELOG.md",
         "README.md",
-        "azure.data.tables.12.9.1.nupkg.sha512",
+        "azure.data.tables.12.10.0.nupkg.sha512",
         "azure.data.tables.nuspec",
         "azureicon.png",
+        "lib/net8.0/Azure.Data.Tables.dll",
+        "lib/net8.0/Azure.Data.Tables.xml",
         "lib/netstandard2.0/Azure.Data.Tables.dll",
         "lib/netstandard2.0/Azure.Data.Tables.xml"
       ]
     },
-    "Azure.Identity/1.13.1": {
-      "sha512": "4eeK9XztjTmvA4WN+qAvlUCSxSv45+LqTMeC8XT2giGGZHKthTMU2IuXcHjAOf5VLH3wE3Bo6EwhIcJxVB8RmQ==",
+    "Azure.Identity/1.13.2": {
+      "sha512": "CngQVQELdzFmsGSWyGIPIUOCrII7nApMVWxVmJCKQQrWxRXcNquCsZ+njRJRnhFUfD+KMAhpjyRCaceE4EOL6A==",
       "type": "package",
-      "path": "azure.identity/1.13.1",
+      "path": "azure.identity/1.13.2",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "CHANGELOG.md",
         "README.md",
-        "azure.identity.1.13.1.nupkg.sha512",
+        "azure.identity.1.13.2.nupkg.sha512",
         "azure.identity.nuspec",
         "azureicon.png",
+        "lib/net8.0/Azure.Identity.dll",
+        "lib/net8.0/Azure.Identity.xml",
         "lib/netstandard2.0/Azure.Identity.dll",
         "lib/netstandard2.0/Azure.Identity.xml"
       ]
@@ -815,34 +815,38 @@
         "lib/netstandard2.0/Azure.ResourceManager.xml"
       ]
     },
-    "Azure.ResourceManager.Compute/1.6.0": {
-      "sha512": "6rITWUCsRaHID/dNDJIxsmh0TcOOkr+1H0drFCjYIbd+Zky7HNVCnYZzx+a9y+uXplGRZ21P2RCnjD8Pu3pKug==",
+    "Azure.ResourceManager.Compute/1.7.0": {
+      "sha512": "hQLZoS5xGUpxOZhcvez9dbKpz48339W9NcxHSbXbZXIosUfEylKsWweuoVq3QA5nDqCg1Nlaldnuyzek09mCaw==",
       "type": "package",
-      "path": "azure.resourcemanager.compute/1.6.0",
+      "path": "azure.resourcemanager.compute/1.7.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "CHANGELOG.md",
         "README.md",
-        "azure.resourcemanager.compute.1.6.0.nupkg.sha512",
+        "azure.resourcemanager.compute.1.7.0.nupkg.sha512",
         "azure.resourcemanager.compute.nuspec",
         "azureicon.png",
+        "lib/net8.0/Azure.ResourceManager.Compute.dll",
+        "lib/net8.0/Azure.ResourceManager.Compute.xml",
         "lib/netstandard2.0/Azure.ResourceManager.Compute.dll",
         "lib/netstandard2.0/Azure.ResourceManager.Compute.xml"
       ]
     },
-    "Azure.ResourceManager.Network/1.9.0": {
-      "sha512": "DhrnqgH9NfTnh9BUY3UUfwrs84uhzq/EczWo4CyiT7tj+ofk+qlOyRx97hN2DkrWLmNHHO1/fmUfe/Xq0+Kj3Q==",
+    "Azure.ResourceManager.Network/1.10.0": {
+      "sha512": "3uloysVtmX2/4LiD6mC014axh0WzS0NMqzjm+PaFAGVdYfVJZgS/Dennv8Yc7F9o/Jar8Ii0xYW+tYRoDyzJzA==",
       "type": "package",
-      "path": "azure.resourcemanager.network/1.9.0",
+      "path": "azure.resourcemanager.network/1.10.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "CHANGELOG.md",
         "README.md",
-        "azure.resourcemanager.network.1.9.0.nupkg.sha512",
+        "azure.resourcemanager.network.1.10.0.nupkg.sha512",
         "azure.resourcemanager.network.nuspec",
         "azureicon.png",
+        "lib/net8.0/Azure.ResourceManager.Network.dll",
+        "lib/net8.0/Azure.ResourceManager.Network.xml",
         "lib/netstandard2.0/Azure.ResourceManager.Network.dll",
         "lib/netstandard2.0/Azure.ResourceManager.Network.xml"
       ]
@@ -901,29 +905,29 @@
         "lib/netstandard2.0/Azure.Storage.Common.xml"
       ]
     },
-    "Discord.Net/3.15.3": {
-      "sha512": "qXnqM8Hh2/FH44zz8P2cte5ti63CTLdwDaU3WB+S24m9yQ27mjHSDYb8jlSJbK/RMCNmCOyRFA57uTwaKk73jQ==",
+    "Discord.Net/3.17.1": {
+      "sha512": "xD8FiscFW4gT+G6pxjESEFiDAHFI6UbZCjMMBNVMOT68lvjP929tpchIrbvCBVNtHT+P2X9AZYiYYTOyL+VLLA==",
       "type": "package",
-      "path": "discord.net/3.15.3",
+      "path": "discord.net/3.17.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "NUGET_README.md",
         "PackageLogo.png",
-        "discord.net.3.15.3.nupkg.sha512",
+        "discord.net.3.17.1.nupkg.sha512",
         "discord.net.nuspec"
       ]
     },
-    "Discord.Net.Commands/3.15.3": {
-      "sha512": "g3OFzjWx7xxl+EXm7UmqQWM2RKOlTWEhadwc89B1SyYjbN72U9pU8pXvZbZLe29Psqd2k5neFVc25GwiCBjbmQ==",
+    "Discord.Net.Commands/3.17.1": {
+      "sha512": "2gR6hpl+lEsSIF2+BiXEHrQQZffnA9Ovb9/Z45lDK4ebE/1RZvCZbGvJvC6Hul5Y0b6BEkxJTaB1TJH6WxM2dg==",
       "type": "package",
-      "path": "discord.net.commands/3.15.3",
+      "path": "discord.net.commands/3.17.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "NUGET_README.md",
         "PackageLogo.png",
-        "discord.net.commands.3.15.3.nupkg.sha512",
+        "discord.net.commands.3.17.1.nupkg.sha512",
         "discord.net.commands.nuspec",
         "lib/net461/Discord.Net.Commands.dll",
         "lib/net461/Discord.Net.Commands.xml",
@@ -931,22 +935,26 @@
         "lib/net5.0/Discord.Net.Commands.xml",
         "lib/net6.0/Discord.Net.Commands.dll",
         "lib/net6.0/Discord.Net.Commands.xml",
+        "lib/net8.0/Discord.Net.Commands.dll",
+        "lib/net8.0/Discord.Net.Commands.xml",
+        "lib/net9.0/Discord.Net.Commands.dll",
+        "lib/net9.0/Discord.Net.Commands.xml",
         "lib/netstandard2.0/Discord.Net.Commands.dll",
         "lib/netstandard2.0/Discord.Net.Commands.xml",
         "lib/netstandard2.1/Discord.Net.Commands.dll",
         "lib/netstandard2.1/Discord.Net.Commands.xml"
       ]
     },
-    "Discord.Net.Core/3.15.3": {
-      "sha512": "FvOEC1Buam9C+aJ5CaLb5FEPKVdXjaNrEmgexo02n9bSRILQNi8iBM6f3K/Ziq2SLEZn+tujEHwNH8zFMzZwVA==",
+    "Discord.Net.Core/3.17.1": {
+      "sha512": "726zDgzftOfpdhcHp5PhM0Dy4Movct1N/vPIqA4fncsjQWZGyQt8X9a8QHiYdDBaZi2EsPlY3/3raIdkTQPemQ==",
       "type": "package",
-      "path": "discord.net.core/3.15.3",
+      "path": "discord.net.core/3.17.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "NUGET_README.md",
         "PackageLogo.png",
-        "discord.net.core.3.15.3.nupkg.sha512",
+        "discord.net.core.3.17.1.nupkg.sha512",
         "discord.net.core.nuspec",
         "lib/net461/Discord.Net.Core.dll",
         "lib/net461/Discord.Net.Core.xml",
@@ -954,22 +962,26 @@
         "lib/net5.0/Discord.Net.Core.xml",
         "lib/net6.0/Discord.Net.Core.dll",
         "lib/net6.0/Discord.Net.Core.xml",
+        "lib/net8.0/Discord.Net.Core.dll",
+        "lib/net8.0/Discord.Net.Core.xml",
+        "lib/net9.0/Discord.Net.Core.dll",
+        "lib/net9.0/Discord.Net.Core.xml",
         "lib/netstandard2.0/Discord.Net.Core.dll",
         "lib/netstandard2.0/Discord.Net.Core.xml",
         "lib/netstandard2.1/Discord.Net.Core.dll",
         "lib/netstandard2.1/Discord.Net.Core.xml"
       ]
     },
-    "Discord.Net.Interactions/3.15.3": {
-      "sha512": "Bo8nX2Ho0sypNCPJ6jb/Bvx7LlVZc3bN70Fq31q5uWjK+DSKTIPsSOacPuxGCHAeq7VZCPbEqaGLb8EZ+YnmHw==",
+    "Discord.Net.Interactions/3.17.1": {
+      "sha512": "KkLzB2gaQj8XggVnmbKzy8yHr8bG2ZypTfHbb/z88cEDu3440Ej+lVc/nr4WQVIR+VnlU5Q7cTS44IzwPJYBAQ==",
       "type": "package",
-      "path": "discord.net.interactions/3.15.3",
+      "path": "discord.net.interactions/3.17.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "NUGET_README.md",
         "PackageLogo.png",
-        "discord.net.interactions.3.15.3.nupkg.sha512",
+        "discord.net.interactions.3.17.1.nupkg.sha512",
         "discord.net.interactions.nuspec",
         "lib/net461/Discord.Net.Interactions.dll",
         "lib/net461/Discord.Net.Interactions.xml",
@@ -977,22 +989,26 @@
         "lib/net5.0/Discord.Net.Interactions.xml",
         "lib/net6.0/Discord.Net.Interactions.dll",
         "lib/net6.0/Discord.Net.Interactions.xml",
+        "lib/net8.0/Discord.Net.Interactions.dll",
+        "lib/net8.0/Discord.Net.Interactions.xml",
+        "lib/net9.0/Discord.Net.Interactions.dll",
+        "lib/net9.0/Discord.Net.Interactions.xml",
         "lib/netstandard2.0/Discord.Net.Interactions.dll",
         "lib/netstandard2.0/Discord.Net.Interactions.xml",
         "lib/netstandard2.1/Discord.Net.Interactions.dll",
         "lib/netstandard2.1/Discord.Net.Interactions.xml"
       ]
     },
-    "Discord.Net.Rest/3.15.3": {
-      "sha512": "sMfO42ZqzRHmVSEgbAG+FbkeKDorvfksH+1D0ds8hG1IWhK3mzZIeE8FkVLRputRxcAnP5eHbiBOhtgbN4hRMA==",
+    "Discord.Net.Rest/3.17.1": {
+      "sha512": "dvkY/Or8pz82hEE7qyY8QCUm/tcbPrLaknoihKZcezFU0Hj8vxVrfBIUZ1CXhBeOR8DzpEM3yNg4WewU4Fiwpg==",
       "type": "package",
-      "path": "discord.net.rest/3.15.3",
+      "path": "discord.net.rest/3.17.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "NUGET_README.md",
         "PackageLogo.png",
-        "discord.net.rest.3.15.3.nupkg.sha512",
+        "discord.net.rest.3.17.1.nupkg.sha512",
         "discord.net.rest.nuspec",
         "lib/net461/Discord.Net.Rest.dll",
         "lib/net461/Discord.Net.Rest.xml",
@@ -1000,43 +1016,51 @@
         "lib/net5.0/Discord.Net.Rest.xml",
         "lib/net6.0/Discord.Net.Rest.dll",
         "lib/net6.0/Discord.Net.Rest.xml",
+        "lib/net8.0/Discord.Net.Rest.dll",
+        "lib/net8.0/Discord.Net.Rest.xml",
+        "lib/net9.0/Discord.Net.Rest.dll",
+        "lib/net9.0/Discord.Net.Rest.xml",
         "lib/netstandard2.0/Discord.Net.Rest.dll",
         "lib/netstandard2.0/Discord.Net.Rest.xml",
         "lib/netstandard2.1/Discord.Net.Rest.dll",
         "lib/netstandard2.1/Discord.Net.Rest.xml"
       ]
     },
-    "Discord.Net.Webhook/3.15.3": {
-      "sha512": "69dvN5L0aKyATSET3lFemQd2ZyYBAxr9kde4PPhpiyx58N/AKsBQRqeBQE9PUIuIdEcFwllmgorHaVTBKLw6lw==",
+    "Discord.Net.Webhook/3.17.1": {
+      "sha512": "ge7vTnUsuQLhy8ta63vlgHmycAWvDDVHS3EcgJU5l7f22x24stGk8hZYycaBTp+6qjKKjRvNvUSLCb5bZuPN3A==",
       "type": "package",
-      "path": "discord.net.webhook/3.15.3",
+      "path": "discord.net.webhook/3.17.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "NUGET_README.md",
         "PackageLogo.png",
-        "discord.net.webhook.3.15.3.nupkg.sha512",
+        "discord.net.webhook.3.17.1.nupkg.sha512",
         "discord.net.webhook.nuspec",
         "lib/net5.0/Discord.Net.Webhook.dll",
         "lib/net5.0/Discord.Net.Webhook.xml",
         "lib/net6.0/Discord.Net.Webhook.dll",
         "lib/net6.0/Discord.Net.Webhook.xml",
+        "lib/net8.0/Discord.Net.Webhook.dll",
+        "lib/net8.0/Discord.Net.Webhook.xml",
+        "lib/net9.0/Discord.Net.Webhook.dll",
+        "lib/net9.0/Discord.Net.Webhook.xml",
         "lib/netstandard2.0/Discord.Net.Webhook.dll",
         "lib/netstandard2.0/Discord.Net.Webhook.xml",
         "lib/netstandard2.1/Discord.Net.Webhook.dll",
         "lib/netstandard2.1/Discord.Net.Webhook.xml"
       ]
     },
-    "Discord.Net.WebSocket/3.15.3": {
-      "sha512": "sR7Apa1I0IgpDG4TgJZ6Amd35FQIzbpN+W6+1XpnXOo58KcrSM3v1hODrKr/wkYHtm1zpeBqBbKfZCvLIsdRww==",
+    "Discord.Net.WebSocket/3.17.1": {
+      "sha512": "S65fp0C+CedL3+4XtRifJnsdndC7G84jg7fw7e+WZ1inmMHRnaYaYvaMCM6D0rRAD0h5FHqG+K1vS+C+v576sw==",
       "type": "package",
-      "path": "discord.net.websocket/3.15.3",
+      "path": "discord.net.websocket/3.17.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "NUGET_README.md",
         "PackageLogo.png",
-        "discord.net.websocket.3.15.3.nupkg.sha512",
+        "discord.net.websocket.3.17.1.nupkg.sha512",
         "discord.net.websocket.nuspec",
         "lib/net461/Discord.Net.WebSocket.dll",
         "lib/net461/Discord.Net.WebSocket.xml",
@@ -1044,6 +1068,10 @@
         "lib/net5.0/Discord.Net.WebSocket.xml",
         "lib/net6.0/Discord.Net.WebSocket.dll",
         "lib/net6.0/Discord.Net.WebSocket.xml",
+        "lib/net8.0/Discord.Net.WebSocket.dll",
+        "lib/net8.0/Discord.Net.WebSocket.xml",
+        "lib/net9.0/Discord.Net.WebSocket.dll",
+        "lib/net9.0/Discord.Net.WebSocket.xml",
         "lib/netstandard2.0/Discord.Net.WebSocket.dll",
         "lib/netstandard2.0/Discord.Net.WebSocket.xml",
         "lib/netstandard2.1/Discord.Net.WebSocket.dll",
@@ -1071,35 +1099,42 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "Microsoft.Extensions.DependencyInjection.Abstractions/6.0.0": {
-      "sha512": "xlzi2IYREJH3/m6+lUrQlujzX8wDitm4QGnUu6kUXTQAWPuZY8i+ticFJbzfqaetLA6KR/rO6Ew/HuYD+bxifg==",
+    "Microsoft.Extensions.DependencyInjection.Abstractions/8.0.0": {
+      "sha512": "cjWrLkJXK0rs4zofsK4bSdg+jhDLTaxrkXu4gS6Y7MAlCvRyNNgwY/lJi5RDlQOnSZweHqoyvgvbdvQsRIW+hg==",
       "type": "package",
-      "path": "microsoft.extensions.dependencyinjection.abstractions/6.0.0",
+      "path": "microsoft.extensions.dependencyinjection.abstractions/8.0.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "Icon.png",
         "LICENSE.TXT",
+        "PACKAGE.md",
         "THIRD-PARTY-NOTICES.TXT",
+        "buildTransitive/net461/Microsoft.Extensions.DependencyInjection.Abstractions.targets",
+        "buildTransitive/net462/_._",
+        "buildTransitive/net6.0/_._",
         "buildTransitive/netcoreapp2.0/Microsoft.Extensions.DependencyInjection.Abstractions.targets",
-        "buildTransitive/netcoreapp3.1/_._",
-        "lib/net461/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
-        "lib/net461/Microsoft.Extensions.DependencyInjection.Abstractions.xml",
+        "lib/net462/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+        "lib/net462/Microsoft.Extensions.DependencyInjection.Abstractions.xml",
         "lib/net6.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
         "lib/net6.0/Microsoft.Extensions.DependencyInjection.Abstractions.xml",
+        "lib/net7.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+        "lib/net7.0/Microsoft.Extensions.DependencyInjection.Abstractions.xml",
+        "lib/net8.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+        "lib/net8.0/Microsoft.Extensions.DependencyInjection.Abstractions.xml",
         "lib/netstandard2.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
         "lib/netstandard2.0/Microsoft.Extensions.DependencyInjection.Abstractions.xml",
         "lib/netstandard2.1/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
         "lib/netstandard2.1/Microsoft.Extensions.DependencyInjection.Abstractions.xml",
-        "microsoft.extensions.dependencyinjection.abstractions.6.0.0.nupkg.sha512",
+        "microsoft.extensions.dependencyinjection.abstractions.8.0.0.nupkg.sha512",
         "microsoft.extensions.dependencyinjection.abstractions.nuspec",
         "useSharedDesignerContext.txt"
       ]
     },
-    "Microsoft.Identity.Client/4.66.1": {
-      "sha512": "mE+m3pZ7zSKocSubKXxwZcUrCzLflC86IdLxrVjS8tialy0b1L+aECBqRBC/ykcPlB4y7skg49TaTiA+O2UfDw==",
+    "Microsoft.Identity.Client/4.67.2": {
+      "sha512": "37t0TfekfG6XM8kue/xNaA66Qjtti5Qe1xA41CK+bEd8VD76/oXJc+meFJHGzygIC485dCpKoamG/pDfb9Qd7Q==",
       "type": "package",
-      "path": "microsoft.identity.client/4.66.1",
+      "path": "microsoft.identity.client/4.67.2",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -1108,31 +1143,32 @@
         "lib/net462/Microsoft.Identity.Client.xml",
         "lib/net472/Microsoft.Identity.Client.dll",
         "lib/net472/Microsoft.Identity.Client.xml",
-        "lib/net6.0-android31.0/Microsoft.Identity.Client.dll",
-        "lib/net6.0-android31.0/Microsoft.Identity.Client.xml",
-        "lib/net6.0-ios15.4/Microsoft.Identity.Client.dll",
-        "lib/net6.0-ios15.4/Microsoft.Identity.Client.xml",
-        "lib/net6.0/Microsoft.Identity.Client.dll",
-        "lib/net6.0/Microsoft.Identity.Client.xml",
+        "lib/net8.0-android34.0/Microsoft.Identity.Client.aar",
+        "lib/net8.0-android34.0/Microsoft.Identity.Client.dll",
+        "lib/net8.0-android34.0/Microsoft.Identity.Client.xml",
+        "lib/net8.0-ios18.0/Microsoft.Identity.Client.dll",
+        "lib/net8.0-ios18.0/Microsoft.Identity.Client.xml",
+        "lib/net8.0/Microsoft.Identity.Client.dll",
+        "lib/net8.0/Microsoft.Identity.Client.xml",
         "lib/netstandard2.0/Microsoft.Identity.Client.dll",
         "lib/netstandard2.0/Microsoft.Identity.Client.xml",
-        "microsoft.identity.client.4.66.1.nupkg.sha512",
+        "microsoft.identity.client.4.67.2.nupkg.sha512",
         "microsoft.identity.client.nuspec"
       ]
     },
-    "Microsoft.Identity.Client.Extensions.Msal/4.66.1": {
-      "sha512": "osgt1J9Rve3LO7wXqpWoFx9UFjl0oeqoUMK/xEru7dvafQ28RgV1A17CoCGCCRSUbgDQ4Arg5FgGK2lQ3lXR4A==",
+    "Microsoft.Identity.Client.Extensions.Msal/4.67.2": {
+      "sha512": "DKs+Lva6csEUZabw+JkkjtFgVmcXh4pJeQy5KH5XzPOaKNoZhAMYj1qpKd97qYTZKXIFH12bHPk0DA+6krw+Cw==",
       "type": "package",
-      "path": "microsoft.identity.client.extensions.msal/4.66.1",
+      "path": "microsoft.identity.client.extensions.msal/4.67.2",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "README.md",
-        "lib/net6.0/Microsoft.Identity.Client.Extensions.Msal.dll",
-        "lib/net6.0/Microsoft.Identity.Client.Extensions.Msal.xml",
+        "lib/net8.0/Microsoft.Identity.Client.Extensions.Msal.dll",
+        "lib/net8.0/Microsoft.Identity.Client.Extensions.Msal.xml",
         "lib/netstandard2.0/Microsoft.Identity.Client.Extensions.Msal.dll",
         "lib/netstandard2.0/Microsoft.Identity.Client.Extensions.Msal.xml",
-        "microsoft.identity.client.extensions.msal.4.66.1.nupkg.sha512",
+        "microsoft.identity.client.extensions.msal.4.67.2.nupkg.sha512",
         "microsoft.identity.client.extensions.msal.nuspec"
       ]
     },
@@ -1221,10 +1257,10 @@
         "packageIcon.png"
       ]
     },
-    "System.ClientModel/1.1.0": {
-      "sha512": "UocOlCkxLZrG2CKMAAImPcldJTxeesHnHGHwhJ0pNlZEvEXcWKuQvVOER2/NiOkJGRJk978SNdw3j6/7O9H1lg==",
+    "System.ClientModel/1.2.1": {
+      "sha512": "s9+M5El+DXdCRRLzxak8uGBKWT8H/eIssGpFtpaMKdJULrQbBDPH/zFbVyHX+NDczhS5EvjHFbBH9/L+0UhmcA==",
       "type": "package",
-      "path": "system.clientmodel/1.1.0",
+      "path": "system.clientmodel/1.2.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -1235,29 +1271,36 @@
         "lib/net6.0/System.ClientModel.xml",
         "lib/netstandard2.0/System.ClientModel.dll",
         "lib/netstandard2.0/System.ClientModel.xml",
-        "system.clientmodel.1.1.0.nupkg.sha512",
+        "system.clientmodel.1.2.1.nupkg.sha512",
         "system.clientmodel.nuspec"
       ]
     },
-    "System.Collections.Immutable/6.0.0": {
-      "sha512": "l4zZJ1WU2hqpQQHXz1rvC3etVZN+2DLmQMO79FhOTZHMn8tDRr+WU287sbomD0BETlmKDn0ygUgVy9k5xkkJdA==",
+    "System.Collections.Immutable/8.0.0": {
+      "sha512": "AurL6Y5BA1WotzlEvVaIDpqzpIPvYnnldxru8oXJU2yFxFUy3+pNXjXd1ymO+RA0rq0+590Q8gaz2l3Sr7fmqg==",
       "type": "package",
-      "path": "system.collections.immutable/6.0.0",
+      "path": "system.collections.immutable/8.0.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "Icon.png",
         "LICENSE.TXT",
+        "PACKAGE.md",
         "THIRD-PARTY-NOTICES.TXT",
+        "buildTransitive/net461/System.Collections.Immutable.targets",
+        "buildTransitive/net462/_._",
+        "buildTransitive/net6.0/_._",
         "buildTransitive/netcoreapp2.0/System.Collections.Immutable.targets",
-        "buildTransitive/netcoreapp3.1/_._",
-        "lib/net461/System.Collections.Immutable.dll",
-        "lib/net461/System.Collections.Immutable.xml",
+        "lib/net462/System.Collections.Immutable.dll",
+        "lib/net462/System.Collections.Immutable.xml",
         "lib/net6.0/System.Collections.Immutable.dll",
         "lib/net6.0/System.Collections.Immutable.xml",
+        "lib/net7.0/System.Collections.Immutable.dll",
+        "lib/net7.0/System.Collections.Immutable.xml",
+        "lib/net8.0/System.Collections.Immutable.dll",
+        "lib/net8.0/System.Collections.Immutable.xml",
         "lib/netstandard2.0/System.Collections.Immutable.dll",
         "lib/netstandard2.0/System.Collections.Immutable.xml",
-        "system.collections.immutable.6.0.0.nupkg.sha512",
+        "system.collections.immutable.8.0.0.nupkg.sha512",
         "system.collections.immutable.nuspec",
         "useSharedDesignerContext.txt"
       ]
@@ -1451,10 +1494,10 @@
         "version.txt"
       ]
     },
-    "System.Reactive/6.0.0": {
-      "sha512": "31kfaW4ZupZzPsI5PVe77VhnvFF55qgma7KZr/E0iFTs6fmdhhG8j0mgEx620iLTey1EynOkEfnyTjtNEpJzGw==",
+    "System.Reactive/6.0.1": {
+      "sha512": "rHaWtKDwCi9qJ3ObKo8LHPMuuwv33YbmQi7TcUK1C264V3MFnOr5Im7QgCTdLniztP3GJyeiSg5x8NqYJFqRmg==",
       "type": "package",
-      "path": "system.reactive/6.0.0",
+      "path": "system.reactive/6.0.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -1475,7 +1518,7 @@
         "lib/uap10.0.18362/System.Reactive.pri",
         "lib/uap10.0.18362/System.Reactive.xml",
         "readme.md",
-        "system.reactive.6.0.0.nupkg.sha512",
+        "system.reactive.6.0.1.nupkg.sha512",
         "system.reactive.nuspec"
       ]
     },
@@ -1719,10 +1762,10 @@
     }
   },
   "projectFileDependencyGroups": {
-    "net8.0": [
+    "net9.0": [
       "Azure.ResourceManager >= 1.13.0",
       "AzureAllocator >= 1.0.0",
-      "Discord.Net >= 3.15.3",
+      "Discord.Net >= 3.17.1",
       "FuncExt >= 1.0.0"
     ]
   },
@@ -1742,14 +1785,14 @@
         "/home/username/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
-        "net8.0"
+        "net9.0"
       ],
       "sources": {
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
-        "net8.0": {
-          "targetAlias": "net8.0",
+        "net9.0": {
+          "targetAlias": "net9.0",
           "projectReferences": {
             "/home/username/Documents/Singularity/Moonfire/AzureAllocator/AzureAllocator.csproj": {
               "projectPath": "/home/username/Documents/Singularity/Moonfire/AzureAllocator/AzureAllocator.csproj"
@@ -1773,8 +1816,8 @@
       "SdkAnalysisLevel": "9.0.100"
     },
     "frameworks": {
-      "net8.0": {
-        "targetAlias": "net8.0",
+      "net9.0": {
+        "targetAlias": "net9.0",
         "dependencies": {
           "Azure.ResourceManager": {
             "target": "Package",
@@ -1782,7 +1825,7 @@
           },
           "Discord.Net": {
             "target": "Package",
-            "version": "[3.15.3, )"
+            "version": "[3.17.1, )"
           }
         },
         "imports": [
@@ -1799,15 +1842,7 @@
         "downloadDependencies": [
           {
             "name": "Microsoft.AspNetCore.App.Ref",
-            "version": "[8.0.12, 8.0.12]"
-          },
-          {
-            "name": "Microsoft.NETCore.App.Host.linux-x64",
-            "version": "[8.0.12, 8.0.12]"
-          },
-          {
-            "name": "Microsoft.NETCore.App.Ref",
-            "version": "[8.0.12, 8.0.12]"
+            "version": "[9.0.1, 9.0.1]"
           }
         ],
         "frameworkReferences": {

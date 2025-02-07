@@ -7,6 +7,9 @@ using System.Diagnostics;
 namespace AzureAllocator;
 
 public class Program{
+
+    public const string NetVersionString = "net9.0";
+    public const string DotnetRuntimePackageName = "dotnet-runtime-9.0";
     
     //entry point
     public static async Task Main(){
@@ -43,7 +46,7 @@ public static class SetupHelper{
 
         //uploading to storage account
         await UploadFolder(
-            $"/home/username/Documents/Singularity/{ver}/{ver}/bin/Debug/",@"net8.0",
+            $"/home/username/Documents/Singularity/{ver}/{ver}/bin/Debug/",Program.NetVersionString,
             $"{ver}.tar.gz");
         await UploadFolder(
             $"/home/username/.config/",$"{ver}",
@@ -82,7 +85,8 @@ public static class SetupHelper{
         f(@"    :");
         f(@"done");
 
-        f(@"apt-get install -y dotnet-runtime-8.0");
+        f(@"apt-get update");
+        f($"apt-get install -y {Program.DotnetRuntimePackageName}");
 
         f(@"export HOME=/home/azureuser");
 
@@ -100,11 +104,11 @@ public static class SetupHelper{
         f($"tar -xvzf ~/.config/{ver}Config.tar.gz -C ~/.config");
 
         f(@"chmod -R 777 ~/.config");
-        f(@"chmod -R 777 ~/net8.0");
+        f($"chmod -R 777 ~/{Program.NetVersionString}");
 
         f($"[ -e \"{ver}.log\" ] && mv \"{ver}.log\" \"{ver}.log_backup\"");
 
-        f($"sudo -u azureuser ~/net8.0/{ver} > ~/{ver}.log 2>&1 &");
+        f($"sudo -u azureuser ~/{Program.NetVersionString}/{ver} > ~/{ver}.log 2>&1 &");
         
         await vm.RunScript(script);
     }
