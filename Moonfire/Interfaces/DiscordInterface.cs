@@ -16,36 +16,44 @@ public static class DI
         return Task.FromResult(embed);
     }
 
-    public static async Task SendSlashResponseAsync(string input, SocketSlashCommand command)=>
+    //response to slash command
+    public static async Task SendResponseAsync(string input, SocketSlashCommand command)=>
         await command.RespondAsync(" ", embed: (await EmbedMessage(input,command)).Build(), ephemeral: true);
 
-    public static async Task SendSlashReplyAsync (string input, SocketSlashCommand command) =>
+    public static async Task ModifyResponseAsync (string input, SocketSlashCommand command) =>
         await command.ModifyOriginalResponseAsync(async msg => msg.Embed = (await EmbedMessage(input,command)).Build());
 
-    public static async Task SendComponentResponseAsync (string input, string title, SocketMessageComponent component) =>
+    //reponse to component interaction
+    //title
+    public static async Task SendResponseAsync (string input, string title, SocketMessageComponent component) =>
         await component.RespondAsync(" ", embed: (await EmbedMessage(input,title)).Build(), ephemeral:true);
 
-    public static async Task SendComponentReplyAsync (string input, string title, SocketMessageComponent component) =>
+    public static async Task ModifyResponseAsync (string input, string title, SocketMessageComponent component) =>
         await component.ModifyOriginalResponseAsync(async msg => msg.Embed = (await EmbedMessage(input,title)).Build());
 
-    public static async Task SendComponentResponseAsync (string input, SocketMessageComponent component) =>
+    //no title
+    public static async Task SendResponseAsync (string input, SocketMessageComponent component) =>
         await component.RespondAsync(" ", embed: (await EmbedMessage(input,"Component Response")).Build(), ephemeral:true);
 
-    public static async Task SendComponentReplyAsync (string input, SocketMessageComponent component) =>
+    public static async Task ModifyResponseAsync (string input, SocketMessageComponent component) =>
         await component.ModifyOriginalResponseAsync(async msg => msg.Embed = (await EmbedMessage(input,"Component Response")).Build());
 
-    public static async Task SendModalResponseAsync(string input, string title, SocketModal modal) =>
+    //response to modal submit
+    //title
+    public static async Task SendResponseAsync(string input, string title, SocketModal modal) =>
         await modal.RespondAsync(" ", embed: (await EmbedMessage(input,title)).Build(), ephemeral:true);
 
-    public static async Task SendModalReplyAsync(string input, string title, SocketModal modal) =>
+    public static async Task ModifyResponseAsync(string input, string title, SocketModal modal) =>
         await modal.ModifyOriginalResponseAsync(async msg => msg.Embed = (await EmbedMessage(input,title)).Build());
 
-    public static async Task SendModalResponseAsync(string input, SocketModal modal) =>
+    //no title
+    public static async Task SendResponseAsync(string input, SocketModal modal) =>
         await modal.RespondAsync(" ", embed: (await EmbedMessage(input,"Modal Response")).Build(), ephemeral:true);
 
-    public static async Task SendModalReplyAsync(string input, SocketModal modal) =>
+    public static async Task ModifyResponseAsync(string input, SocketModal modal) =>
         await modal.ModifyOriginalResponseAsync(async msg => msg.Embed = (await EmbedMessage(input,"Modal Response")).Build());
 
+    //modal
     public static async Task SendModalAsync (MoonfireModal modal, SocketSlashCommand command) =>
         await command.RespondWithModalAsync(await BuildModal(modal));
     public static async Task SendModalAsync (MoonfireModal modal, SocketMessageComponent component) =>
@@ -82,6 +90,7 @@ public static class DI
         return Task.FromResult(modalBuilder.Build());
     }
 
+    //component
     public static async Task SendComponentsAsync(MoonfireComponent components, SocketSlashCommand command) =>
         await command.RespondAsync(" ", components: await BuildComponent(components), ephemeral: true);
 
@@ -147,4 +156,12 @@ public static class DI
 
         return Task.FromResult(builder.Build());
     }
+
+    //generic configure responders
+    public static async Task GenericConfigUpdateResponse(string message, string gameName, SocketMessageComponent component) =>
+        await SendResponseAsync($"{message}]\n[Server Restart Needed",$"{gameName} Configure",component);
+
+    public static async Task GenericConfigUpdateResponse(string message, string gameName, SocketModal modal) =>
+        await SendResponseAsync($"{message}]\n[Server Restart Needed",$"{gameName} Configure",modal);
+
 }

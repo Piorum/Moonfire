@@ -28,6 +28,23 @@ public class AzureSettings{
     public static async Task<AzureSettings> CreateAsync(string jsonString) =>
         await Task.Run(() => JsonConvert.DeserializeObject<AzureSettings>(jsonString) ?? new());
 
+    public async Task<bool> SetVmSize(string vmSize){
+        var valid = await ValidVmName(vmSize);
+
+        if(valid) VmSize = vmSize;
+
+        return valid;
+    }
+
+    private static Task<bool> ValidVmName(string vmSize) => (vmSize) switch { 
+        "Standard_B1s" => Task.FromResult(true),
+        "Standard_B2s" => Task.FromResult(true),
+        "Standard_B2ms" => Task.FromResult(true),
+        "Standard_B4als_v2" => Task.FromResult(true),
+
+        _ => Task.FromResult(false)
+    };
+
 }
 
 public class SecurityRuleSettings{

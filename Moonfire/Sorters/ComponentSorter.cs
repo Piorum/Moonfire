@@ -2,6 +2,7 @@ using Moonfire.Interfaces;
 using Moonfire.ComponentBuilders;
 using Moonfire.ModalBuilders;
 using Moonfire.ConfigHandlers;
+using System.Text;
 
 namespace Moonfire.Sorters;
 
@@ -23,8 +24,11 @@ public class ComponentSorter
 
             //sets branch to menu option selected
             "scp_branch_menu" => SCPBranchMenuTask(component),
+
+            //sets branch to menu option selected
+            "scp_serversize_menu" => SCPServerSizeMenuTask(component),
             
-            _ => DI.SendComponentResponseAsync($"Caught {component.Data.CustomId} by component handler but found no case",component)
+            _ => DI.SendResponseAsync($"Caught {component.Data.CustomId} by component handler but found no case",component)
         };
     }
 
@@ -34,11 +38,24 @@ public class ComponentSorter
         var valid = await SCPConfigHandler.SetBranch(component.GuildId,branch??"");
 
         if(!valid){
-            await DI.SendComponentResponseAsync("Broken Menu",component);
+            await DI.SendResponseAsync("Broken Menu",component);
             return;
         }
 
-        await DI.SendComponentResponseAsync($"Set branch to {branch}","SCP Set Branch",component);
+        await DI.GenericConfigUpdateResponse($"Updated Branch To {branch?[0].ToString().ToUpper() + branch?[1..]}","SCP",component);
+    }
+
+    private static async Task SCPServerSizeMenuTask(SocketMessageComponent component){
+        var vmSize = component.Data.Values.FirstOrDefault();
+
+        var valid = await SCPConfigHandler.SetServerSize(component.GuildId,vmSize??"");
+
+        if(!valid){
+            await DI.SendResponseAsync("Broken Menu",component);
+            return;
+        }
+
+        await DI.GenericConfigUpdateResponse($"Updated Server Size","SCP",component);
     }
 
     private static async Task SCPRemoveAdminTask(SocketMessageComponent component){
@@ -47,12 +64,12 @@ public class ComponentSorter
         var valid = ulong.TryParse(steamIdString,out var steamId);
 
         if(!valid){
-            await DI.SendComponentResponseAsync("Broken Config",component);
+            await DI.SendResponseAsync("Broken Config",component);
             return;
         }
 
         await SCPConfigHandler.RemoveRole(component.GuildId,steamId);
 
-        await DI.SendComponentResponseAsync($"Removed role from {steamIdString}","SCP Remove Role",component);
+        await DI.GenericConfigUpdateResponse($"Removed role from {steamIdString}.","SCP",component);
     }
 }

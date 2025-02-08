@@ -49,22 +49,22 @@ public class Program{
             new("repopulate", "#Owner - Refreshes bot commands", MoonfireCommandRank.Owner),
         };
 
-        AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
-        {
-            Console.Error.WriteLine("Unhandled exception: " + args.ExceptionObject);
+        var _application = new Bot(token, config, commands);
+
+        //top level exception sinks
+        AppDomain.CurrentDomain.UnhandledException += async (sender, args) => {
+            await Console.Out.WriteLineAsync($"[ERROR] AppDomain.CurrentDomain.UnhandledException:args.ExceptionObject:{args.ExceptionObject}");
         };
 
-        TaskScheduler.UnobservedTaskException += (sender, args) =>
-        {
-            Console.Error.WriteLine("Unobserved task exception: " + args.Exception);
+        TaskScheduler.UnobservedTaskException += async (sender, args) => {
+            await Console.Out.WriteLineAsync($"[ERROR] TaskScheduler.UnobservedTaskException:args.Exception:{args.Exception}");
             args.SetObserved(); //may prevent process termination?
         };
 
-        var _application = new Bot(token, config, commands);
         try{
-            await _application.StartBotAsync();
+            await _application.StartBotAsync(); //discord bot start point
         } catch (Exception e){
-            await Console.Out.WriteLineAsync($"{e}");
+            await Console.Out.WriteLineAsync($"[ERROR] catch:_application.StartBotAsync:e:{e}");
         }
 
         await Console.Out.WriteLineAsync("Done.");

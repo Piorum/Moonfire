@@ -24,7 +24,7 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Moonfire
 
             //ensure initial reply is sent for basic response types
             if(responseType is CommandSorter.ResponseType.BASIC)
-                await DI.SendSlashResponseAsync("Handling Command",command);
+                await DI.SendResponseAsync("Handling Command",command);
 
             await commandTask;
         });

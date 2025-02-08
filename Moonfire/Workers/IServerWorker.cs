@@ -15,13 +15,13 @@ public static class IServerWorker
 
         //check for updating status
         if (await TServer.Updating(cts.Token)){
-            await DI.SendSlashReplyAsync("Game is updating - Try Again Soon",command);
+            await DI.ModifyResponseAsync("Game is updating - Try Again Soon",command);
             return;
         }
 
         //main start task
         var startTask = Task.Run(async () => {
-            await DI.SendSlashReplyAsync("Starting Server",command);
+            await DI.ModifyResponseAsync("Starting Server",command);
 
             if(await CheckMaintenance(command)) return;
             if(await CheckWorking(command,serverIPairs)) return;
@@ -39,7 +39,7 @@ public static class IServerWorker
                     serverPair with {WorkingFlag = WorkingFlag.STARTING};
                 serverIPairs[guid] = serverPair;
 
-                await DI.SendSlashReplyAsync("Provisioning Server",command);
+                await DI.ModifyResponseAsync("Provisioning Server",command);
 
                 //create and add interface object
                 serverPair = serverPair with {Interface = await TServer.CreateInterfaceAsync($"{guid}",cts.Token)};
@@ -47,17 +47,17 @@ public static class IServerWorker
             }
             //check if provisioning failed
             if(serverPair is null || serverPair.Interface is null){
-                await DI.SendSlashReplyAsync("Provisioning Failure",command);
+                await DI.ModifyResponseAsync("Provisioning Failure",command);
                 //removes interface and working flag
                 serverIPairs.TryRemove(guid,out _);
                 return;
             }
 
             //start server
-            var success = await serverPair.Interface.StartServerAsync((string a)=>DI.SendSlashReplyAsync(a,command), cts.Token);
+            var success = await serverPair.Interface.StartServerAsync((string a)=>DI.ModifyResponseAsync(a,command), cts.Token);
             
             if(success) 
-                await DI.SendSlashReplyAsync($"Started Server at '{serverPair.Interface.PublicIp}'",command);
+                await DI.ModifyResponseAsync($"Started Server at '{serverPair.Interface.PublicIp}'",command);
             else
                 throw new OperationCanceledException(); //cancels task, runs cleanup task
 
@@ -73,7 +73,7 @@ public static class IServerWorker
 
             //output error on timeout, otherwise interface give more verbose failure message
             if(cts.Token.IsCancellationRequested){
-                await DI.SendSlashReplyAsync($"Server Startup Failed]\n   [Try Again Soon", command);
+                await DI.ModifyResponseAsync($"Server Startup Failed]\n   [Try Again Soon", command);
             }
 
             ulong guid = command.GuildId ?? 0;
@@ -96,7 +96,7 @@ public static class IServerWorker
             //fully cleans up interface pair
             serverIPairs.TryRemove(guid,out _);
 
-            await DI.SendSlashReplyAsync($"Interface Reset", command);
+            await DI.ModifyResponseAsync($"Interface Reset", command);
 
         },cts.Token));
 
@@ -109,7 +109,7 @@ public static class IServerWorker
         var cts = new CancellationTokenSource();
 
         var stopTask = Task.Run(async () => {
-            await DI.SendSlashReplyAsync("Stopping SCP Server",command);
+            await DI.ModifyResponseAsync("Stopping SCP Server",command);
 
             if(await CheckMaintenance(command)) return;
             if(await CheckWorking(command,serverIPairs)) return;
@@ -118,20 +118,20 @@ public static class IServerWorker
 
             (var serverPair, var found) = await PullIServerPairAsync(serverIPairs,guid);
             if(!found){
-                await DI.SendSlashReplyAsync("No Server Found",command);
+                await DI.ModifyResponseAsync("No Server Found",command);
                 return;
             } else if (serverPair is null || serverPair.Interface is null){
-                await DI.SendSlashReplyAsync("Server Was Null",command);
+                await DI.ModifyResponseAsync("Server Was Null",command);
                 serverIPairs.TryRemove(guid,out _);
                 return;
             }
             serverIPairs[guid] = serverPair with {WorkingFlag = WorkingFlag.STOPPING};
-            var result = await serverPair.Interface.StopServerAsync((string a)=>DI.SendSlashReplyAsync(a,command),cts.Token);
+            var result = await serverPair.Interface.StopServerAsync((string a)=>DI.ModifyResponseAsync(a,command),cts.Token);
 
             //clean up pair
             serverIPairs.TryRemove(guid,out _);
 
-            if(result) await DI.SendSlashReplyAsync("Stopped Server",command);
+            if(result) await DI.ModifyResponseAsync("Stopped Server",command);
             else throw new("Server Failed To Stop");
 
         },cts.Token);
@@ -142,7 +142,7 @@ public static class IServerWorker
 
             var guid = command.GuildId ?? 0;
 
-            await DI.SendSlashReplyAsync($"Server Stopping Failure]\n     [Try Again Soon",command);
+            await DI.ModifyResponseAsync($"Server Stopping Failure]\n     [Try Again Soon",command);
             serverIPairs.TryRemove(guid,out _);
 
         },cts.Token));
@@ -154,7 +154,7 @@ public static class IServerWorker
         if(await TableManager.GetBoolDefaultFalse("Updatefire","maintenance","bot","rebuilding")){
             var timeRaw = await TableManager.GetTableEntity("Updatefire","maintenance","bot","time");
             int time = (int?)timeRaw ?? 5;
-            await DI.SendSlashReplyAsync($"Bot undergoing maintenance]\n  [Try again in {time} minutes",command);
+            await DI.ModifyResponseAsync($"Bot undergoing maintenance]\n  [Try again in {time} minutes",command);
             return true;
         }
         return false;
@@ -169,13 +169,13 @@ public static class IServerWorker
 
         switch (serverIPair?.WorkingFlag){
             case WorkingFlag.STARTING:
-                await DI.SendSlashReplyAsync("Server is Starting",command);
+                await DI.ModifyResponseAsync("Server is Starting",command);
                 return true;
             case WorkingFlag.STOPPING:
-                await DI.SendSlashReplyAsync("Server is Stopping",command);
+                await DI.ModifyResponseAsync("Server is Stopping",command);
                 return true;
             case WorkingFlag.RECOVERING:
-                await DI.SendSlashReplyAsync("Server is Recovering From Failure",command);
+                await DI.ModifyResponseAsync("Server is Recovering From Failure",command);
                 return true;
             default:
                 return false;

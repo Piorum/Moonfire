@@ -6,6 +6,7 @@ namespace Moonfire.ConfigHandlers;
 public static class SCPConfigHandler
 {
     public const string SCP_CONFIGS_TABLE_NAME = nameof(Moonfire) + "SCP";
+    
     public static async Task<SCPSettings> GetGameSettings(string guildId, CancellationToken token = default){
         _ = Console.Out.WriteLineAsync($"{nameof(SCPConfigHandler)}:{nameof(GetGameSettings)}:{guildId}");
         var gameSettingsJson = await TableManager.GetTableEntity(SCP_CONFIGS_TABLE_NAME,guildId,"config","scpgame",token);
@@ -116,5 +117,15 @@ public static class SCPConfigHandler
 
         await SetBranch(guildId,(SCPBranch)Branch,token);
         return true;
+    }
+
+    public static async Task<bool> SetServerSize(ulong? guildId, string vmSize, CancellationToken token = default){
+        var hardwareSettings = await GetHardwareSettings(guildId,token);
+
+        var valid = await hardwareSettings.SetVmSize(vmSize);
+
+        if(valid) await SetHardwareSettings(guildId,hardwareSettings,token);
+
+        return valid;
     }
 }

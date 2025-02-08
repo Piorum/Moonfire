@@ -19,7 +19,7 @@ public static class CommandSorter
 
             MoonfireCommandRank.Owner => OwnerCommandHandler(command, bot),
 
-            _ => Task.FromResult((DI.SendSlashReplyAsync("Failed to find command in commands list",command),ResponseType.BASIC))
+            _ => Task.FromResult((DI.ModifyResponseAsync("Failed to find command in commands list",command),ResponseType.BASIC))
         };
     }
 
@@ -28,7 +28,7 @@ public static class CommandSorter
         {
             BotBase.helpCmd => Task.FromResult((BotBase.PrintHelpTaskAsync(command, bot),ResponseType.BASIC)),
 
-            _ => Task.FromResult((DI.SendSlashReplyAsync($"Caught {command.Data.Name} by user handler but found no command", command),ResponseType.BASIC))
+            _ => Task.FromResult((DI.ModifyResponseAsync($"Caught {command.Data.Name} by user handler but found no command", command),ResponseType.BASIC))
         };
     }
 
@@ -36,7 +36,7 @@ public static class CommandSorter
 
     private static Task<(Task,ResponseType)> AdminCommandHandler(SocketSlashCommand command, Bot bot){
         if(!((SocketGuildUser)command.User).GuildPermissions.Administrator){
-            return Task.FromResult((DI.SendSlashReplyAsync("You are not an admin",command),ResponseType.BASIC));
+            return Task.FromResult((DI.ModifyResponseAsync("You are not an admin",command),ResponseType.BASIC));
         }
 
         return command.Data.Name switch
@@ -47,7 +47,7 @@ public static class CommandSorter
 
             "configure" => ConfigureCommandHandler(command),
 
-            _ => Task.FromResult((DI.SendSlashReplyAsync($"Caught {command.Data.Name} by admin handler but found no command",command),ResponseType.BASIC))
+            _ => Task.FromResult((DI.ModifyResponseAsync($"Caught {command.Data.Name} by admin handler but found no command",command),ResponseType.BASIC))
         };
     }
 
@@ -55,16 +55,16 @@ public static class CommandSorter
         //owner commands are only registered in owner server
         //allows admin in owner server to manage bot
         if(!((SocketGuildUser)command.User).GuildPermissions.Administrator){
-            return Task.FromResult((DI.SendSlashReplyAsync("You are not an admin",command),ResponseType.BASIC));
+            return Task.FromResult((DI.ModifyResponseAsync("You are not an admin",command),ResponseType.BASIC));
         }
 
         return command.Data.Name switch
         {
             "repopulate" => Task.FromResult((BotBase.RepopulateTaskAsync(command,bot),ResponseType.BASIC)),
 
-            "console" => Task.FromResult((DI.SendSlashReplyAsync("WIP",command),ResponseType.BASIC)),
+            "console" => Task.FromResult((DI.ModifyResponseAsync("WIP",command),ResponseType.BASIC)),
 
-            _ => Task.FromResult((DI.SendSlashReplyAsync($"Caught {command.Data.Name} by owner handler but found no command",command),ResponseType.BASIC))
+            _ => Task.FromResult((DI.ModifyResponseAsync($"Caught {command.Data.Name} by owner handler but found no command",command),ResponseType.BASIC))
         };
     }
 
@@ -73,9 +73,9 @@ public static class CommandSorter
         {
             Game.SCP => (IServerWorker.StartTaskAsync(bot.scpIPairs,command),ResponseType.BASIC),
             
-            Game.MINECRAFT => (DI.SendSlashReplyAsync("Minecraft not available",command),ResponseType.BASIC),
+            Game.MINECRAFT => (DI.ModifyResponseAsync("Minecraft not available",command),ResponseType.BASIC),
 
-            _ => (DI.SendSlashReplyAsync($"Caught {command.Data.Options.First().Value} by start command handler but found no game",command),ResponseType.BASIC)
+            _ => (DI.ModifyResponseAsync($"Caught {command.Data.Options.First().Value} by start command handler but found no game",command),ResponseType.BASIC)
         };
     }
 
@@ -84,9 +84,9 @@ public static class CommandSorter
         {
             Game.SCP => (IServerWorker.StopTaskAsync(bot.scpIPairs,command),ResponseType.BASIC),
             
-            Game.MINECRAFT => (DI.SendSlashReplyAsync("Minecraft not available",command),ResponseType.BASIC),
+            Game.MINECRAFT => (DI.ModifyResponseAsync("Minecraft not available",command),ResponseType.BASIC),
 
-            _ => (DI.SendSlashReplyAsync($"Caught {command.Data.Options.First().Value} by stop command handler but found no game",command),ResponseType.BASIC)
+            _ => (DI.ModifyResponseAsync($"Caught {command.Data.Options.First().Value} by stop command handler but found no game",command),ResponseType.BASIC)
         };
     }
 
@@ -96,9 +96,9 @@ public static class CommandSorter
             //create configuration prompt to change all settings associated with SCPInterface
             Game.SCP => (DI.SendComponentsAsync(await SCPComponentBuilder.GetConfigurationComponents(command.GuildId),command),ResponseType.COMPONENT),
 
-            Game.MINECRAFT => (DI.SendSlashReplyAsync("Minecraft not available",command),ResponseType.BASIC),
+            Game.MINECRAFT => (DI.ModifyResponseAsync("Minecraft not available",command),ResponseType.BASIC),
 
-            _ => (DI.SendSlashReplyAsync($"Caught {command.Data.Options.First().Value} by stop command handler but found no game",command),ResponseType.BASIC)
+            _ => (DI.ModifyResponseAsync($"Caught {command.Data.Options.First().Value} by stop command handler but found no game",command),ResponseType.BASIC)
         
         };
     }

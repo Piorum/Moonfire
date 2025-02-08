@@ -119,15 +119,15 @@ public abstract class BotBase{
         foreach(var cmd in bot.commands.Where(p => p.Rank == MoonfireCommandRank.User || p.Rank == MoonfireCommandRank.Admin).ToList())
             help += $"[{cmd.Name} - {cmd.Description}]\n";
         //to reduce code this removes the first/last bracket and last newline to match expected formatting
-        await DI.SendSlashReplyAsync(help[(help.IndexOf('[')+1)..help.LastIndexOf(']')],command);
+        await DI.ModifyResponseAsync(help[(help.IndexOf('[')+1)..help.LastIndexOf(']')],command);
     }
 
     public static async Task RepopulateTaskAsync(SocketSlashCommand command, BotBase bot){
         //ensure initial reply is sent first
-        await DI.SendSlashReplyAsync("Repopulating Commands",command);
+        await DI.ModifyResponseAsync("Repopulating Commands",command);
         await bot.UnregisterCommandsAsync();
         await bot.PopulateCommandsAsync(bot.ownerServerId);
-        _ = DI.SendSlashReplyAsync("Commands Repopulated",command);
+        _ = DI.ModifyResponseAsync("Commands Repopulated",command);
     }
     
 }

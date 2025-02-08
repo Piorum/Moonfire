@@ -102,33 +102,41 @@ public static class AzureManager
         string? keyName,
         CancellationToken token = default
     ){
-        try{
-            //order here is important
-            if(vm is not null) await vm.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
-            if(nic is not null) await nic.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
-            if(pip is not null) await pip.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
-            if(nsg is not null) await nsg.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
-            if(vnet is not null) await vnet.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+        var endTime = DateTime.Now.AddMinutes(4);
 
-            bool keyExists = await rg.GetSshPublicKeys().ExistsAsync(keyName,cancellationToken:token);
-            if(keyExists) await (await rg.GetSshPublicKeyAsync(keyName,cancellationToken:token)).Value.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+        while(DateTime.Now < endTime){
+            try{
+                //order here is important
+                if(vm is not null) await vm.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+                if(nic is not null) await nic.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+                if(pip is not null) await pip.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+                if(nsg is not null) await nsg.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+                if(vnet is not null) await vnet.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
 
-            if(rg is not null){
-                //return if any other resources are found
-                await foreach (var _ in rg.GetGenericResourcesAsync(cancellationToken:token)){
-                    return;
+                bool keyExists = await rg.GetSshPublicKeys().ExistsAsync(keyName,cancellationToken:token);
+                if(keyExists) await (await rg.GetSshPublicKeyAsync(keyName,cancellationToken:token)).Value.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+
+                if(rg is not null){
+                    //return if any other resources are found
+                    await foreach (var _ in rg.GetGenericResourcesAsync(cancellationToken:token)){
+                        return;
+                    }
+                    //otherwise delete resource group
+                    await rg.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
                 }
-                //otherwise delete resource group
-                await rg.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+
+                return; //end deallocation to avoid retrying
+            } catch (OperationCanceledException){
+                //propagate upward
+                throw;
+            } catch (Exception e){
+                _ = Console.Out.WriteLineAsync($"Deallocation Failed.\n{e}");
+
+                //code should be added here to alert of failure
+
             }
-        } catch (OperationCanceledException){
-            //propagate upward
-            throw;
-        } catch (Exception e){
-            _ = Console.Out.WriteLineAsync($"Deallocation Failed.\n{e}");
 
-            //code should be added here to alert of failure
-
+            await Task.Delay(30 * 1000, token); //delay before retrying deallocation
         }
     }
 

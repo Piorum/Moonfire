@@ -12,7 +12,7 @@ public class ModalSorter
 
             "scp_addadmin_modal" => Task.FromResult(SCPAddAdminTask(modal)),
 
-            _ => Task.FromResult(DI.SendModalResponseAsync($"Caught {modal.Data.CustomId} by modal handler but found no case",modal))
+            _ => Task.FromResult(DI.SendResponseAsync($"Caught {modal.Data.CustomId} by modal handler but found no case",modal))
         };
     }
 
@@ -27,12 +27,12 @@ public class ModalSorter
         valid = valid && steamId >= 10000000000000000 && steamId < 100000000000000000; 
 
         if(!valid){
-            await DI.SendModalResponseAsync($"Invalid Id","SCP Assign Role",modal);
+            await DI.SendResponseAsync($"Invalid Id","SCP Assign Role",modal);
             return;
         }
 
         await SCPConfigHandler.AssignRole(modal.GuildId,steamId,role);
 
-        await DI.SendModalResponseAsync($"Added {steamIdString} as {role}","SCP Assign Role",modal);
+        await DI.GenericConfigUpdateResponse($"Added {steamIdString} as {role}.","SCP",modal);
     }
 }
