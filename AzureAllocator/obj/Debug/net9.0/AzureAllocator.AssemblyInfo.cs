@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AzureAllocator")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+74c1298c1aadf9c1374b3293f4e7cb360baf626f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+44fee3f98408a0fc55a3a04e3b0a783e18f184c1")]
 [assembly: System.Reflection.AssemblyProductAttribute("AzureAllocator")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AzureAllocator")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

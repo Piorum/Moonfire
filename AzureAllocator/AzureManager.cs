@@ -102,30 +102,100 @@ public static class AzureManager
         string? keyName,
         CancellationToken token = default
     ){
+        //if rg does not exist return
+        if(rg is null) return;
+
+        var sub = await GetSubscriptionAsync();
+        if(!await sub.GetResourceGroups().ExistsAsync(rg.Data.Name,cancellationToken:token)) return;
+
+        //set endTime for retrying deallocation
         var endTime = DateTime.Now.AddMinutes(4);
 
         while(DateTime.Now < endTime){
             try{
-                //order here is important
-                if(vm is not null) await vm.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
-                if(nic is not null) await nic.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
-                if(pip is not null) await pip.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
-                if(nsg is not null) await nsg.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
-                if(vnet is not null) await vnet.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+                List<Task<Azure.Response<bool>>> existTasks = [];
 
-                bool keyExists = await rg.GetSshPublicKeys().ExistsAsync(keyName,cancellationToken:token);
-                if(keyExists) await (await rg.GetSshPublicKeyAsync(keyName,cancellationToken:token)).Value.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+                bool vmExists = default;
+                bool nicExists = default;
+                bool pipExists = default;
+                bool nsgExists = default;
+                bool vnetExists = default;
+                bool keyExists = default;
 
-                if(rg is not null){
-                    //return if any other resources are found
-                    await foreach (var _ in rg.GetGenericResourcesAsync(cancellationToken:token)){
-                        return;
-                    }
-                    //otherwise delete resource group
-                    await rg.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+                Task<Azure.Response<bool>>? vmExistsTask = null;
+                Task<Azure.Response<bool>>? nicExistsTask = null;
+                Task<Azure.Response<bool>>? pipExistsTask = null;
+                Task<Azure.Response<bool>>? nsgExistsTask = null;
+                Task<Azure.Response<bool>>? vnetExistsTask = null;
+                Task<Azure.Response<bool>>? keyExistsTask = null;
+
+                if(vm is not null){
+                    vmExistsTask = rg.GetVirtualMachines().ExistsAsync(vm.Data.Name, cancellationToken:token);
+                    existTasks.Add(vmExistsTask);
+                }
+                if(nic is not null){
+                    nicExistsTask = rg.GetNetworkInterfaces().ExistsAsync(nic.Data.Name, cancellationToken:token);
+                    existTasks.Add(nicExistsTask);
+                }
+                if(pip is not null){
+                    pipExistsTask = rg.GetPublicIPAddresses().ExistsAsync(pip.Data.Name, cancellationToken:token);
+                    existTasks.Add(pipExistsTask);
+                }
+                if(nsg is not null){
+                    nsgExistsTask = rg.GetNetworkSecurityGroups().ExistsAsync(nsg.Data.Name, cancellationToken:token);
+                    existTasks.Add(nsgExistsTask);
+                }
+                if(vnet is not null){
+                    vnetExistsTask = rg.GetVirtualNetworks().ExistsAsync(vnet.Data.Name, cancellationToken:token);
+                    existTasks.Add(vnetExistsTask);
+                }
+                if(keyName is not null){
+                    keyExistsTask = rg.GetSshPublicKeys().ExistsAsync(keyName, cancellationToken:token);
+                    existTasks.Add(keyExistsTask);
                 }
 
+                await Task.WhenAll(existTasks);
+
+                if(vmExistsTask is not null)
+                    vmExists = await vmExistsTask;
+                if(nicExistsTask is not null)
+                    nicExists = await nicExistsTask;
+                if(pipExistsTask is not null)
+                    pipExists = await pipExistsTask;
+                if(nsgExistsTask is not null)
+                    nsgExists = await nsgExistsTask;
+                if(vnetExistsTask is not null)
+                    vnetExists = await vnetExistsTask;
+                if(keyExistsTask is not null)
+                    keyExists = await keyExistsTask;
+
+                //Do not change order
+                //Deallocate in opposite order of allocation
+                if(vmExists)
+                    await vm!.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+                if(nicExists)
+                    await nic!.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+                if(pipExists)
+                    await pip!.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+                if(nsgExists)
+                    await nsg!.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+                if(vnetExists)
+                    await vnet!.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+
+                if(keyExists){
+                    var sshKey = (await rg.GetSshPublicKeyAsync(keyName,cancellationToken:token)).Value;
+                    await sshKey.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+                }
+
+                //end deallocation if any other resources are found
+                await foreach (var _ in rg.GetGenericResourcesAsync(cancellationToken:token)){
+                    return;
+                }
+                //otherwise delete resource group
+                await rg.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+
                 return; //end deallocation to avoid retrying
+
             } catch (OperationCanceledException){
                 //propagate upward
                 throw;
@@ -138,6 +208,9 @@ public static class AzureManager
 
             await Task.Delay(30 * 1000, token); //delay before retrying deallocation
         }
+        
+        //output rgName and vmName to identify problem VM
+        _ = Console.Out.WriteLineAsync($"[ALERT] Deallocation Failed. rg.Data.Name:'{rg.Data.Name}' vm.Data.Name:'{vm?.Data.Name}'");
     }
 
     private static Task<ArmClient> GetArmClient(){
