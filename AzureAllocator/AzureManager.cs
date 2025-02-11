@@ -16,7 +16,8 @@ public static class AzureManager
 
     public static async Task<AzureVM?> Allocate(AzureSettings settings, string rgName, string vmName, CancellationToken token = default){
         //defaults if settings are null
-        var region = settings.Region ?? "centralus";
+        var region = await settings.GetAzureRegion();
+
         var client = await GetArmClient();
 
         //component names specificed here
@@ -171,6 +172,7 @@ public static class AzureManager
 
                 //Do not change order
                 //Deallocate in opposite order of allocation
+                //resourceExists cannot equal true if resource is null
                 if(vmExists)
                     await vm!.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
                 if(nicExists)

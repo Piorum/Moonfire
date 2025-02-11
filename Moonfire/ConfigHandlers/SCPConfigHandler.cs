@@ -43,7 +43,13 @@ public static class SCPConfigHandler
 
     public static async Task<AzureSettings> GetHardwareSettings(string guildId, CancellationToken token = default){
         _ = Console.Out.WriteLineAsync($"{nameof(SCPConfigHandler)}:{nameof(GetHardwareSettings)}:{guildId}");
-        var hardwareSettingsJson = await TableManager.GetTableEntity(SCP_CONFIGS_TABLE_NAME,guildId,"config","scphardware",token);
+        var hardwareSettingsJsonTask = TableManager.GetTableEntity(SCP_CONFIGS_TABLE_NAME,guildId,"config","scphardware",token);
+        var globalSettingsTask = GLOBALConfigHandler.GetSettings(guildId, token);
+
+        await Task.WhenAll(hardwareSettingsJsonTask,globalSettingsTask);
+
+        var hardwareSettingsJson = await hardwareSettingsJsonTask;
+        var globalSettings = await globalSettingsTask;
 
         //if settings are null load and store template settings
         if(hardwareSettingsJson==null){
@@ -63,7 +69,11 @@ public static class SCPConfigHandler
         //log settings retreived
         _ = Console.Out.WriteLineAsync($"{(string)hardwareSettingsJson}");
         //create azure settings object
-        return await AzureSettings.CreateAsync((string)hardwareSettingsJson);
+        var hardwareSettings = await AzureSettings.CreateAsync((string)hardwareSettingsJson);
+
+        hardwareSettings.Region = globalSettings.region;
+
+        return hardwareSettings;
     }
 
     public static async Task<AzureSettings> GetHardwareSettings(ulong? guildId, CancellationToken token = default) =>

@@ -2,6 +2,7 @@ using Moonfire.Interfaces;
 using Moonfire.TableEntities;
 using Moonfire.Workers;
 using Moonfire.Sorters;
+using Moonfire.Types.Json;
 using Moonfire.Types.Discord;
 using System.Collections.Concurrent;
 
@@ -9,8 +10,8 @@ namespace Moonfire;
 
 public class Bot(string token, DiscordSocketConfig? config = null, List<MoonfireCommand>? _commands = null) : BotBase(token,config,_commands)
 {
-    public readonly ConcurrentDictionary<ulong, IServerWorker.InterfacePair<SCPInterface>> scpIPairs = [];
-    public readonly ConcurrentDictionary<ulong, IServerWorker.InterfacePair<MCInterface>> mcIPairs = [];
+    internal readonly ConcurrentDictionary<ulong, IServerWorker.InterfacePair<SCPInterface>> scpIPairs = [];
+    internal readonly ConcurrentDictionary<ulong, IServerWorker.InterfacePair<MCInterface>> mcIPairs = [];
     
     // Uncomment to do initial population of commands
     /*protected async override Task ClientReadyHandler(){

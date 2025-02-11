@@ -36,6 +36,19 @@ public class AzureSettings{
         return valid;
     }
 
+    public Task<string> GetAzureRegion(){
+        return 
+            Task.FromResult
+            (
+                Region switch 
+                {
+                    "NA" => "centralus",
+                    _ => null
+                } 
+                ?? "centralus" //default to 'centralus'
+            );
+    }
+
     private static Task<bool> ValidVmName(string vmSize) => (vmSize) switch { 
         "Standard_B1s" => Task.FromResult(true),
         "Standard_B2s" => Task.FromResult(true),

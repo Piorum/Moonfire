@@ -34,20 +34,22 @@ public static class CommandSorter
 
 
 
-    private static Task<(Task,ResponseType)> AdminCommandHandler(SocketSlashCommand command, Bot bot){
+    private static async Task<(Task,ResponseType)> AdminCommandHandler(SocketSlashCommand command, Bot bot){
         if(!((SocketGuildUser)command.User).GuildPermissions.Administrator){
-            return Task.FromResult((DI.ModifyResponseAsync("You are not an admin",command),ResponseType.BASIC));
+            return (DI.ModifyResponseAsync("You are not an admin",command),ResponseType.BASIC);
         }
 
         return command.Data.Name switch
         {
-            "start" => StartCommandHandler(command,bot),
+            "start" => await StartCommandHandler(command,bot),
 
-            "stop" => StopCommandHandler(command,bot),
+            "stop" => await StopCommandHandler(command,bot),
 
-            "configure" => ConfigureCommandHandler(command),
+            "configure" => await ConfigureCommandHandler(command),
 
-            _ => Task.FromResult((DI.ModifyResponseAsync($"Caught {command.Data.Name} by admin handler but found no command",command),ResponseType.BASIC))
+            "region" => (DI.SendComponentsAsync(await BOTComponentBuilder.GetRegionSelectionComponents(),command),ResponseType.COMPONENT),
+
+            _ => (DI.ModifyResponseAsync($"Caught {command.Data.Name} by admin handler but found no command",command),ResponseType.BASIC)
         };
     }
 

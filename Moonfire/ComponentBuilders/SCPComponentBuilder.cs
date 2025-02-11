@@ -48,7 +48,8 @@ public static class SCPComponentBuilder
                         ]
                     )
                 ],
-                buttons:[
+                buttons:
+                [
                     new(
                         label:"Assign Role",
                         customId:"scp_addadmin_button"
@@ -63,34 +64,32 @@ public static class SCPComponentBuilder
             );
     }
 
-    public static Task<MoonfireComponent> GetAssignRoleMenuComponents(){
-        return 
-            Task.FromResult(
-                new MoonfireComponent
-                (
-                    selectMenus:
-                    [
-                        new(
-                            customId:"scp_addadmin_role",
-                            placeholder:$"Select Role",
-                            options:
-                            [
-                                new(
-                                    label:"Owner",
-                                    value:$"owner"
-                                ),
-                                new(
-                                    label:"Admin",
-                                    value:$"admin"),
-                                new(
-                                    label:"Moderator",
-                                    value:$"moderator"),
-                            ]
-                        )
-                    ]
-                )
-            );
-    }
+    public static Task<MoonfireComponent> GetAssignRoleMenuComponents() =>
+        Task.FromResult(
+            new MoonfireComponent
+            (
+                selectMenus:
+                [
+                    new(
+                        customId:"scp_addadmin_role",
+                        placeholder:$"Select Role",
+                        options:
+                        [
+                            new(
+                                label:"Owner",
+                                value:$"owner"
+                            ),
+                            new(
+                                label:"Admin",
+                                value:$"admin"),
+                            new(
+                                label:"Moderator",
+                                value:$"moderator"),
+                        ]
+                    )
+                ]
+            )
+        );
 
     public static async Task<MoonfireComponent> GetRemoveRoleMenuComponents(ulong? guildId, CancellationToken token = default){
         var gameSettings = await SCPConfigHandler.GetGameSettings(guildId,token);

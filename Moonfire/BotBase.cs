@@ -6,7 +6,7 @@ namespace Moonfire;
 public abstract class BotBase{
     public const string helpCmd = $"help";
     protected readonly DiscordSocketClient _client;
-    public readonly List<MoonfireCommand> commands;
+    internal readonly List<MoonfireCommand> commands;
     protected ulong ownerId;
     protected ulong ownerServerId;
     private readonly string _token;
@@ -112,7 +112,7 @@ public abstract class BotBase{
         Console.WriteLine("Commands Unregistered");
     }
 
-    public static async Task PrintHelpTaskAsync(SocketSlashCommand command, BotBase bot){
+    internal static async Task PrintHelpTaskAsync(SocketSlashCommand command, BotBase bot){
         //empty string in case no commands
         string help = "";
         //formats and get information for every command
@@ -122,7 +122,7 @@ public abstract class BotBase{
         await DI.ModifyResponseAsync(help[(help.IndexOf('[')+1)..help.LastIndexOf(']')],command);
     }
 
-    public static async Task RepopulateTaskAsync(SocketSlashCommand command, BotBase bot){
+    internal static async Task RepopulateTaskAsync(SocketSlashCommand command, BotBase bot){
         //ensure initial reply is sent first
         await DI.ModifyResponseAsync("Repopulating Commands",command);
         await bot.UnregisterCommandsAsync();

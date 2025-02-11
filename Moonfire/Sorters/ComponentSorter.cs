@@ -27,6 +27,9 @@ public class ComponentSorter
 
             //sets branch to menu option selected
             "scp_serversize_menu" => SCPServerSizeMenuTask(component),
+
+            //sets preferred region
+            "bot_region_menu" => BOTRegionMenuTask(component),
             
             _ => DI.SendResponseAsync($"Caught {component.Data.CustomId} by component handler but found no case",component)
         };
@@ -71,5 +74,19 @@ public class ComponentSorter
         await SCPConfigHandler.RemoveRole(component.GuildId,steamId);
 
         await DI.GenericConfigUpdateResponse($"Removed role from {steamIdString}.","SCP",component);
+    }
+
+    private static async Task BOTRegionMenuTask(SocketMessageComponent component){
+        string region = component.Data.Values.FirstOrDefault() ?? "NA";
+        var guildId = component.GuildId;
+
+        var globalSettings = await GLOBALConfigHandler.GetSettings(guildId);
+        
+        globalSettings.region = region;
+
+        await GLOBALConfigHandler.SetSettings(guildId, globalSettings);
+
+        await Console.Out.WriteLineAsync($"guildId:{guildId}:region:{region}");
+        await DI.GenericConfigUpdateResponse($"Region Set To {region}","BOT",component);
     }
 }

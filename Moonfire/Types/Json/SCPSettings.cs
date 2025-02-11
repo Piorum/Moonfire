@@ -5,6 +5,7 @@ namespace Moonfire.Types.Json;
 public class SCPSettings{
     [JsonProperty(nameof(AdminUsers))]
     public List<AdminUser> AdminUsers  = [];
+    
     [JsonProperty(nameof(Branch))]
     public SCPBranch Branch = SCPBranch.PUBLIC;
 

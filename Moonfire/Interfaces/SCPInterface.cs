@@ -22,18 +22,18 @@ public class SCPInterface : IServer<SCPInterface>, IServerBase
         SCPInterface obj = new();
 
         //game settings/vm building tasks
-        var buildGameSettings = SCPConfigHandler.GetGameSettings(guildId,token);
-        var buildVM = Task.Run(async () => 
+        var gameSettingsTask = SCPConfigHandler.GetGameSettings(guildId,token);
+        var buildVMTask = Task.Run(async () => 
             {
                 return await AzureManager.Allocate(await SCPConfigHandler.GetHardwareSettings(guildId,token), $"{guildId}RG", $"SCPVM", token);
             },token);
 
         //await tasks
-        await Task.WhenAll(buildGameSettings,buildVM);
+        await Task.WhenAll(gameSettingsTask,buildVMTask);
 
         //assign results
-        obj.scpSettings = await buildGameSettings;
-        obj.vm = await buildVM;
+        obj.scpSettings = await gameSettingsTask;
+        obj.vm = await buildVMTask;
 
         //check for failure
         if(obj.vm is null){
