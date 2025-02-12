@@ -73,48 +73,48 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Moonfire
 
         var reconnectionTasks = new List<Task>();
 
-        foreach(var server in runningServers){
-            if(server.RowKey==null || server.PartitionKey==null) continue;
-
-            var guidString = server.PartitionKey;
-            var guid = ulong.TryParse(guidString,out var result) ? result : 0;
-            var serverType = server.RowKey;
-
-            _ = Console.Out.WriteLineAsync($"Recreating {guid}:{serverType}");
-            var reconnectTask = Task.Run(async () =>{
-                //create and validate interface creation
-                IServerBase? serverInterface = serverType switch
-                    {
-                        "scp" => await SCPInterface.CreateInterfaceAsync(guidString),
-                        "mc" => await MCInterface.CreateInterfaceAsync(guidString),
-                        _ => null
-                    };
-                if(serverInterface is null) throw new($"{guid}:{serverType}:Interface Creation Failure");
-
-                //add interface to correct dictionary
-                switch (serverType){
-                    case "scp":
-                        _ = Console.Out.WriteLineAsync($"Added scp interface at {guid}");
-                        scpIPairs.TryAdd(guid,new((SCPInterface)serverInterface,IServerWorker.WorkingFlag.NONE));
-                        break;
-                    case "mc":
-                        _ = Console.Out.WriteLineAsync($"Added mc interface at {guid}");
-                        mcIPairs.TryAdd(guid,new((MCInterface)serverInterface,IServerWorker.WorkingFlag.NONE));
-                        break;
-                    default:
-                        _ = Console.Out.WriteLineAsync($"{guid}:{serverType}Failed to add to dictionary");
-                        break;
-                }
-
-                //reconnect to server
-                var success = await serverInterface.StartServerAsync((a) => _ = Console.Out.WriteLineAsync($"{a}"));
-                if(!success) throw new($"{guid}:{serverType}:Startup Failure");
-            });
-
-            reconnectionTasks.Add(reconnectTask);
-        }
-
         try{
+            foreach(var server in runningServers){
+                if(server.RowKey==null || server.PartitionKey==null) continue;
+
+                var guidString = server.PartitionKey;
+                var guid = ulong.TryParse(guidString,out var result) ? result : 0;
+                var serverType = server.RowKey;
+
+                _ = Console.Out.WriteLineAsync($"Recreating {guid}:{serverType}");
+                var reconnectTask = Task.Run(async () =>{
+                    //create and validate interface creation
+                    IServerBase? serverInterface = serverType switch
+                        {
+                            "scp" => await SCPInterface.CreateInterfaceAsync(guidString),
+                            "mc" => await MCInterface.CreateInterfaceAsync(guidString),
+                            _ => null
+                        };
+                    if(serverInterface is null) throw new($"{guid}:{serverType}:Interface Creation Failure");
+
+                    //add interface to correct dictionary
+                    switch (serverType){
+                        case "scp":
+                            _ = Console.Out.WriteLineAsync($"Added scp interface at {guid}");
+                            scpIPairs.TryAdd(guid,new((SCPInterface)serverInterface,IServerWorker.WorkingFlag.NONE));
+                            break;
+                        case "mc":
+                            _ = Console.Out.WriteLineAsync($"Added mc interface at {guid}");
+                            mcIPairs.TryAdd(guid,new((MCInterface)serverInterface,IServerWorker.WorkingFlag.NONE));
+                            break;
+                        default:
+                            _ = Console.Out.WriteLineAsync($"{guid}:{serverType}Failed to add to dictionary");
+                            break;
+                    }
+
+                    //reconnect to server
+                    var success = await serverInterface.StartServerAsync((a) => _ = Console.Out.WriteLineAsync($"{a}"));
+                    if(!success) throw new($"{guid}:{serverType}:Startup Failure");
+                });
+
+                reconnectionTasks.Add(reconnectTask);
+            }
+
             await Task.WhenAll(reconnectionTasks);
         } catch (Exception e) {
             await Console.Out.WriteLineAsync($"{nameof(Bot)}:{ReconnectTaskAsync}:Reconnection Failed\n{e}");

@@ -31,6 +31,10 @@ public class Program{
             Environment.SetEnvironmentVariable(line[0..line.IndexOf('=')],line[(line.IndexOf('=')+2)..line.LastIndexOf('"')],EnvironmentVariableTarget.Process);
         }
 
+        AzureManager.ErrorAlert += async (sender, args) => {
+            await Console.Out.WriteLineAsync($"message:{args.AlertMessage}:e:{args.Exception}");
+        };
+
         //build and deploy application
         await SetupHelper.UpdateBuild(ver);
 

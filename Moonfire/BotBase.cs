@@ -7,13 +7,15 @@ public abstract class BotBase{
     public const string helpCmd = $"help";
     protected readonly DiscordSocketClient _client;
     internal readonly List<MoonfireCommand> commands;
-    protected ulong ownerId;
+    //protected ulong ownerId;
     protected ulong ownerServerId;
+    protected ulong alertsChannelId;
     private readonly string _token;
 
     public BotBase(string t,DiscordSocketConfig? c = null, List<MoonfireCommand>? _commands = null){
-        ownerId = ulong.Parse(Environment.GetEnvironmentVariable("BOT_OWNER_ID") ?? "0");
+        //ownerId = ulong.Parse(Environment.GetEnvironmentVariable("BOT_OWNER_ID") ?? "0");
         ownerServerId = ulong.Parse(Environment.GetEnvironmentVariable("BOT_OWNER_SERVER_ID") ?? "0");
+        alertsChannelId = ulong.Parse(Environment.GetEnvironmentVariable("BOT_ALERTS_CHANNEL_ID") ?? "0");
 
         //Client Creation
         _token = t;
@@ -31,10 +33,11 @@ public abstract class BotBase{
         _client.ButtonExecuted += ComponentHandler;
         _client.SelectMenuExecuted += ComponentHandler;
 
-        _client.Log += message => {
-            Console.WriteLine(message);
-            return Task.CompletedTask;
+        _client.Log += async message => {
+            await Console.Out.WriteLineAsync(message.ToString());
         };
+
+        AzureManager.ErrorAlert += SendAlert;
 
         //Ensure commands is not null
         commands = _commands ?? [];
@@ -61,6 +64,18 @@ public abstract class BotBase{
     protected virtual Task ModalSubmissionHandler(SocketModal modal){return Task.CompletedTask;}
 
     protected virtual Task ComponentHandler(SocketMessageComponent component){return Task.CompletedTask;}
+
+    protected async void SendAlert(object? sender, AAAlertArgs alertArgs){
+        var guild = _client.GetGuild(ownerServerId);
+        if(guild is not null){
+            var channel = guild.GetTextChannel(alertsChannelId);
+            if(channel is not null){
+                var sendAlertTask = channel.SendMessageAsync(alertArgs.AlertMessage);
+                var logExceptionTask = Console.Out.WriteLineAsync($"{alertArgs.Exception}");
+                await Task.WhenAll(sendAlertTask, logExceptionTask);
+            }
+        }
+    }
 
     protected async Task PopulateCommandsAsync(ulong ownerServer){
         // Register normal commands globally

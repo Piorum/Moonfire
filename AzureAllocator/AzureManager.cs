@@ -12,10 +12,10 @@ namespace AzureAllocator;
 
 public static class AzureManager
 {
+    public static event EventHandler<AAAlertArgs>? ErrorAlert;
     private static ArmClient? armClient = null;
 
     public static async Task<AzureVM?> Allocate(AzureSettings settings, string rgName, string vmName, CancellationToken token = default){
-        //defaults if settings are null
         var region = await settings.GetAzureRegion();
 
         var client = await GetArmClient();
@@ -75,9 +75,9 @@ public static class AzureManager
             //propagate upward
             throw;
         } catch (Exception e){
-            _ = Log(vmName,rgName,nameof(Allocate),$"{e}");
+            await SendAlert("Allocation Failure",e);
 
-            _ = Log(vmName,rgName,nameof(Allocate),$"Cleaning Up");
+            _ = Log(vmName,rgName,nameof(Allocate),$"Cleaning Up Failed Allocation");
 
             var cts = new CancellationTokenSource();
             await Ext.TimeoutTask
@@ -86,8 +86,6 @@ public static class AzureManager
                 new(0,10,0),
                 cts
             );
-
-            //code should be added here to alert of failure
 
             return null;
         }
@@ -203,16 +201,13 @@ public static class AzureManager
                 throw;
             } catch (Exception e){
                 _ = Console.Out.WriteLineAsync($"Deallocation Failed.\n{e}");
-
-                //code should be added here to alert of failure
-
             }
 
             await Task.Delay(30 * 1000, token); //delay before retrying deallocation
         }
         
         //output rgName and vmName to identify problem VM
-        _ = Console.Out.WriteLineAsync($"[ALERT] Deallocation Failed. rg.Data.Name:'{rg.Data.Name}' vm.Data.Name:'{vm?.Data.Name}'");
+        await SendAlert($"Deallocation Timed Out:rg.Data.Name:{rg.Data.Name}:vm.Data.Name:{vm?.Data.Name ?? "NoNameFound"}");
     }
 
     private static Task<ArmClient> GetArmClient(){
@@ -505,7 +500,17 @@ public static class AzureManager
         );
 
         //need to recreate VM resource if any other part was recreated
-        if(vmR!=null && completeVM) return vmR;
+        if(vmR!=null && completeVM){
+            var vmSize = vmR.Data.HardwareProfile.VmSize.ToString();
+
+            //if cannot find vmSize recreate VM
+            if(vmSize is not null){
+                _ = Log(vmName,rgName,nameof(AllocateOrGetVm),vmSize);
+                //send vmSize to quota manager here
+
+                return vmR;
+            }
+        }
 
         //vm config
         var vmData = new VirtualMachineData(region)
@@ -662,6 +667,11 @@ public static class AzureManager
             _ = Log(vmName,rgName,nameof(AllocateOrGetRG),$"{e}");
             return (null,true);
         }
+    }
+
+    private static Task SendAlert(string message, Exception? exception = null){
+        ErrorAlert?.Invoke(typeof(AzureManager),new(message,exception));
+        return Task.CompletedTask;
     }
 
     private static async Task Log(string vmName, string rgName, string funcName, string input) =>
