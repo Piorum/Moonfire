@@ -5,7 +5,7 @@ namespace Moonfire.ConfigHandlers;
 
 public static class GLOBALConfigHandler
 {
-    public const string GLOBAL_CONFIGS_TABLE_NAME = nameof(Moonfire) + "SCP";
+    public const string GLOBAL_CONFIGS_TABLE_NAME = nameof(Moonfire) + "GLOBAL";
 
     public static async Task<GLOBALSettings> GetSettings(string guildId, CancellationToken token = default){
         _ = Console.Out.WriteLineAsync($"{nameof(GLOBALConfigHandler)}:{nameof(GetSettings)}:{guildId}");

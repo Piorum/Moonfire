@@ -33,14 +33,30 @@ public abstract class BotBase{
         _client.ButtonExecuted += ComponentHandler;
         _client.SelectMenuExecuted += ComponentHandler;
 
-        _client.Log += async message => {
-            await Console.Out.WriteLineAsync(message.ToString());
+        _client.Log += async msg => {
+            await Console.Out.WriteLineAsync($"[{msg.Severity}] {msg.Source}: {msg.Message}");
+            if (msg.Exception != null)
+                Console.WriteLine(msg.Exception);
+            await Task.CompletedTask;
         };
 
-        AzureManager.ErrorAlert += SendAlert;
+        AzureManager.ErrorAlert += (sender, args) => SendAlert(args.AlertMessage, args.Exception);
 
         //Ensure commands is not null
         commands = _commands ?? [];
+    }
+
+    public async void SendAlert(string alertMessage, Exception? e){
+        var guild = _client.GetGuild(ownerServerId);
+        if(guild is not null){
+            var channel = guild.GetTextChannel(alertsChannelId);
+            if(channel is not null){
+                var sendAlertTask = channel.SendMessageAsync(alertMessage);
+                var logAlertTask = Console.Out.WriteLineAsync(alertMessage);
+                var logExceptionTask = Console.Out.WriteLineAsync($"{e}");
+                await Task.WhenAll(logAlertTask, sendAlertTask, logExceptionTask);
+            }
+        }
     }
 
     public async Task StartBotAsync(){
@@ -64,18 +80,6 @@ public abstract class BotBase{
     protected virtual Task ModalSubmissionHandler(SocketModal modal){return Task.CompletedTask;}
 
     protected virtual Task ComponentHandler(SocketMessageComponent component){return Task.CompletedTask;}
-
-    protected async void SendAlert(object? sender, AAAlertArgs alertArgs){
-        var guild = _client.GetGuild(ownerServerId);
-        if(guild is not null){
-            var channel = guild.GetTextChannel(alertsChannelId);
-            if(channel is not null){
-                var sendAlertTask = channel.SendMessageAsync(alertArgs.AlertMessage);
-                var logExceptionTask = Console.Out.WriteLineAsync($"{alertArgs.Exception}");
-                await Task.WhenAll(sendAlertTask, logExceptionTask);
-            }
-        }
-    }
 
     protected async Task PopulateCommandsAsync(ulong ownerServer){
         // Register normal commands globally

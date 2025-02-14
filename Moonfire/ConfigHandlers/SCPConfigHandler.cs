@@ -129,13 +129,11 @@ public static class SCPConfigHandler
         return true;
     }
 
-    public static async Task<bool> SetServerSize(ulong? guildId, string vmSize, CancellationToken token = default){
+    public static async Task SetServerSize(ulong? guildId, VmSize vmSize, CancellationToken token = default){
         var hardwareSettings = await GetHardwareSettings(guildId,token);
 
-        var valid = await hardwareSettings.SetVmSize(vmSize);
+        await hardwareSettings.SetVmSize(vmSize);
 
-        if(valid) await SetHardwareSettings(guildId,hardwareSettings,token);
-
-        return valid;
+        await SetHardwareSettings(guildId,hardwareSettings,token);
     }
 }

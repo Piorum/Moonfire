@@ -49,14 +49,21 @@ public class ComponentSorter
     }
 
     private static async Task SCPServerSizeMenuTask(SocketMessageComponent component){
-        var vmSize = component.Data.Values.FirstOrDefault();
+        var azureVMSize = component.Data.Values.FirstOrDefault();
 
-        var valid = await SCPConfigHandler.SetServerSize(component.GuildId,vmSize??"");
-
-        if(!valid){
-            await DI.SendResponseAsync("Broken Menu",component);
+        if(azureVMSize is null){
+            await DI.SendResponseAsync($"Broken Menu. Failed To Change.","SCP",component);
             return;
         }
+
+        var internalVMSize = await VmSize.AzureNameToVmSize(azureVMSize);
+
+        if(internalVMSize is null){
+            await DI.SendResponseAsync($"Broken Menu. Failed To Change.","SCP",component);
+            return;
+        }
+
+        await SCPConfigHandler.SetServerSize(component.GuildId,internalVMSize);
 
         await DI.GenericConfigUpdateResponse($"Updated Server Size","SCP",component);
     }

@@ -27,7 +27,8 @@ public class Program{
         var token = Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN") ?? "";
         var config = new DiscordSocketConfig
         {
-            GatewayIntents = GatewayIntents.None | GatewayIntents.Guilds
+            GatewayIntents = GatewayIntents.None | GatewayIntents.Guilds,
+            LogLevel = LogSeverity.Debug
         };
 
         //Discord Bot Commands
@@ -53,12 +54,12 @@ public class Program{
         var _application = new Bot(token, config, commands);
 
         //top level exception sinks
-        AppDomain.CurrentDomain.UnhandledException += async (sender, args) => {
-            await Console.Out.WriteLineAsync($"[ERROR] AppDomain.CurrentDomain.UnhandledException:args.ExceptionObject:{args.ExceptionObject}");
+        AppDomain.CurrentDomain.UnhandledException += (sender, args) => {
+            Console.WriteLine($"[ERROR] AppDomain.CurrentDomain.UnhandledException:args.ExceptionObject:{args.ExceptionObject}");
         };
 
-        TaskScheduler.UnobservedTaskException += async (sender, args) => {
-            await Console.Out.WriteLineAsync($"[ERROR] TaskScheduler.UnobservedTaskException:args.Exception:{args.Exception}");
+        TaskScheduler.UnobservedTaskException += (sender, args) => {
+            Console.Out.WriteLine($"[ERROR] TaskScheduler.UnobservedTaskException:args.Exception:{args.Exception}");
             args.SetObserved(); //may prevent process termination?
         };
 

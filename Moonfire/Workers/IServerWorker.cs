@@ -69,6 +69,7 @@ public static class IServerWorker
         //cleanup task run after timeout or failure
         Lazy<Task> cleanupTask = new(() => Task.Run(async () => {
             _ = Console.Out.WriteLineAsync($"{nameof(StartTaskAsync)}:Startup Timed Out");
+            await DI.ModifyResponseAsync($"Startup Failure", command);
             //send alert here
 
             //output error on timeout, otherwise interface give more verbose failure message
