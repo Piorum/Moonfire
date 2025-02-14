@@ -2,6 +2,8 @@
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using System.Diagnostics;
+using AzureAllocator.Types;
+using AzureAllocator.Managers;
 
 namespace AzureAllocator;
 

@@ -1,4 +1,4 @@
-namespace AzureAllocator;
+namespace AzureAllocator.Types;
 
 public class AAAlertArgs(string alertMessage, Exception? exception = null) : EventArgs
 {

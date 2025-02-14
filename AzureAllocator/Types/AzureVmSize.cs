@@ -1,4 +1,4 @@
-namespace AzureAllocator;
+namespace AzureAllocator.Types;
 
 public class AzureVmSize(string azureVmName, string region)
 {

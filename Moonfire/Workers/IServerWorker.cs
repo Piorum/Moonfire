@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Moonfire.Interfaces;
+using AzureAllocator.Managers;
 
 namespace Moonfire.Workers;
 

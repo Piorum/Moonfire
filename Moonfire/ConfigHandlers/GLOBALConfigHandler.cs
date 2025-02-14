@@ -1,5 +1,6 @@
 using Moonfire.Types.Json;
 using Newtonsoft.Json;
+using AzureAllocator.Managers;
 
 namespace Moonfire.ConfigHandlers;
 

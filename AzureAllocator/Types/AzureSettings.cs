@@ -1,7 +1,7 @@
 using Newtonsoft.Json;
 using Azure.ResourceManager.Compute.Models;
 
-namespace AzureAllocator;
+namespace AzureAllocator.Types;
 
 public class AzureSettings{
     //make sure this property is changeable
@@ -13,7 +13,7 @@ public class AzureSettings{
     public ImageReference? ImageReference { get; private set; }
     
     [JsonProperty(nameof(VmSize))]
-    public VmSize? VmSize { get; private set; }
+    public InternalVmSize? VmSize { get; private set; }
     
     [JsonProperty(nameof(RequestedPrice))]
     public int? RequestedPrice { get; private set; }
@@ -31,7 +31,7 @@ public class AzureSettings{
     public static async Task<AzureSettings> CreateAsync(string jsonString) =>
         await Task.Run(() => JsonConvert.DeserializeObject<AzureSettings>(jsonString) ?? new());
 
-    public Task SetVmSize(VmSize vmSize){
+    public Task SetVmSize(InternalVmSize vmSize){
         VmSize = vmSize;
         return Task.CompletedTask;
     }

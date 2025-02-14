@@ -32,17 +32,17 @@ public static class SCPComponentBuilder
                         [
                             new(
                                 label:"Standard (1-20 Players)",
-                                value:"Standard_B2s",
+                                value:"0",
                                 description:"2x vCPU, 4GiB RAM - 12c/hr - Default"
                             ),
                             new(
                                 label:"Standard+ (21+ Players)",
-                                value:"Standard_B2ms",
+                                value:"1",
                                 description:"2x vCPU, 8GiB RAM - 18c/hr"
                             ),
                             new(
                                 label:"Premium (21+ Players)",
-                                value:"Standard_B4als_v2",
+                                value:"2",
                                 description:"4x vCPU, 8GiB RAM - 24c/hr"
                             )
                         ]

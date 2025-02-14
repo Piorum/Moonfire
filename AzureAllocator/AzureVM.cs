@@ -6,6 +6,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
 using Azure.ResourceManager.Network;
 using FuncExt;
+using AzureAllocator.Managers;
 
 namespace AzureAllocator;
 
@@ -18,6 +19,7 @@ public class AzureVM
     public readonly string vmName;
     public readonly string rgName;
     public readonly string? ip;
+    public readonly int HourlyCost;
     private readonly ResourceGroupResource rg;
     private readonly VirtualMachineResource vm;
     private readonly VirtualNetworkResource vnet;
@@ -29,6 +31,7 @@ public class AzureVM
     private AzureVM(
         string vmName, 
         string rgName, 
+        int HourlyCost,
         ResourceGroupResource rg,
         VirtualMachineResource vm,
         VirtualNetworkResource vnet,
@@ -39,6 +42,7 @@ public class AzureVM
     ){
         this.vmName = vmName;
         this.rgName = rgName;
+        this.HourlyCost = HourlyCost;
         this.rg = rg;
         this.vm = vm;
         this.vnet = vnet;
@@ -52,7 +56,8 @@ public class AzureVM
     //use AzureManager allocator
     public static Task<bool> TryCreateAzureVMAsync(
         string vmName, 
-        string rgName, 
+        string rgName,
+        int HourlyCost,
         ResourceGroupResource? rg,
         VirtualMachineResource? vm,
         VirtualNetworkResource? vnet,
@@ -67,7 +72,7 @@ public class AzureVM
             return Task.FromResult(false);
         }
 
-        azureVM = new(vmName, rgName, rg, vm, vnet, pip, nsg, nic, keyName);
+        azureVM = new(vmName, rgName, HourlyCost, rg, vm, vnet, pip, nsg, nic, keyName);
         return Task.FromResult(true);
     }
 
@@ -84,7 +89,7 @@ public class AzureVM
         }
     }
 
-    public static Task<Process> BuildSshClient(string guid, AzureVM vm) =>
+    public static Task<Process> BuildSshClient(AzureVM vm) =>
         Task.FromResult(
             new Process()
             {
@@ -94,7 +99,7 @@ public class AzureVM
                     Arguments =
                         $"-t " +
                         $"-o StrictHostKeyChecking=no " +
-                        $"-i {Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}/.ssh/{guid}RG/{vm?.vmName}-Key.pem " +
+                        $"-i {Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}/.ssh/{vm.rgName}/{vm?.vmName}-Key.pem " +
                         $"azureuser@{vm?.ip}",
                     CreateNoWindow = true,
                     RedirectStandardInput = true,

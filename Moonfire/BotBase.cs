@@ -1,5 +1,6 @@
 using Moonfire.Interfaces;
 using Moonfire.Types.Discord;
+using AzureAllocator.Managers;
 
 namespace Moonfire;
 

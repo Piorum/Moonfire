@@ -2,7 +2,7 @@ using Moonfire.Interfaces;
 using Moonfire.ComponentBuilders;
 using Moonfire.ModalBuilders;
 using Moonfire.ConfigHandlers;
-using System.Text;
+using AzureAllocator.Types;
 
 namespace Moonfire.Sorters;
 
@@ -49,14 +49,20 @@ public class ComponentSorter
     }
 
     private static async Task SCPServerSizeMenuTask(SocketMessageComponent component){
-        var azureVMSize = component.Data.Values.FirstOrDefault();
+        var selectionIndex = component.Data.Values.FirstOrDefault();
 
-        if(azureVMSize is null){
+        if(selectionIndex is null){
             await DI.SendResponseAsync($"Broken Menu. Failed To Change.","SCP",component);
             return;
         }
 
-        var internalVMSize = await VmSize.AzureNameToVmSize(azureVMSize);
+        //Should match values in SCPComponentBuilder config menu server size selection list
+        InternalVmSize? internalVMSize = selectionIndex switch {
+            "0" => new(2,4),
+            "1" => new(2,8),
+            "2" => new(4,8),
+            _ => null
+        };
 
         if(internalVMSize is null){
             await DI.SendResponseAsync($"Broken Menu. Failed To Change.","SCP",component);

@@ -1,8 +1,8 @@
 using System.Diagnostics;
-using Newtonsoft.Json;
 using Moonfire.TableEntities;
 using Moonfire.Types.Json;
 using Moonfire.ConfigHandlers;
+using AzureAllocator.Managers;
 
 namespace Moonfire.Interfaces;
 
@@ -25,7 +25,7 @@ public class SCPInterface : IServer<SCPInterface>, IServerBase
         var gameSettingsTask = SCPConfigHandler.GetGameSettings(guildId,token);
         var buildVMTask = Task.Run(async () => 
             {
-                return await AzureManager.Allocate(await SCPConfigHandler.GetHardwareSettings(guildId,token), $"{guildId}RG", $"SCPVM", token);
+                return await AzureManager.Allocate(await SCPConfigHandler.GetHardwareSettings(guildId,token), $"{guildId}", $"SCPVM", token);
             },token);
 
         //await tasks
@@ -42,7 +42,7 @@ public class SCPInterface : IServer<SCPInterface>, IServerBase
         }
 
         //build ssh client and assign result
-        obj.sshClient = await AzureVM.BuildSshClient(guildId,obj.vm);
+        obj.sshClient = await AzureVM.BuildSshClient(obj.vm);
 
         //return complete interface object
         return obj;

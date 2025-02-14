@@ -1,6 +1,7 @@
 using Newtonsoft.Json;
+using AzureAllocator.Types;
 
-namespace AzureAllocator;
+namespace AzureAllocator.Managers;
 
 public class QuotaManager
 {
@@ -21,7 +22,7 @@ public class QuotaManager
 
     private class CategorySizes{
         public string? CategoryName { get; set; }
-        public List<VmSize> AvailableSizes { get; set; } = [];
+        public List<InternalVmSize> AvailableSizes { get; set; } = [];
     }
 
     [JsonProperty(nameof(AzureVmData))]
@@ -139,7 +140,7 @@ public class QuotaManager
     private Task<List<AzureRegion>?> GetPreferableRegions(string region) =>
         Task.FromResult(Quotas.Where(obj => obj.InternalRegion == region)?.ToList());
 
-    private async Task<(string?,string?,VMAvailability)> GetAvaiableVm(VmSize vmSize, List<AzureRegion> PreferredRegions){
+    private async Task<(string?,string?,VMAvailability)> GetAvaiableVm(InternalVmSize vmSize, List<AzureRegion> PreferredRegions){
         string? region;
         string? azureVmSizeName;
 
@@ -160,7 +161,7 @@ public class QuotaManager
         return(null, null, VMAvailability.GLOBALFULL); //if failed to find any available vm return full flag
     }
 
-    private Task<(string?, string?)> SelectFromRegions(VmSize vmSize, List<AzureRegion> Regions){
+    private Task<(string?, string?)> SelectFromRegions(InternalVmSize vmSize, List<AzureRegion> Regions){
         var result = (
             from region in Regions
             where region.RegionalQuota >= vmSize.VCpuCount  // Enough regional quota available

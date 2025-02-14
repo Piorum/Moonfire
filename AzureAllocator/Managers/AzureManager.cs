@@ -7,8 +7,10 @@ using Azure.ResourceManager.Network.Models;
 using Azure.ResourceManager.Resources;
 using Mono.Unix.Native;
 using FuncExt;
+using AzureAllocator.Types;
+using AzureAllocator.Maps;
 
-namespace AzureAllocator;
+namespace AzureAllocator.Managers;
 
 public static class AzureManager
 {
@@ -16,7 +18,15 @@ public static class AzureManager
     private static ArmClient? armClient = null;
     private static QuotaManager? quotaManager = null;
 
-    public static async Task<AzureVM?> Allocate(AzureSettings settings, string rgName, string vmName, CancellationToken token = default){
+    public static async Task<AzureVM?> Allocate(AzureSettings settings, string baseRgName, string vmName, CancellationToken token = default){
+        int HourlyCost;
+        if(settings.VmSize?.VCpuCount is null || settings.VmSize?.GiBRamCount is null){
+            return null;
+        }
+        double CpuHourlyCost = (double)settings.VmSize.VCpuCount * 3;
+        double RamHourlyCost = (double)settings.VmSize.GiBRamCount * 1.5;
+        HourlyCost = (int)(CpuHourlyCost + RamHourlyCost);
+        
         var quotaM = await GetQuotaManager();
         (var AzureValues, var availability) = await quotaM.RequestQuota(settings);
         if(AzureValues is null || availability is QuotaManager.VMAvailability.INVALID || availability is QuotaManager.VMAvailability.GLOBALFULL){
@@ -25,8 +35,8 @@ public static class AzureManager
 
         var region = AzureValues.Region;
         var azureVmSize = AzureValues.AzureVmName;
-        //var region = "centralus";
-        //var azureVmSize = "Standard_B2s";
+
+        var rgName = $"{baseRgName}{await RegionMap.GetRegionCode(region)}";
         await Console.Out.WriteLineAsync($"region:{region}:vmSize:{azureVmSize}");
 
         var client = await GetArmClient();
@@ -79,7 +89,7 @@ public static class AzureManager
 
             vm = await AllocateOrGetVm(region,vmName,rgName,rg,nic,key,settings,completeVM,azureVmSize,token) ?? throw new("Virtual Machine Allocation Failed");
 
-            var success = await AzureVM.TryCreateAzureVMAsync(vmName,rgName,rg,vm,vnet,pip,nsg,nic,keyName,out var azureVM);
+            var success = await AzureVM.TryCreateAzureVMAsync(vmName,rgName,HourlyCost,rg,vm,vnet,pip,nsg,nic,keyName,out var azureVM);
             return success ? azureVM : throw new("AzureVM Creation Failed");
 
         } catch (OperationCanceledException){
@@ -118,6 +128,9 @@ public static class AzureManager
         string? keyName,
         CancellationToken token = default
     ){
+        string? vmSize = null;
+        string? region = null;
+
         //if rg does not exist return
         if(rg is null) return;
 
@@ -149,15 +162,8 @@ public static class AzureManager
                     vmExistsTask = rg.GetVirtualMachines().ExistsAsync(vm.Data.Name, cancellationToken:token);
                     existTasks.Add(vmExistsTask);
 
-                    var vmSize = vm.Data.HardwareProfile.VmSize.ToString();
-                    var region = vm.Data.Location.ToString();
-
-                    var quotaM = await GetQuotaManager();
-
-                    if(vmSize is not null && region is not null){
-                        await quotaM.ReleaseQuota(vmSize, region);
-                    }
-
+                    vmSize = vm.Data.HardwareProfile.VmSize.ToString();
+                    region = vm.Data.Location.ToString();
                 }
                 if(nic is not null){
                     nicExistsTask = rg.GetNetworkInterfaces().ExistsAsync(nic.Data.Name, cancellationToken:token);
@@ -220,6 +226,12 @@ public static class AzureManager
                 }
                 //otherwise delete resource group
                 await rg.DeleteAsync(Azure.WaitUntil.Completed,cancellationToken:token);
+
+                //release quota if region and vmSize are found (They should be found)
+                if(vmSize is not null && region is not null){
+                    var quotaM = await GetQuotaManager();
+                    await quotaM.ReleaseQuota(vmSize, region);
+                }
 
                 return; //end deallocation to avoid retrying
 
@@ -552,12 +564,6 @@ public static class AzureManager
                 return vmR;
             }
         }
-        
-        string? azureVmSizeName = null;
-        if(settings.VmSize is not null){
-            azureVmSizeName = await settings.VmSize.ToAzureName();
-        }
-        azureVmSizeName ??= "Standard_B2s";
 
         //vm config
         var vmData = new VirtualMachineData(region)
@@ -606,7 +612,7 @@ public static class AzureManager
                 {
                 }
             },
-            HardwareProfile = new VirtualMachineHardwareProfile() { VmSize = azureVmSizeName },
+            HardwareProfile = new VirtualMachineHardwareProfile() { VmSize = azureVmSize },
         };
 
         //adding data disks

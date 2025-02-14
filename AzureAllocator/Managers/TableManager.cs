@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 using Azure;
 using Azure.Data.Tables;
 
-namespace AzureAllocator;
+namespace AzureAllocator.Managers;
 
 public static class TableManager
 {
