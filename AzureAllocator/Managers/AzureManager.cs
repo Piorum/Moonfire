@@ -19,13 +19,9 @@ public static class AzureManager
     private static QuotaManager? quotaManager = null;
 
     public static async Task<AzureVM?> Allocate(AzureSettings settings, string baseRgName, string vmName, CancellationToken token = default){
-        int HourlyCost;
-        if(settings.VmSize?.VCpuCount is null || settings.VmSize?.GiBRamCount is null){
-            return null;
-        }
-        double CpuHourlyCost = (double)settings.VmSize.VCpuCount * 3;
-        double RamHourlyCost = (double)settings.VmSize.GiBRamCount * 1.5;
-        HourlyCost = (int)(CpuHourlyCost + RamHourlyCost);
+        var HourlyCostResult = await AzureVM.VmSizeToPrice(settings.VmSize);
+        if(HourlyCostResult is null) return null;
+        int HourlyCost = (int)HourlyCostResult;
         
         var quotaM = await GetQuotaManager();
         (var AzureValues, var availability) = await quotaM.RequestQuota(settings);

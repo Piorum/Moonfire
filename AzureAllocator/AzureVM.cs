@@ -7,6 +7,7 @@ using Azure.Storage.Sas;
 using Azure.ResourceManager.Network;
 using FuncExt;
 using AzureAllocator.Managers;
+using AzureAllocator.Types;
 
 namespace AzureAllocator;
 
@@ -173,6 +174,17 @@ public class AzureVM
     public async Task DownloadBlob(string container, string name, string destination, CancellationToken token = default){
         _ = Log(nameof(DownloadBlob),$"Downloading '{container}/{name}' to '{destination}'");
         await RunScript($"curl -o {destination} '{await GetDownloadSas(container,name)}'",token);
+    }
+
+    public static Task<int?> VmSizeToPrice(InternalVmSize? vmSize){
+        int HourlyCost;
+        if(vmSize?.VCpuCount is null || vmSize?.GiBRamCount is null){
+            return Task.FromResult<int?>(null);
+        }
+        double CpuHourlyCost = (double)vmSize.VCpuCount * 3;
+        double RamHourlyCost = (double)vmSize.GiBRamCount * 1.5;
+        HourlyCost = (int)(CpuHourlyCost + RamHourlyCost);
+        return Task.FromResult<int?>(HourlyCost);
     }
 
     private async Task StartVM(){

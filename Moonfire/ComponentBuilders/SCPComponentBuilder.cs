@@ -7,6 +7,10 @@ public static class SCPComponentBuilder
 {
     public static async Task<MoonfireComponent> GetConfigurationComponents(ulong? guildId, CancellationToken token = default){
         var gameSettings = await SCPConfigHandler.GetGameSettings(guildId,token);
+
+        var standardPrice = await AzureVM.VmSizeToPrice(new(2,4));
+        var standardPlusPrice = await AzureVM.VmSizeToPrice(new(2,8));
+        var premiumPrice = await AzureVM.VmSizeToPrice(new(4,8));
         
         return 
             new MoonfireComponent
@@ -33,17 +37,17 @@ public static class SCPComponentBuilder
                             new(
                                 label:"Standard (1-20 Players)",
                                 value:"0",
-                                description:"2x vCPU, 4GiB RAM - 12c/hr - Default"
+                                description:$"2x vCPU, 4GiB RAM - {standardPrice}c/hr - Default"
                             ),
                             new(
                                 label:"Standard+ (21+ Players)",
                                 value:"1",
-                                description:"2x vCPU, 8GiB RAM - 18c/hr"
+                                description:$"2x vCPU, 8GiB RAM - {standardPlusPrice}c/hr"
                             ),
                             new(
                                 label:"Premium (21+ Players)",
                                 value:"2",
-                                description:"4x vCPU, 8GiB RAM - 24c/hr"
+                                description:$"4x vCPU, 8GiB RAM - {premiumPrice}c/hr"
                             )
                         ]
                     )
