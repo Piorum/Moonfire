@@ -1,4 +1,5 @@
 ﻿using Moonfire.Types.Discord;
+using Moonfire.Credit;
 
 namespace Moonfire;
 
@@ -28,7 +29,7 @@ public class Program{
         var config = new DiscordSocketConfig
         {
             GatewayIntents = GatewayIntents.None | GatewayIntents.Guilds,
-            LogLevel = LogSeverity.Debug
+            LogLevel = LogSeverity.Info
         };
 
         //Discord Bot Commands
@@ -65,6 +66,17 @@ public class Program{
 
         try{
             await _application.StartBotAsync(); //discord bot start point
+
+            //main loop to prevent exit
+            while(true){
+
+                //action credit every 180 seconds
+                await CreditService.ActionCredit();
+
+                await Task.Delay(180);
+
+            }
+            
         } catch (Exception e){
             await Console.Out.WriteLineAsync($"[ERROR] catch:_application.StartBotAsync:e:{e}");
         }

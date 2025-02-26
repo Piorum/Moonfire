@@ -1,9 +1,11 @@
 using System.Collections.Concurrent;
 
-namespace Moonfire.CreditService;
+namespace Moonfire.Credit;
 
 public class CreditService
 {
+    public static event EventHandler<Exception>? OutOfBalanceAlert;
+
     private static bool Actioning = false;
     private static readonly ConcurrentDictionary<string, CreditClient> creditClients = [];
     private static readonly ConcurrentDictionary<string, NewCreditClient> newCreditClients = [];
@@ -16,8 +18,6 @@ public class CreditService
         NewCreditClient newClient = new(DateTime.Now, hourlyCost, reason);
 
         newCreditClients.TryAdd(accountKey, newClient);
-
-        throw new NotImplementedException();
     }
 
     public static async Task UnregisterClient(ulong guildId, Game game, CancellationToken token = default){
@@ -26,16 +26,12 @@ public class CreditService
         var accountKey = await GenerateAccountKey(guildId, game);
 
         await UnregisterClient(accountKey, token:token);
-
-        throw new NotImplementedException();
     }
 
     public static async Task UnregisterClient(string accountKey, CancellationToken token = default){
         await ActionSingularClient(accountKey, token:token); //action end of credit cycle
 
         creditClients.TryRemove(accountKey, out _); //remove from clients list
-
-        throw new NotImplementedException();
     }
 
     public static async Task ActionCredit(CancellationToken token = default){
@@ -45,7 +41,7 @@ public class CreditService
         }
         Actioning = true;
 
-        var lastActionTime = await GetLastActionTime();
+        var lastActionTime = await CreditTableManager.GetLastActionTime();
 
         var currentTime = DateTime.Now;
 
@@ -56,7 +52,7 @@ public class CreditService
 
         var percentOfHourSincePreviousAction = (currentTime - lastActionTime).TotalMinutes / 60.0;
 
-        await SetLastActionTime(currentTime);
+        await CreditTableManager.SetLastActionTime(currentTime);
 
         List<Task<(string, double)>> actionTasks = [];
 
@@ -91,36 +87,30 @@ public class CreditService
 
         var actionResults = await Task.WhenAll(actionTasks);
 
-        foreach(var result in actionResults){
-            (var accountKey, var newAccountBalance) = result;
+        //where Item2(newAccountBalance) < 0 select accountKey to list
+        var outOfBalanceAccounts = actionResults.Where(tuple => tuple.Item2 < 0).Select(tuple => tuple.Item1).ToList();
+            
+        List<Task> alertTasks = [];
 
-            if(newAccountBalance < 0){
-                //invoke OutOfBalance event passing accountId
-            }
+        foreach(var account in outOfBalanceAccounts){
+            alertTasks.Add(Task.Run(() => SendOutOfBalanceAlert(account), cancellationToken:token));
         }
 
-        Actioning = false;
+        await Task.WhenAll(alertTasks);
 
-        throw new NotImplementedException();
+        Actioning = false;
     }
 
     public static async Task PauseCredit(TimeSpan pauseLength, CancellationToken token = default){
-
         if(!Actioning){
             await ActionCredit(token:token);
         }
 
         await AwaitActioning(token);
 
-        var newLastActionTime = await GetLastActionTime() + pauseLength;
+        var lastActionTime = await CreditTableManager.GetLastActionTime();
 
-        //load last time credit was actioned
-
-        //set last time credit was actioned to newLastActionTime
-
-        throw new NotImplementedException();
-
-
+        await CreditTableManager.SetLastActionTime(lastActionTime + pauseLength);
     }
 
     private static async Task ActionSingularClient(string accountKey, CancellationToken token = default){
@@ -129,13 +119,35 @@ public class CreditService
             return;
         }
 
-        //find client, new or normal
-        //calculate percent of hour since either creation date or last action date
-        //decrement by cost
+        var clientFound = creditClients.TryGetValue(accountKey, out var existingClient);
+        NewCreditClient? newClient = null;
+        if(!clientFound){
+            clientFound = newCreditClients.TryGetValue(accountKey, out newClient);
+            if(!clientFound) return;
+        }
 
-        //if new move to normal client list
+        DateTime currentTime = DateTime.Now;
 
-        throw new NotImplementedException();
+        if(existingClient is not null){
+            var lastActionTime = await CreditTableManager.GetLastActionTime();
+            var percentOfHourSincePreviousAction = (currentTime - lastActionTime).TotalMinutes / 60.0;
+            
+            var cost = existingClient.HourlyCost * percentOfHourSincePreviousAction;
+
+            await CreditTableManager.DecrementCredit(accountKey, cost, existingClient.Reason);
+        }
+
+        if(newClient is not null){
+            var creationTime = newClient.CreationTime;
+            var percentOfHourSincePreviousAction = (currentTime - creationTime).TotalMinutes / 60.0;
+            
+            var cost = newClient.HourlyCost * percentOfHourSincePreviousAction;
+
+            await CreditTableManager.DecrementCredit(accountKey, cost, newClient.Reason);
+            
+            creditClients.TryAdd(accountKey, new(newClient.HourlyCost, newClient.Reason));
+            newCreditClients.TryRemove(accountKey, out _);
+        }
     }
 
     private static async Task AwaitActioning(CancellationToken token = default){
@@ -153,21 +165,21 @@ public class CreditService
         _ => "UNIMPLEMENTED"
     }}");
 
-    private static async Task<DateTime> GetLastActionTime(){
-        //lastActionTime
-        //get table value
-
-        //return lastActionTime
-
-        throw new NotImplementedException();
+    private static void SendOutOfBalanceAlert(string accountKey){
+        OutOfBalanceAlert?.Invoke(typeof(CreditService), new OutOfBalanceException(accountKey));
     }
 
-    private static async Task SetLastActionTime(DateTime dateTime){
+    public class OutOfBalanceException : Exception
+    {
+        private OutOfBalanceException() { }
 
-        //set table value
+        public OutOfBalanceException(string accountKey) 
+            : base(accountKey) { }
 
-        throw new NotImplementedException();
+        public OutOfBalanceException(string accountKey, Exception innerException) 
+            : base(accountKey, innerException) { }
     }
+
 
     private class CreditClient(double hourlyCost, string reason){
         public double HourlyCost = hourlyCost;

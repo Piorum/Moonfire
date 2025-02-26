@@ -1,3 +1,4 @@
+using AzureAllocator.Types;
 using Moonfire.ConfigHandlers;
 using Moonfire.Types.Discord;
 
@@ -5,12 +6,16 @@ namespace Moonfire.ComponentBuilders;
 
 public static class SCPComponentBuilder
 {
+    private static readonly InternalVmSize standardSize = new (2, 4);
+    private static readonly InternalVmSize standardPlusSize = new (2, 8);
+    private static readonly InternalVmSize premiumSize = new (4, 8);
+
     public static async Task<MoonfireComponent> GetConfigurationComponents(ulong? guildId, CancellationToken token = default){
         var gameSettings = await SCPConfigHandler.GetGameSettings(guildId,token);
 
-        var standardPrice = await AzureVM.VmSizeToPrice(new(2,4));
-        var standardPlusPrice = await AzureVM.VmSizeToPrice(new(2,8));
-        var premiumPrice = await AzureVM.VmSizeToPrice(new(4,8));
+        var standardPrice = await AzureVM.VmSizeToPrice(standardSize);
+        var standardPlusPrice = await AzureVM.VmSizeToPrice(standardPlusSize);
+        var premiumPrice = await AzureVM.VmSizeToPrice(premiumSize);
         
         return 
             new MoonfireComponent
@@ -37,17 +42,17 @@ public static class SCPComponentBuilder
                             new(
                                 label:"Standard (1-20 Players)",
                                 value:"0",
-                                description:$"2x vCPU, 4GiB RAM - {standardPrice}c/hr - Default"
+                                description:$"{standardSize.VCpuCount}x vCPU, {standardSize.GiBRamCount}GiB RAM - {standardPrice}c/hr - Default"
                             ),
                             new(
                                 label:"Standard+ (21+ Players)",
                                 value:"1",
-                                description:$"2x vCPU, 8GiB RAM - {standardPlusPrice}c/hr"
+                                description:$"{standardPlusSize.VCpuCount}x vCPU, {standardPlusSize.GiBRamCount}GiB RAM - {standardPlusPrice}c/hr"
                             ),
                             new(
                                 label:"Premium (21+ Players)",
                                 value:"2",
-                                description:$"4x vCPU, 8GiB RAM - {premiumPrice}c/hr"
+                                description:$"{premiumSize.VCpuCount}x vCPU, {premiumSize.GiBRamCount}GiB RAM - {premiumPrice}c/hr"
                             )
                         ]
                     )
