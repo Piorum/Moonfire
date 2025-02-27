@@ -90,8 +90,15 @@ public class ComponentSorter
     }
 
     private static async Task BOTRegionMenuTask(SocketMessageComponent component){
+
         string region = component.Data.Values.FirstOrDefault() ?? "NA";
         var guildId = component.GuildId;
+
+        if(guildId is not null){
+            if(await Bot.ServerRunning((ulong)guildId)){
+                await DI.ModifyResponseAsync($"Servers must be off to change region.","BOT",component);
+            }
+        }
 
         var globalSettings = await GLOBALConfigHandler.GetSettings(guildId);
         

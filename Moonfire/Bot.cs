@@ -2,6 +2,7 @@ using Moonfire.Interfaces;
 using Moonfire.TableEntities;
 using Moonfire.Workers;
 using Moonfire.Sorters;
+using Moonfire.Credit;
 using Moonfire.Types.Json;
 using Moonfire.Types.Discord;
 using System.Collections.Concurrent;
@@ -14,11 +15,72 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Moonfire
     internal readonly ConcurrentDictionary<ulong, IServerWorker.InterfacePair<SCPInterface>> scpIPairs = [];
     internal readonly ConcurrentDictionary<ulong, IServerWorker.InterfacePair<MCInterface>> mcIPairs = [];
     
-    // Uncomment to do initial population of commands
-    /*protected async override Task ClientReadyHandler(){
-        await PopulateCommandsAsync(ownerServerId);
+    public static Task<bool> ServerRunning(ulong guildId){
+        var running = false;
+        return Task.FromResult(running);
+    }
+
+    protected async override Task ClientReadyHandler(){
+        // Uncomment to do initial population of commands
+        //await PopulateCommandsAsync(ownerServerId);
+
+        CreditService.OutOfBalanceAlert += OutOfBalanceHandler;
+
+        await Console.Out.WriteLineAsync("Client Ready Done");
         return;
-    }*/
+    }
+
+    protected void OutOfBalanceHandler(object? sender, CreditService.OutOfBalanceException args){
+        Console.WriteLine($"OutOfBalanceEventRaised:{args.Message}");
+        var accountKey = args.Message;
+
+        if(!accountKey.Contains(':')) accountKey = $"{accountKey}:";
+        var accountKeyBase = accountKey[0..accountKey.IndexOf(':')];
+
+        bool guildIdSuccess = ulong.TryParse(accountKeyBase, out var guildId);
+        if(!guildIdSuccess) return;
+
+        var accountKeyGame = accountKey[(accountKey.IndexOf(':') + 1)..];
+
+        //terrible awful
+        if(accountKeyGame == "SCP"){
+            var serverSuccess = scpIPairs.TryGetValue(guildId, out var server);
+
+            if(!serverSuccess || server is null){
+                //terrible awful, never wait
+                Console.WriteLine($"OOB:UnregisteringClient");
+                CreditService.UnregisterClient(accountKey).Wait();
+                return;
+            }
+
+            scpIPairs[guildId] = server with {WorkingFlag = IServerWorker.WorkingFlag.STOPPING};
+            //terrible awful, never wait
+            Console.WriteLine($"OOB:Stopping Server");
+            server?.Interface?.StopServerAsync(Console.Out.WriteLineAsync).Wait();
+            Console.WriteLine($"OOB:Removing From iPairs");
+            scpIPairs.TryRemove(guildId,out _);
+        }
+        else if(accountKeyGame == "MC"){
+            var serverSuccess = mcIPairs.TryGetValue(guildId, out var server);
+
+            if(!serverSuccess || server is null){
+                //terrible awful, never wait
+                Console.WriteLine($"OOB:UnregisteringClient");
+                CreditService.UnregisterClient(accountKey).Wait();
+                return;
+            }
+
+            mcIPairs[guildId] = server with {WorkingFlag = IServerWorker.WorkingFlag.STOPPING};
+
+            //terrible awful, never wait
+            Console.WriteLine($"OOB:Stopping Server");
+            server?.Interface?.StopServerAsync(Console.Out.WriteLineAsync).Wait();
+            Console.WriteLine($"OOB:Removing From iPairs");
+            mcIPairs.TryRemove(guildId,out _);
+            
+        }
+        Console.WriteLine($"OutOfBalanceEventHandled:{args.Message}");
+    }
 
     protected override Task SlashCommandHandler(SocketSlashCommand command){
         var taskHandler = Task.Run(async () => {

@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Moonfire.Interfaces;
+using Moonfire.Credit;
 using AzureAllocator.Managers;
 
 namespace Moonfire.Workers;
@@ -17,6 +18,11 @@ public static class IServerWorker
         //check for updating status
         if (await TServer.Updating(cts.Token)){
             await DI.ModifyResponseAsync("Game is updating - Try Again Soon",command);
+            return;
+        }
+        //check for balance
+        if (await CreditService.OutOfBalance(command.GuildId ?? 0)){
+            await DI.ModifyResponseAsync("Not Enough Credit",command);
             return;
         }
 
@@ -58,7 +64,7 @@ public static class IServerWorker
             var success = await serverPair.Interface.StartServerAsync((string a)=>DI.ModifyResponseAsync(a,command), cts.Token);
             
             if(success) 
-                await DI.ModifyResponseAsync($"Started Server at '{serverPair.Interface.PublicIp}'",command);
+                await DI.ModifyResponseAsync($"Started Server at '{serverPair.Interface.PublicIp}']\n[Starting Credit '{Math.Round(await CreditTableManager.GetCredit($"{guid}"), 3)}'",command);
             else
                 throw new OperationCanceledException(); //cancels task, runs cleanup task
 
@@ -133,7 +139,7 @@ public static class IServerWorker
             //clean up pair
             serverIPairs.TryRemove(guid,out _);
 
-            if(result) await DI.ModifyResponseAsync("Stopped Server",command);
+            if(result) await DI.ModifyResponseAsync($"Stopped Server]\n[Credit Remaining '{Math.Round(await CreditTableManager.GetCredit($"{guid}"), 3)}'",command);
             else throw new("Server Failed To Stop");
 
         },cts.Token);

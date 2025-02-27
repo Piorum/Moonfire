@@ -46,9 +46,20 @@ public class Program{
             new("configure", "#Admin - Opens game configuration dialogue", MoonfireCommandRank.Admin,
                 [new(name: "game", description: "select game", isRequired: true, choices: _choices)]),
             new("region", "#Admin - Change preferred server region", MoonfireCommandRank.Admin),
+            new("checkcredit", "#Admin - Check available credit", MoonfireCommandRank.Admin),
 
             new("console", "#Owner - WIP", MoonfireCommandRank.Owner,
                 [new(name: "input", description: "Input sent to the console", isRequired: true )]),
+
+            new("addcredit", "#Owner - Add credit to a guild", MoonfireCommandRank.Owner,
+                [new(name: "amount", description: "Amount of credit to add", isRequired: true ),
+                new(name: "guildId", description: "Id of guild to add credit to", isRequired: true)]),
+            new("removecredit", "#Owner - Remove credit from a guild", MoonfireCommandRank.Owner,
+                [new(name: "amount", description: "Amount of credit to remove", isRequired: true ),
+                new(name: "guildId", description: "Id of guild to remove credit from", isRequired: true)]),
+            new("checkcredit", "#Owner - Check credit of a guild", MoonfireCommandRank.Owner,
+                [new(name: "guildId", description: "Id of guild to get credit from", isRequired: true)]),
+
             new("repopulate", "#Owner - Refreshes bot commands", MoonfireCommandRank.Owner),
         };
 
@@ -70,11 +81,12 @@ public class Program{
             //main loop to prevent exit
             while(true){
 
-                //action credit every 180 seconds
+                //action credit every loop
                 await CreditService.ActionCredit();
 
-                await Task.Delay(180);
-
+                //3 minute delay to avoid excessive action 
+                await Task.Delay(180 * 1000);
+                
             }
             
         } catch (Exception e){

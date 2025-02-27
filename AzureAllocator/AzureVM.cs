@@ -20,7 +20,9 @@ public class AzureVM
     public readonly string vmName;
     public readonly string rgName;
     public readonly string? ip;
-    public readonly int HourlyCost;
+    public readonly string? azureRegion;
+    public readonly string? azureVmName;
+    public readonly double HourlyCost;
     private readonly ResourceGroupResource rg;
     private readonly VirtualMachineResource vm;
     private readonly VirtualNetworkResource vnet;
@@ -32,7 +34,9 @@ public class AzureVM
     private AzureVM(
         string vmName, 
         string rgName, 
-        int HourlyCost,
+        double HourlyCost,
+        string azureRegion,
+        string azureVmName,
         ResourceGroupResource rg,
         VirtualMachineResource vm,
         VirtualNetworkResource vnet,
@@ -44,6 +48,8 @@ public class AzureVM
         this.vmName = vmName;
         this.rgName = rgName;
         this.HourlyCost = HourlyCost;
+        this.azureRegion = azureRegion;
+        this.azureVmName = azureVmName;
         this.rg = rg;
         this.vm = vm;
         this.vnet = vnet;
@@ -58,7 +64,9 @@ public class AzureVM
     public static Task<bool> TryCreateAzureVMAsync(
         string vmName, 
         string rgName,
-        int HourlyCost,
+        double HourlyCost,
+        string azureRegion,
+        string azureVmName,
         ResourceGroupResource? rg,
         VirtualMachineResource? vm,
         VirtualNetworkResource? vnet,
@@ -73,7 +81,7 @@ public class AzureVM
             return Task.FromResult(false);
         }
 
-        azureVM = new(vmName, rgName, HourlyCost, rg, vm, vnet, pip, nsg, nic, keyName);
+        azureVM = new(vmName, rgName, HourlyCost, azureRegion, azureVmName, rg, vm, vnet, pip, nsg, nic, keyName);
         return Task.FromResult(true);
     }
 
@@ -176,15 +184,15 @@ public class AzureVM
         await RunScript($"curl -o {destination} '{await GetDownloadSas(container,name)}'",token);
     }
 
-    public static Task<int?> VmSizeToPrice(InternalVmSize? vmSize){
-        int HourlyCost;
+    public static Task<double?> VmSizeToPrice(InternalVmSize? vmSize){
+        double HourlyCost;
         if(vmSize?.VCpuCount is null || vmSize?.GiBRamCount is null){
-            return Task.FromResult<int?>(null);
+            return Task.FromResult<double?>(null);
         }
         double CpuHourlyCost = (double)vmSize.VCpuCount * 3;
         double RamHourlyCost = (double)vmSize.GiBRamCount * 1.5;
-        HourlyCost = (int)(CpuHourlyCost + RamHourlyCost);
-        return Task.FromResult<int?>(HourlyCost);
+        HourlyCost = (CpuHourlyCost + RamHourlyCost) / 100;
+        return Task.FromResult<double?>(HourlyCost);
     }
 
     private async Task StartVM(){
@@ -200,7 +208,7 @@ public class AzureVM
     }
 
     private ulong CheckGuid(){
-        return ulong.TryParse(Reg.NumericRegex().Match(rgName).Value,out var guid) ? guid : 0;
+        return ulong.TryParse(Reg.NumericRegex().Match(rgName[..^3]).Value,out var guid) ? guid : 0;
     }
 
     private async Task Log(string funcName, string input) =>

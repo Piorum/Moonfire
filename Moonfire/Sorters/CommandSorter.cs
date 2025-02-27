@@ -2,6 +2,7 @@ using Moonfire.Interfaces;
 using Moonfire.Workers;
 using Moonfire.Types.Discord;
 using Moonfire.ComponentBuilders;
+using Moonfire.Credit;
 
 namespace Moonfire.Sorters;
 
@@ -49,6 +50,16 @@ public static class CommandSorter
 
             "region" => (DI.SendComponentsAsync(await BOTComponentBuilder.GetRegionSelectionComponents(),command),ResponseType.COMPONENT),
 
+            "checkcredit" => (Task.Run(async () => {
+                var guildId = command.GuildId;
+                if(guildId is null) {
+                    await DI.ModifyResponseAsync("Error Getting GuildId",command);
+                    return;
+                }
+
+                await DI.ModifyResponseAsync($"Guild has '{Math.Round(await CreditTableManager.GetCredit($"{guildId}"),3)}' credit",command);
+            }),ResponseType.BASIC),
+
             _ => (DI.ModifyResponseAsync($"Caught {command.Data.Name} by admin handler but found no command",command),ResponseType.BASIC)
         };
     }
@@ -65,6 +76,54 @@ public static class CommandSorter
             "repopulate" => Task.FromResult((BotBase.RepopulateTaskAsync(command,bot),ResponseType.BASIC)),
 
             "console" => Task.FromResult((DI.ModifyResponseAsync("WIP",command),ResponseType.BASIC)),
+
+            "addcredit" => Task.FromResult((Task.Run(async () => {
+                var amountFound = ulong.TryParse(command.Data.Options.First().Value.ToString(), out var amount);
+                if(!amountFound) {
+                    await DI.ModifyResponseAsync("Amount Not Found",command);
+                    return;
+                }
+
+                var guildIdFound = ulong.TryParse(command.Data.Options.ElementAt(1).Value.ToString(), out var guildId);
+
+                if(!guildIdFound) {
+                    await DI.ModifyResponseAsync("GuildId Not Found",command);
+                    return;
+                }
+
+                await CreditTableManager.IncrementCredit($"{guildId}", amount, "Manual Increment");
+
+                await DI.ModifyResponseAsync($"Added {amount} to {guildId}",command);
+            }),ResponseType.BASIC)),
+
+            "removecredit" => Task.FromResult((Task.Run(async () => {
+                var amountFound = ulong.TryParse(command.Data.Options.First().Value.ToString(), out var amount);
+                if(!amountFound) {
+                    await DI.ModifyResponseAsync("Amount Not Found",command);
+                    return;
+                }
+
+                var guildIdFound = ulong.TryParse(command.Data.Options.ElementAt(1).Value.ToString(), out var guildId);
+
+                if(!guildIdFound) {
+                    await DI.ModifyResponseAsync("GuildId Not Found",command);
+                    return;
+                }
+
+                await CreditTableManager.DecrementCredit($"{guildId}", amount, "Manual Decrement");
+
+                await DI.ModifyResponseAsync($"Removed {amount} from {guildId}",command);
+            }),ResponseType.BASIC)),
+
+            "checkcredit" => Task.FromResult((Task.Run(async () => {
+                var guildIdFound = ulong.TryParse(command.Data.Options.First().Value.ToString(), out var guildId);
+                if(!guildIdFound) {
+                    await DI.ModifyResponseAsync("Amount Not Found",command);
+                    return;
+                }
+
+                await DI.ModifyResponseAsync($"{guildId} has '{Math.Round(await CreditTableManager.GetCredit($"{guildId}"),3)}' credit",command);
+            }),ResponseType.BASIC)),
 
             _ => Task.FromResult((DI.ModifyResponseAsync($"Caught {command.Data.Name} by owner handler but found no command",command),ResponseType.BASIC))
         };

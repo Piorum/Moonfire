@@ -19,21 +19,28 @@ public static class AzureManager
     private static QuotaManager? quotaManager = null;
 
     public static async Task<AzureVM?> Allocate(AzureSettings settings, string baseRgName, string vmName, CancellationToken token = default){
-        var HourlyCostResult = await AzureVM.VmSizeToPrice(settings.VmSize);
-        if(HourlyCostResult is null) return null;
-        int HourlyCost = (int)HourlyCostResult;
-        
         var quotaM = await GetQuotaManager();
         (var AzureValues, var availability) = await quotaM.RequestQuota(settings);
         if(AzureValues is null || availability is QuotaManager.VMAvailability.INVALID || availability is QuotaManager.VMAvailability.GLOBALFULL){
             return null;
         }
 
-        var region = AzureValues.Region;
+        var azureRegion = AzureValues.Region;
         var azureVmSize = AzureValues.AzureVmName;
 
-        var rgName = $"{baseRgName}{await RegionMap.GetRegionCode(region)}";
-        await Console.Out.WriteLineAsync($"region:{region}:vmSize:{azureVmSize}");
+        var rgName = $"{baseRgName}{await RegionMap.GetRegionCode(azureRegion)}";
+
+        return await Allocate(settings, azureRegion, azureVmSize, rgName, vmName, token:token);
+    }
+
+    public static async Task<AzureVM?> Allocate(AzureSettings settings, string azureRegion, string azureVmSize, string rgName, string vmName, CancellationToken token = default){
+        var HourlyCostResult = await AzureVM.VmSizeToPrice(settings.VmSize);
+        if(HourlyCostResult is null) return null;
+        double HourlyCost = (double)HourlyCostResult;
+
+        var quotaM = await GetQuotaManager();
+
+        await Console.Out.WriteLineAsync($"region:{azureRegion}:vmSize:{azureVmSize}");
 
         var client = await GetArmClient();
 
@@ -56,12 +63,12 @@ public static class AzureManager
         
         var sub = await GetSubscriptionAsync();
         try{
-            rg = await AllocateOrGetRG(region,vmName,rgName,sub,token) ?? throw new("Resource Group Allocation Failed");
+            rg = await AllocateOrGetRG(azureRegion,vmName,rgName,sub,token) ?? throw new("Resource Group Allocation Failed");
 
-            var vnetTask = AllocateOrGetVnet(region,vmName,rgName,rg,vnetName,token);
-            var pipTask = AllocateOrGetPip(region,vmName,rgName,rg,pipName,token);
-            var nsgTask = AllocateOrGetNsg(region,vmName,rgName,rg,settings,nsgName,token);
-            var keyTask = AllocateOrGetSshKeyPair(region,vmName,rgName,rg,keyName,token);
+            var vnetTask = AllocateOrGetVnet(azureRegion,vmName,rgName,rg,vnetName,token);
+            var pipTask = AllocateOrGetPip(azureRegion,vmName,rgName,rg,pipName,token);
+            var nsgTask = AllocateOrGetNsg(azureRegion,vmName,rgName,rg,settings,nsgName,token);
+            var keyTask = AllocateOrGetSshKeyPair(azureRegion,vmName,rgName,rg,keyName,token);
             await Task.WhenAll(vnetTask,pipTask,nsgTask,keyTask);
 
             (vnet,var newVnet) = await vnetTask;
@@ -78,18 +85,18 @@ public static class AzureManager
 
             var completeBaseNetwork = !(newVnet || newPip || newNsg || newKey);
 
-            (nic,var newNic) = await AllocateOrGetNic(region,vmName,rgName,rg,vnet,pip,nsg,nicName,completeBaseNetwork,token);
+            (nic,var newNic) = await AllocateOrGetNic(azureRegion,vmName,rgName,rg,vnet,pip,nsg,nicName,completeBaseNetwork,token);
             if(nic is null) throw new("Network Interface Allocation Failed");
 
             var completeVM = completeBaseNetwork && !newNic;
 
-            vm = await AllocateOrGetVm(region,vmName,rgName,rg,nic,key,settings,completeVM,azureVmSize,token) ?? throw new("Virtual Machine Allocation Failed");
+            vm = await AllocateOrGetVm(azureRegion,vmName,rgName,rg,nic,key,settings,completeVM,azureVmSize,token) ?? throw new("Virtual Machine Allocation Failed");
 
-            var success = await AzureVM.TryCreateAzureVMAsync(vmName,rgName,HourlyCost,rg,vm,vnet,pip,nsg,nic,keyName,out var azureVM);
+            var success = await AzureVM.TryCreateAzureVMAsync(vmName,rgName,HourlyCost,azureRegion,azureVmSize,rg,vm,vnet,pip,nsg,nic,keyName,out var azureVM);
             return success ? azureVM : throw new("AzureVM Creation Failed");
 
         } catch (OperationCanceledException){
-            await quotaM.ReleaseQuota(azureVmSize, region);
+            await quotaM.ReleaseQuota(azureVmSize, azureRegion);
 
             //propagate upward
             throw;
@@ -99,7 +106,7 @@ public static class AzureManager
             _ = Log(vmName,rgName,nameof(Allocate),$"Cleaning Up Failed Allocation");
 
             if(vm is null){
-                await quotaM.ReleaseQuota(azureVmSize, region);
+                await quotaM.ReleaseQuota(azureVmSize, azureRegion);
             }
 
             var cts = new CancellationTokenSource();

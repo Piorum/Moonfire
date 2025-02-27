@@ -3,6 +3,7 @@ using Moonfire.TableEntities;
 using Moonfire.Types.Json;
 using Moonfire.ConfigHandlers;
 using AzureAllocator.Managers;
+using Moonfire.Credit;
 
 namespace Moonfire.Interfaces;
 
@@ -23,10 +24,29 @@ public class SCPInterface : IServer<SCPInterface>, IServerBase
 
         //game settings/vm building tasks
         var gameSettingsTask = SCPConfigHandler.GetGameSettings(guildId,token);
-        var buildVMTask = Task.Run(async () => 
+
+        //gets already started flag, defaults to false if no entry, if not alreadyStarted : else
+        var alreadyStartedEntity = await TableManager.GetITableEntity<ServerEntity>
+            (
+                $"{nameof(Moonfire)}Servers",
+                guildId,
+                "scp",
+                token
+            );
+        alreadyStartedEntity ??= new();
+
+        Task<AzureVM?> buildVMTask;
+        if(alreadyStartedEntity.IsRunning && alreadyStartedEntity.AzureRegion is not null && alreadyStartedEntity.AzureVmName is not null && alreadyStartedEntity.RgName is not null){
+            buildVMTask = Task.Run(async () => 
+            {
+                return await AzureManager.Allocate(await SCPConfigHandler.GetHardwareSettings(guildId,token), alreadyStartedEntity.AzureRegion, alreadyStartedEntity.AzureVmName, alreadyStartedEntity.RgName, $"SCPVM", token);
+            },token);
+        } else {
+            buildVMTask = Task.Run(async () => 
             {
                 return await AzureManager.Allocate(await SCPConfigHandler.GetHardwareSettings(guildId,token), $"{guildId}", $"SCPVM", token);
             },token);
+        }
 
         //await tasks
         await Task.WhenAll(gameSettingsTask,buildVMTask);
@@ -113,8 +133,12 @@ public class SCPInterface : IServer<SCPInterface>, IServerBase
         _ = Log(fN,"SCP Server Started");
 
         //set already started flag true
-        await TableManager.StoreITableEntity($"{nameof(Moonfire)}Servers",new ServerEntity(vm.Guid.ToString()??"","scp",true),token);
+        await TableManager.StoreITableEntity($"{nameof(Moonfire)}Servers",new ServerEntity(vm.Guid.ToString()??"","scp",true,vm.azureRegion,vm.azureVmName,vm.rgName),token);
         started = true;
+
+        //register to credit service
+        await CreditService.RegisterClient(vm.Guid ?? 0, Game.SCP, vm.HourlyCost, "SCP Server", token:token);
+
         return true;
     }
 
@@ -134,6 +158,9 @@ public class SCPInterface : IServer<SCPInterface>, IServerBase
 
             //set already started flag false
             await TableManager.StoreITableEntity($"{nameof(Moonfire)}Servers",new ServerEntity(vm.Guid.ToString()??string.Empty,"scp",false),token);
+
+            //unregister from credit service
+            await CreditService.UnregisterClient(vm.Guid ?? 0, Game.SCP, token:token);
 
             await vm.Deallocate(token);
         }
@@ -176,6 +203,8 @@ public class SCPInterface : IServer<SCPInterface>, IServerBase
             return true;
         }
         await vm.StartSSH(sshClient);
+
+        await CreditService.RegisterClient(vm.Guid ?? 0, Game.SCP, vm.HourlyCost, "SCP Server", token:token);
 
         return true;
     }

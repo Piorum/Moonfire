@@ -4,18 +4,23 @@ namespace Moonfire.Credit;
 
 public class CreditService
 {
-    public static event EventHandler<Exception>? OutOfBalanceAlert;
+    public static event EventHandler<OutOfBalanceException>? OutOfBalanceAlert;
 
     private static bool Actioning = false;
     private static readonly ConcurrentDictionary<string, CreditClient> creditClients = [];
     private static readonly ConcurrentDictionary<string, NewCreditClient> newCreditClients = [];
+
+    public static async Task<bool> OutOfBalance(ulong? guildId) =>
+        await CreditTableManager.GetCredit($"{guildId}") <= 0;
 
     public static async Task RegisterClient(ulong guildId, Game game, double hourlyCost, string reason, CancellationToken token = default){
         await AwaitActioning(token);
 
         var accountKey = await GenerateAccountKey(guildId, game);
 
-        NewCreditClient newClient = new(DateTime.Now, hourlyCost, reason);
+        await Console.Out.WriteLineAsync($"Registered Credit Client:accountKey:{accountKey}:hourlyCost:{hourlyCost}");
+
+        NewCreditClient newClient = new(DateTime.UtcNow, hourlyCost, reason);
 
         newCreditClients.TryAdd(accountKey, newClient);
     }
@@ -24,6 +29,8 @@ public class CreditService
         await AwaitActioning(token);
 
         var accountKey = await GenerateAccountKey(guildId, game);
+
+        await Console.Out.WriteLineAsync($"Unregistered Credit Client:accountKey:{accountKey}");
 
         await UnregisterClient(accountKey, token:token);
     }
@@ -43,7 +50,7 @@ public class CreditService
 
         var lastActionTime = await CreditTableManager.GetLastActionTime();
 
-        var currentTime = DateTime.Now;
+        var currentTime = DateTime.UtcNow;
 
         //used to enforce pausing
         if(lastActionTime > currentTime){
@@ -87,16 +94,13 @@ public class CreditService
 
         var actionResults = await Task.WhenAll(actionTasks);
 
-        //where Item2(newAccountBalance) < 0 select accountKey to list
-        var outOfBalanceAccounts = actionResults.Where(tuple => tuple.Item2 < 0).Select(tuple => tuple.Item1).ToList();
+        //where Item2(newAccountBalance) <= 0 select accountKey to list
+        var outOfBalanceAccounts = actionResults.Where(tuple => tuple.Item2 <= 0).Select(tuple => tuple.Item1).ToList();
             
-        List<Task> alertTasks = [];
 
-        foreach(var account in outOfBalanceAccounts){
-            alertTasks.Add(Task.Run(() => SendOutOfBalanceAlert(account), cancellationToken:token));
+        foreach(var accountKey in outOfBalanceAccounts){
+            _ = Task.Run(() => SendOutOfBalanceAlert(accountKey), cancellationToken:token);
         }
-
-        await Task.WhenAll(alertTasks);
 
         Actioning = false;
     }
@@ -114,19 +118,19 @@ public class CreditService
     }
 
     private static async Task ActionSingularClient(string accountKey, CancellationToken token = default){
-        if(Actioning){
-            await AwaitActioning(token);
-            return;
-        }
+        await AwaitActioning(token);
 
         var clientFound = creditClients.TryGetValue(accountKey, out var existingClient);
         NewCreditClient? newClient = null;
         if(!clientFound){
             clientFound = newCreditClients.TryGetValue(accountKey, out newClient);
-            if(!clientFound) return;
+            if(!clientFound){
+                await Console.Out.WriteLineAsync($"{nameof(ActionSingularClient)}:Not Client Found");
+                return;
+            }
         }
 
-        DateTime currentTime = DateTime.Now;
+        DateTime currentTime = DateTime.UtcNow;
 
         if(existingClient is not null){
             var lastActionTime = await CreditTableManager.GetLastActionTime();
@@ -158,7 +162,7 @@ public class CreditService
     }
 
     private static Task<string> GenerateAccountKey(ulong guid, Game game) => Task.FromResult(
-        $"{guid}{game switch {
+        $"{guid}:{game switch {
         Game.NONE => "NONE",
         Game.MINECRAFT => "MC",
         Game.SCP => "SCP",
@@ -188,7 +192,6 @@ public class CreditService
 
     private class NewCreditClient(DateTime creationTime, double hourlyCost, string reason) : CreditClient(hourlyCost, reason) {
         public DateTime CreationTime = creationTime;
-
     }
 
 }

@@ -11,7 +11,7 @@ public class TimeEntity : ITableEntity
     public DateTimeOffset? Timestamp { get; set; }
 
     // Additional properties
-    public DateTime Time { get; set; } = DateTime.Now;
+    public DateTime Time { get; set; } = DateTime.UtcNow;
 
     // Parameterless constructor
     public TimeEntity() { }

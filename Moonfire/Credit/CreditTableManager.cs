@@ -6,7 +6,7 @@ namespace Moonfire.Credit;
 public static class CreditTableManager
 {
     public static async Task<(string, double)> DecrementCredit(string accountKey, double amount, string reason){
-        await LogValueChange(amount, reason, CreditAction.DECREMENT);
+        await LogValueChange(accountKey, amount, reason, CreditAction.DECREMENT);
 
         //perform decrement
         var creditEntity = await GetCreditEntity(accountKey);
@@ -19,7 +19,7 @@ public static class CreditTableManager
     }
 
     public static async Task<(string, double)> IncrementCredit(string accountKey, double amount, string reason){
-        await LogValueChange(amount, reason, CreditAction.INCREMENT);
+        await LogValueChange(accountKey, amount, reason, CreditAction.INCREMENT);
 
         //perform increment
         var creditEntity = await GetCreditEntity(accountKey);
@@ -31,8 +31,15 @@ public static class CreditTableManager
         return (accountKey, creditEntity.Credit);
     }
 
+    public static async Task<double> GetCredit(string accountKey){
+        var creditEntity = await GetCreditEntity(accountKey);
+        return creditEntity.Credit;
+    }
+
     private static async Task<CreditEntity> GetCreditEntity(string accountKey){
-        return await TableManager.GetITableEntity<CreditEntity>("MoonfireCredit", accountKey, "0") ?? new (accountKey, 0);
+        if(!accountKey.Contains(':')) accountKey = $"{accountKey}:";
+        var accountKeyBase = accountKey[0..accountKey.IndexOf(':')];
+        return await TableManager.GetITableEntity<CreditEntity>("MoonfireCredit", accountKeyBase, "0") ?? new (accountKeyBase, 0);
     }
 
     private static async Task StoreCreditEntity(CreditEntity creditEntity){
@@ -45,10 +52,10 @@ public static class CreditTableManager
         var timeEntity = await TableManager.GetITableEntity<TimeEntity>("MoonfireCredit", "CreditService", "lastActionTime");
 
         if(timeEntity is null){
-            await SetLastActionTime(DateTime.Now);
+            await SetLastActionTime(DateTime.UtcNow);
         }
 
-        var lastActionTime = timeEntity is not null ? timeEntity.Time : DateTime.Now;
+        var lastActionTime = timeEntity is not null ? timeEntity.Time : DateTime.UtcNow;
 
         return lastActionTime;
     }
@@ -60,13 +67,13 @@ public static class CreditTableManager
         await TableManager.StoreITableEntity("MoonfireCredit", timeEntity);
     }
 
-    private static async Task LogValueChange(double amount, string reason, CreditAction action){
+    private static async Task LogValueChange(string accountKey, double amount, string reason, CreditAction action){
 
         //append action to log
 
         //this should be added to a sperate permanent log
 
-        await Console.Out.WriteLineAsync($"{nameof(CreditTableManager)}:{nameof(LogValueChange)}:amount:{amount}:reason:{reason}:action:{action}");
+        await Console.Out.WriteLineAsync($"{nameof(CreditTableManager)}:{nameof(LogValueChange)}:accountKey:{accountKey}:amount:{amount}:reason:{reason}:action:{action}");
     }
 
     private enum CreditAction{
