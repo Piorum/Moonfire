@@ -17,11 +17,14 @@ public static class DI
     }
 
     //response to slash command
-    public static async Task SendResponseAsync(string input, SocketSlashCommand command)=>
-        await command.RespondAsync(" ", embed: (await EmbedMessage(input,command)).Build(), ephemeral: true);
+    public static async Task SendResponseAsync(string input, SocketSlashCommand command, bool ephemeral = true)=>
+        await command.RespondAsync(" ", embed: (await EmbedMessage(input,command)).Build(), ephemeral: ephemeral);
 
     public static async Task ModifyResponseAsync (string input, SocketSlashCommand command) =>
         await command.ModifyOriginalResponseAsync(async msg => msg.Embed = (await EmbedMessage(input,command)).Build());
+
+    public static async Task SendFollowUpResponseAsync (string input, SocketSlashCommand command)=>
+        await command.Channel.SendMessageAsync(" ", embed: (await EmbedMessage(input,command)).Build());
 
     //reponse to component interaction
     //title
@@ -140,16 +143,23 @@ public static class DI
             var buttonBuilder = new ButtonBuilder();
 
             buttonBuilder
-                .WithLabel(button.Label)
-                .WithCustomId(button.CustomId)
                 .WithStyle(button.Style)
                 .WithDisabled(button.Disabled);
+
+            if(button.Label is not null)
+                buttonBuilder.WithLabel(button.Label);
+
+            if(button.CustomId is not null)
+                buttonBuilder.WithCustomId(button.CustomId);
 
             if(button.Emote is not null)
                 buttonBuilder.WithEmote(button.Emote);
 
-            if(button.Url is not null && button.Style is ButtonStyle.Link)
+            if(button.Url is not null && button.Style is ButtonStyle.Link && button.CustomId is null)
                 buttonBuilder.WithUrl(button.Url);
+
+            if(button.SkuId is not null && button.Style is ButtonStyle.Premium && button.CustomId is null && button.Url is null && button.Label is null)
+                buttonBuilder.WithSkuId(button.SkuId);
             
             builder.WithButton(buttonBuilder);
         }

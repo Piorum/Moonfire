@@ -37,17 +37,19 @@ public class MoonfireSelectMenuComponentOption(
 }
 
 public class MoonfireButtonComponent(
-    string label, 
-    string customId, 
+    string? label = null, 
+    string? customId = null, 
     ButtonStyle? style = null, 
     IEmote? emote = null,
     string? url = null,
-    bool disabled = false
+    bool disabled = false,
+    ulong? skuId = null
 ){
-    public readonly string Label = label;
-    public readonly string CustomId = customId;
+    public readonly string? Label = label;
+    public readonly string? CustomId = customId;
     public readonly ButtonStyle Style = style ?? (url is null ? ButtonStyle.Primary : ButtonStyle.Link); //defaults to primary unless link is provided
     public readonly IEmote? Emote = emote;
     public readonly string? Url = url;
     public readonly bool Disabled = disabled;
+    public readonly ulong? SkuId = skuId;
 }

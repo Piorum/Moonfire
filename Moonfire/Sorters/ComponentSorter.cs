@@ -96,7 +96,7 @@ public class ComponentSorter
 
         if(guildId is not null){
             if(await Bot.ServerRunning((ulong)guildId)){
-                await DI.ModifyResponseAsync($"Servers must be off to change region.","BOT",component);
+                await DI.SendResponseAsync($"Servers must be off to change region.","BOT",component);
             }
         }
 
@@ -107,6 +107,6 @@ public class ComponentSorter
         await GLOBALConfigHandler.SetSettings(guildId, globalSettings);
 
         await Console.Out.WriteLineAsync($"guildId:{guildId}:region:{region}");
-        await DI.GenericConfigUpdateResponse($"Region Set To {region}","BOT",component);
+        await DI.SendResponseAsync($"Region Set To {region}","BOT",component);
     }
 }

@@ -50,6 +50,12 @@ public static class CommandSorter
 
             "region" => (DI.SendComponentsAsync(await BOTComponentBuilder.GetRegionSelectionComponents(),command),ResponseType.COMPONENT),
 
+            "shop" => (DI.SendComponentsAsync(new(buttons:[
+                new(label: "Shop", style: ButtonStyle.Link, url: "https://discord.com/discovery/applications/1077479824093888522/store"),
+                new(style: ButtonStyle.Premium, skuId: 1339100750487355446),
+                new(style: ButtonStyle.Premium, skuId: 1345145487824785490),
+                new(style: ButtonStyle.Premium, skuId: 1345145596549529763) ]),command),ResponseType.COMPONENT),
+
             "checkcredit" => (Task.Run(async () => {
                 var guildId = command.GuildId;
                 if(guildId is null) {
@@ -132,7 +138,7 @@ public static class CommandSorter
     private async static Task<(Task,ResponseType)> StartCommandHandler(SocketSlashCommand command, Bot bot){
         return await GetGame(command) switch
         {
-            Game.SCP => (IServerWorker.StartTaskAsync(bot.scpIPairs,command),ResponseType.BASIC),
+            Game.SCP => (IServerWorker.StartTaskAsync(Bot.scpIPairs,command),ResponseType.BASIC),
             
             Game.MINECRAFT => (DI.ModifyResponseAsync("Minecraft not available",command),ResponseType.BASIC),
 
@@ -143,7 +149,7 @@ public static class CommandSorter
     private async static Task<(Task,ResponseType)> StopCommandHandler(SocketSlashCommand command, Bot bot){
         return await GetGame(command) switch
         {
-            Game.SCP => (IServerWorker.StopTaskAsync(bot.scpIPairs,command),ResponseType.BASIC),
+            Game.SCP => (IServerWorker.StopTaskAsync(Bot.scpIPairs,command),ResponseType.BASIC),
             
             Game.MINECRAFT => (DI.ModifyResponseAsync("Minecraft not available",command),ResponseType.BASIC),
 

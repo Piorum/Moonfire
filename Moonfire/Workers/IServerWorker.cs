@@ -61,10 +61,12 @@ public static class IServerWorker
             }
 
             //start server
-            var success = await serverPair.Interface.StartServerAsync((string a)=>DI.ModifyResponseAsync(a,command), cts.Token);
+            var success = await serverPair.Interface.StartServerAsync(a=>DI.ModifyResponseAsync(a,command), cts.Token);
             
-            if(success) 
-                await DI.ModifyResponseAsync($"Started Server at '{serverPair.Interface.PublicIp}']\n[Starting Credit '{Math.Round(await CreditTableManager.GetCredit($"{guid}"), 3)}'",command);
+            if(success) {
+                await DI.ModifyResponseAsync($"Server Startup Completed]\n[Starting Credit '{Math.Round(await CreditTableManager.GetCredit($"{guid}"), 3)}'",command);
+                await DI.SendFollowUpResponseAsync($"Started Server at '{serverPair.Interface.PublicIp}'",command);
+            }
             else
                 throw new OperationCanceledException(); //cancels task, runs cleanup task
 

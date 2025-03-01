@@ -47,6 +47,7 @@ public class Program{
                 [new(name: "game", description: "select game", isRequired: true, choices: _choices)]),
             new("region", "#Admin - Change preferred server region", MoonfireCommandRank.Admin),
             new("checkcredit", "#Admin - Check available credit", MoonfireCommandRank.Admin),
+            new("shop", "#Admin - Prompt to open shop", MoonfireCommandRank.Admin),
 
             new("console", "#Owner - WIP", MoonfireCommandRank.Owner,
                 [new(name: "input", description: "Input sent to the console", isRequired: true )]),

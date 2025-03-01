@@ -3,7 +3,6 @@ using Moonfire.TableEntities;
 using Moonfire.Workers;
 using Moonfire.Sorters;
 using Moonfire.Credit;
-using Moonfire.Types.Json;
 using Moonfire.Types.Discord;
 using System.Collections.Concurrent;
 using AzureAllocator.Managers;
@@ -12,11 +11,17 @@ namespace Moonfire;
 
 public class Bot(string token, DiscordSocketConfig? config = null, List<MoonfireCommand>? _commands = null) : BotBase(token,config,_commands)
 {
-    internal readonly ConcurrentDictionary<ulong, IServerWorker.InterfacePair<SCPInterface>> scpIPairs = [];
-    internal readonly ConcurrentDictionary<ulong, IServerWorker.InterfacePair<MCInterface>> mcIPairs = [];
+    internal static readonly ConcurrentDictionary<ulong, IServerWorker.InterfacePair<SCPInterface>> scpIPairs = [];
+    internal static readonly ConcurrentDictionary<ulong, IServerWorker.InterfacePair<MCInterface>> mcIPairs = [];
     
     public static Task<bool> ServerRunning(ulong guildId){
         var running = false;
+
+        var foundSCP = scpIPairs.ContainsKey(guildId);
+        var foundMC = mcIPairs.ContainsKey(guildId);
+
+        if(foundSCP || foundMC) running = true;
+
         return Task.FromResult(running);
     }
 

@@ -31,6 +31,17 @@ public static class CreditTableManager
         return (accountKey, creditEntity.Credit);
     }
 
+    public static async Task IncrementCreditEntitlement(string accountKey, double amount){
+        await LogValueChange(accountKey, amount, "Entitlement", CreditAction.INCREMENT);
+
+        //perform increment
+        var creditEntity = await GetCreditEntity(accountKey);
+
+        creditEntity.Credit += amount;
+
+        await StoreCreditEntity(creditEntity);
+    }
+
     public static async Task<double> GetCredit(string accountKey){
         var creditEntity = await GetCreditEntity(accountKey);
         return creditEntity.Credit;
