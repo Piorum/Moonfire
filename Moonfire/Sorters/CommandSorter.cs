@@ -97,9 +97,11 @@ public static class CommandSorter
                     return;
                 }
 
-                await CreditTableManager.IncrementCredit($"{guildId}", amount, "Manual Increment");
+                double finalAmount = amount / 100.0;
 
-                await DI.ModifyResponseAsync($"Added {amount} to {guildId}",command);
+                await CreditTableManager.IncrementCredit($"{guildId}", finalAmount, "Manual Increment");
+
+                await DI.ModifyResponseAsync($"Added {finalAmount} to {guildId}",command);
             }),ResponseType.BASIC)),
 
             "removecredit" => Task.FromResult((Task.Run(async () => {
@@ -116,9 +118,11 @@ public static class CommandSorter
                     return;
                 }
 
-                await CreditTableManager.DecrementCredit($"{guildId}", amount, "Manual Decrement");
+                double finalAmount = amount / 100.0;
 
-                await DI.ModifyResponseAsync($"Removed {amount} from {guildId}",command);
+                await CreditTableManager.DecrementCredit($"{guildId}", finalAmount, "Manual Decrement");
+
+                await DI.ModifyResponseAsync($"Removed {finalAmount} from {guildId}",command);
             }),ResponseType.BASIC)),
 
             "checkcredit" => Task.FromResult((Task.Run(async () => {

@@ -24,7 +24,7 @@ public class Program{
         }
 
         var i = 0;
-        foreach(var game in Enum.GetValues(typeof(Options))){
+        foreach(var game in Enum.GetValues<Options>()){
             await Console.Out.WriteLineAsync($"{i} - {game}");
             i++;
         }
