@@ -123,9 +123,19 @@ public abstract class BotBase{
 
     protected async Task UnregisterCommandsAsync(){
         //deletes every command from every guild
+        List<Task> deletions = [];
         foreach(var guild in _client.Guilds){
-            await guild.DeleteApplicationCommandsAsync();
+            deletions.Add(guild.DeleteApplicationCommandsAsync());
         }
+
+        //deletes all global commands
+        var globalCommands = await _client.GetGlobalApplicationCommandsAsync();
+        foreach(var command in globalCommands){
+            deletions.Add(command.DeleteAsync());
+        }
+
+        await Task.WhenAll(deletions);
+        
         Console.WriteLine("Commands Unregistered");
     }
 

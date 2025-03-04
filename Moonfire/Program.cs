@@ -46,11 +46,7 @@ public class Program{
             new("configure", "#Admin - Opens game configuration dialogue", MoonfireCommandRank.Admin,
                 [new(name: "game", description: "select game", isRequired: true, choices: _choices)]),
             new("region", "#Admin - Change preferred server region", MoonfireCommandRank.Admin),
-            new("checkcredit", "#Admin - Check available credit", MoonfireCommandRank.Admin),
-            new("shop", "#Admin - Prompt to open shop", MoonfireCommandRank.Admin),
-
-            new("console", "#Owner - WIP", MoonfireCommandRank.Owner,
-                [new(name: "input", description: "Input sent to the console", isRequired: true )]),
+            new("credit", "#Admin - Check available credit", MoonfireCommandRank.Admin),
 
             new("addcredit", "#Owner - Add amount/100 credit to a guild", MoonfireCommandRank.Owner,
                 [new(name: "amount", description: "Amount/100 of credit to add", isRequired: true ),

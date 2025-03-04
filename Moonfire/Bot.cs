@@ -35,7 +35,7 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Moonfire
         return;
     }
 
-    protected void OutOfBalanceHandler(object? sender, CreditService.OutOfBalanceException args){
+    protected static void OutOfBalanceHandler(object? sender, CreditService.OutOfBalanceException args){
         Console.WriteLine($"OutOfBalanceEventRaised:{args.Message}");
         var accountKey = args.Message;
 
@@ -119,7 +119,7 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Moonfire
 
     protected override Task ComponentHandler(SocketMessageComponent component){
         var taskHandler = Task.Run(async () => {
-            var componentTask = await ComponentSorter.GetTask(component);
+            var componentTask = await ComponentSorter.GetTask(component,this);
 
             await componentTask;
         });
@@ -200,6 +200,54 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Moonfire
             return;
         }
     }
+
+    //Checks if user passed by userId has a valid consumable within the given list of consumables
+    //Returns I:skuIds, O:List<(skuIds, List<IEntitlement>)>
+    public async Task<List<(ulong skuId, List<IEntitlement> entitlements)>> GetUsersConsumableEntitlements(ulong userId, List<ulong> skuIds)
+    {
+        // Retrieve all active entitlements for the user filtering by the provided SKU IDs.
+        var allEntitlements = new List<IEntitlement>();
+        await foreach (var batch in _client.GetEntitlementsAsync(
+                                        limit: 100,
+                                        userId: userId,
+                                        skuIds: skuIds.ToArray(), // Pass the array of SKUs
+                                        excludeEnded: true))
+        {
+            allEntitlements.AddRange(batch);
+        }
+        
+        // For each SKU, collect the entitlements that haven't been consumed.
+        var result = skuIds.Select(sku =>
+            (sku, entitlements: allEntitlements
+                                .Where(e => e.SkuId == sku && !e.IsConsumed)
+                                .ToList()))
+            .ToList();
+        
+        return result;
+    }
+
+    public async Task<bool> ConsumeEntitlement(ulong _userId, ulong _skuId){
+        var entitlementResults = await GetUsersConsumableEntitlements(_userId, [_skuId]);
+
+        var (_, requestedEntitlements) = entitlementResults.FirstOrDefault(x => x.skuId == _skuId);
+
+        if(requestedEntitlements.Count > 0){
+            var requestedEntitlement = requestedEntitlements.First();
+
+            await _client.ConsumeEntitlementAsync(requestedEntitlement.Id);
+
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public static Task<string> SkuIdToSkuName(ulong skuId) => skuId switch {
+        1339100750487355446 => Task.FromResult("5 Credits"),
+        1345145487824785490 => Task.FromResult("10 Credits"),
+        1345145596549529763 => Task.FromResult("20 Credits"),
+        _ => Task.FromResult("Not Found")
+    };
 
 }
 

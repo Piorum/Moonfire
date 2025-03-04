@@ -56,7 +56,7 @@ public static class CommandSorter
                 new(style: ButtonStyle.Premium, skuId: 1345145487824785490),
                 new(style: ButtonStyle.Premium, skuId: 1345145596549529763) ]),command),ResponseType.COMPONENT),
 
-            "checkcredit" => (Task.Run(async () => {
+            "credit" => (Task.Run(async () => {
                 var guildId = command.GuildId;
                 if(guildId is null) {
                     await DI.ModifyResponseAsync("Error Getting GuildId",command);
@@ -81,8 +81,6 @@ public static class CommandSorter
         {
             "repopulate" => Task.FromResult((BotBase.RepopulateTaskAsync(command,bot),ResponseType.BASIC)),
 
-            "console" => Task.FromResult((DI.ModifyResponseAsync("WIP",command),ResponseType.BASIC)),
-
             "addcredit" => Task.FromResult((Task.Run(async () => {
                 var amountFound = ulong.TryParse(command.Data.Options.First().Value.ToString(), out var amount);
                 if(!amountFound) {
@@ -101,7 +99,7 @@ public static class CommandSorter
 
                 await CreditTableManager.IncrementCredit($"{guildId}", finalAmount, "Manual Increment");
 
-                await DI.ModifyResponseAsync($"Added {finalAmount} to {guildId}",command);
+                await DI.ModifyResponseAsync($"Added {finalAmount} credit to {guildId}",command);
             }),ResponseType.BASIC)),
 
             "removecredit" => Task.FromResult((Task.Run(async () => {
@@ -122,7 +120,7 @@ public static class CommandSorter
 
                 await CreditTableManager.DecrementCredit($"{guildId}", finalAmount, "Manual Decrement");
 
-                await DI.ModifyResponseAsync($"Removed {finalAmount} from {guildId}",command);
+                await DI.ModifyResponseAsync($"Removed {finalAmount} credit from {guildId}",command);
             }),ResponseType.BASIC)),
 
             "checkcredit" => Task.FromResult((Task.Run(async () => {
@@ -135,6 +133,29 @@ public static class CommandSorter
                 await DI.ModifyResponseAsync($"{guildId} has '{Math.Round(await CreditTableManager.GetCredit($"{guildId}"),3)}' credit",command);
             }),ResponseType.BASIC)),
 
+            "checktestentitlement" => Task.FromResult((Task.Run(async () => {
+                bool hasEntitlement = false;
+
+                var entitlementResults = await bot.GetUsersConsumableEntitlements(command.User.Id, [1346274816851837011]);
+
+                foreach(var (skuIds, entitlements) in entitlementResults)
+                    if(entitlements.Count > 0)
+                        hasEntitlement = true;
+
+                await DI.ModifyResponseAsync($"{hasEntitlement}",command);
+            }),ResponseType.BASIC)),
+
+            "consumetestentitlement" => Task.FromResult((Task.Run(async () => {
+                var consumed = await bot.ConsumeEntitlement(command.User.Id, 1346274816851837011);
+
+                if(consumed){
+                    await DI.ModifyResponseAsync($"Consumed Entitlement",command);
+                } else {
+                    await DI.ModifyResponseAsync($"No Entitlement To Consume",command);
+                }
+
+            }),ResponseType.BASIC)),
+
             _ => Task.FromResult((DI.ModifyResponseAsync($"Caught {command.Data.Name} by owner handler but found no command",command),ResponseType.BASIC))
         };
     }
@@ -142,7 +163,7 @@ public static class CommandSorter
     private async static Task<(Task,ResponseType)> StartCommandHandler(SocketSlashCommand command, Bot bot){
         return await GetGame(command) switch
         {
-            Game.SCP => (IServerWorker.StartTaskAsync(Bot.scpIPairs,command),ResponseType.BASIC),
+            Game.SCP => (IServerWorker.StartTaskAsync(Bot.scpIPairs,command,bot),ResponseType.BASIC),
             
             Game.MINECRAFT => (DI.ModifyResponseAsync("Minecraft not available",command),ResponseType.BASIC),
 

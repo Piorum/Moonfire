@@ -3,12 +3,13 @@ using Moonfire.ComponentBuilders;
 using Moonfire.ModalBuilders;
 using Moonfire.ConfigHandlers;
 using AzureAllocator.Types;
+using Moonfire.Credit;
 
 namespace Moonfire.Sorters;
 
 public class ComponentSorter
 {
-    public static async Task<Task> GetTask(SocketMessageComponent component){
+    public static async Task<Task> GetTask(SocketMessageComponent component, Bot bot){
         return component.Data.CustomId switch{
             //creates select menu to select role to assign
             "scp_addadmin_button" => DI.SendComponentsAsync(await SCPComponentBuilder.GetAssignRoleMenuComponents(),component),
@@ -30,6 +31,40 @@ public class ComponentSorter
 
             //sets preferred region
             "bot_region_menu" => BOTRegionMenuTask(component),
+
+            //consume buttons
+            //5 Credits
+            "consume_1339100750487355446" => Task.Run(async() => {
+                var consumed = await bot.ConsumeEntitlement(component.User.Id, 1339100750487355446);
+                if(consumed){
+                    await CreditTableManager.IncrementCreditEntitlement($"{component.GuildId}", 5.0);
+                    await DI.SendResponseAsync("Applied 5 Credits", component);
+                } else {
+                    await DI.SendResponseAsync("Found No Consumable", component);
+                }
+            }),
+
+            //10 Credits
+            "consume_1345145487824785490" => Task.Run(async() => {
+                var consumed = await bot.ConsumeEntitlement(component.User.Id, 1345145487824785490);
+                if(consumed){
+                    await CreditTableManager.IncrementCreditEntitlement($"{component.GuildId}", 10.0);
+                    await DI.SendResponseAsync("Applied 10 Credits", component);
+                } else {
+                    await DI.SendResponseAsync("Found No Consumable", component);
+                }
+            }),
+
+            //20 Credits
+            "consume_1345145596549529763" => Task.Run(async() => {
+                var consumed = await bot.ConsumeEntitlement(component.User.Id, 1345145596549529763);
+                if(consumed){
+                    await CreditTableManager.IncrementCreditEntitlement($"{component.GuildId}", 20.0);
+                    await DI.SendResponseAsync("Applied 20 Credits", component);
+                } else {
+                    await DI.SendResponseAsync("Found No Consumable", component);
+                }
+            }),
             
             _ => DI.SendResponseAsync($"Caught {component.Data.CustomId} by component handler but found no case",component)
         };

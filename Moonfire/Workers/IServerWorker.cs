@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using Moonfire.Interfaces;
 using Moonfire.Credit;
 using AzureAllocator.Managers;
+using Moonfire.Types.Discord;
 
 namespace Moonfire.Workers;
 
@@ -10,7 +11,7 @@ public static class IServerWorker
     public record InterfacePair<TServer>(TServer? Interface, WorkingFlag WorkingFlag)
         where TServer : class, IServer<TServer>;
 
-    public static async Task StartTaskAsync<TServer>(ConcurrentDictionary<ulong, InterfacePair<TServer>> serverIPairs, SocketSlashCommand command)
+    public static async Task StartTaskAsync<TServer>(ConcurrentDictionary<ulong, InterfacePair<TServer>> serverIPairs, SocketSlashCommand command, Bot bot)
         where TServer : class, IServer<TServer>
     {
         var cts = new CancellationTokenSource();
@@ -22,7 +23,47 @@ public static class IServerWorker
         }
         //check for balance
         if (await CreditService.OutOfBalance(command.GuildId ?? 0)){
-            await DI.ModifyResponseAsync("Not Enough Credit",command);
+            List<ulong> creditConsumableSkuIds = [1339100750487355446, 1345145487824785490, 1345145596549529763];
+
+            var entitlements = await bot.GetUsersConsumableEntitlements(command.User.Id, creditConsumableSkuIds);
+
+            List<MoonfireButtonComponent> consumeEntitlementButtons = [];
+
+            var AtleastOneEntitlement = false;
+            foreach(var (skuId, entitlementObjs) in entitlements){
+                var label = await Bot.SkuIdToSkuName(skuId);
+                bool disabled = true;
+                var style = ButtonStyle.Secondary;
+                if(entitlementObjs.Count > 0){
+                    disabled = false;
+                    AtleastOneEntitlement = true;
+                    style = ButtonStyle.Primary;
+                }
+
+                var button = new MoonfireButtonComponent(label: await Bot.SkuIdToSkuName(skuId), customId: $"consume_{skuId}", style: style, disabled: disabled);
+                consumeEntitlementButtons.Add(button);
+            }
+
+
+            if(AtleastOneEntitlement){
+                await DI.ModifyResponseAsync("Not Enough Credit]\n[Apply Consumable To Guild?",command);
+
+                await DI.ModifyComponentsAsync(new(buttons: consumeEntitlementButtons), command);
+
+            } else {
+                await DI.ModifyResponseAsync("Not Enough Credit",command);
+
+                List<MoonfireButtonComponent> shopButtons = [];
+
+                shopButtons.Add(new(label: "Shop", style: ButtonStyle.Link, url: "https://discord.com/discovery/applications/1077479824093888522/store"));
+                
+                foreach(var skuId in creditConsumableSkuIds){
+                    shopButtons.Add(new(style: ButtonStyle.Premium, skuId: skuId));
+                }
+
+                await DI.ModifyComponentsAsync(new(buttons: shopButtons), command);
+
+            }
             return;
         }
 
@@ -98,7 +139,7 @@ public static class IServerWorker
             var stopcts = new CancellationTokenSource();
             await Ext.TimeoutTask
             (
-                serverPair.Interface.StopServerAsync((string a) => Console.Out.WriteLineAsync(a), stopcts.Token), 
+                serverPair.Interface.StopServerAsync(a => Console.Out.WriteLineAsync(a), stopcts.Token), 
                 new(0, 10, 0), 
                 stopcts
             );

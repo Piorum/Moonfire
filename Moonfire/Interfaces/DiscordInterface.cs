@@ -22,6 +22,8 @@ public static class DI
 
     public static async Task ModifyResponseAsync (string input, SocketSlashCommand command) =>
         await command.ModifyOriginalResponseAsync(async msg => msg.Embed = (await EmbedMessage(input,command)).Build());
+    public static async Task ModifyComponentsAsync (MoonfireComponent components, SocketSlashCommand command) =>
+        await command.ModifyOriginalResponseAsync(async msg => msg.Components = await BuildComponent(components));
 
     public static async Task SendFollowUpResponseAsync (string input, SocketSlashCommand command)=>
         await command.Channel.SendMessageAsync(" ", embed: (await EmbedMessage(input,command)).Build());
