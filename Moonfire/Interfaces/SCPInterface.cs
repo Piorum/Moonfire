@@ -171,10 +171,8 @@ public class SCPInterface : IServer<SCPInterface>, IServerBase
         return true;
     }
 
-    public static async Task<bool> Updating(CancellationToken token = default)
-    {
-        return await TableManager.GetBoolDefaultFalse("Updatefire","updating","game","scp",token);
-    }
+    public static async Task<bool> Updating(CancellationToken token = default) =>
+        await TableManager.GetBoolDefaultFalse("Updatefire","updating","game","scp",token);
 
     public async Task<bool> ReconnectAsync(Func<string, Task> SendMessage, CancellationToken token = default){
         _ = SendMessage("Reconnecting to Server");

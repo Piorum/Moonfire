@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("GameUpdater")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b9b706cb026fddf852aff9b9b76aa54a7647b383")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ca8590dec0f95c8b3c37ca25fb99e256b4f10cd1")]
 [assembly: System.Reflection.AssemblyProductAttribute("GameUpdater")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GameUpdater")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

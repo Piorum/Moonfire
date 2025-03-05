@@ -1,5 +1,3 @@
-using System;
-
 namespace Moonfire.Interfaces;
 
 public class MCInterface : IServer<MCInterface>, IServerBase
