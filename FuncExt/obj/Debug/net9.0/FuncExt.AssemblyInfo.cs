@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FuncExt")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ca8590dec0f95c8b3c37ca25fb99e256b4f10cd1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+07f9910ff9bc080f7710cfd427df37d04702111e")]
 [assembly: System.Reflection.AssemblyProductAttribute("FuncExt")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FuncExt")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
