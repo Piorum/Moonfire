@@ -29,13 +29,13 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Moonfire
         // Uncomment to do initial population of commands
         //await PopulateCommandsAsync(ownerServerId);
 
-        CreditService.OutOfBalanceAlert += OutOfBalanceHandler;
+        CreditService.OutOfBalanceAlert += async (sender, args) => await Ext.RunUnderTry(OutOfBalanceHandler(sender, args));
 
         await Console.Out.WriteLineAsync("Client Ready Done");
         return;
     }
 
-    protected static void OutOfBalanceHandler(object? sender, CreditService.OutOfBalanceException args){
+    protected static async Task OutOfBalanceHandler(object? sender, CreditService.OutOfBalanceException args){
         Console.WriteLine($"OutOfBalanceEventRaised:{args.Message}");
         var accountKey = args.Message;
 
@@ -47,21 +47,25 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Moonfire
 
         var accountKeyGame = accountKey[(accountKey.IndexOf(':') + 1)..];
 
-        //terrible awful
         if(accountKeyGame == "SCP"){
             var serverSuccess = scpIPairs.TryGetValue(guildId, out var server);
 
             if(!serverSuccess || server is null){
-                //terrible awful, never wait
                 Console.WriteLine($"OOB:UnregisteringClient");
-                CreditService.UnregisterClient(accountKey).Wait();
+
+                await CreditService.UnregisterClient(accountKey);
+
                 return;
             }
 
             scpIPairs[guildId] = server with {WorkingFlag = IServerWorker.WorkingFlag.STOPPING};
-            //terrible awful, never wait
+            
             Console.WriteLine($"OOB:Stopping Server");
-            server?.Interface?.StopServerAsync(Console.Out.WriteLineAsync).Wait();
+
+            var stopTask = server?.Interface?.StopServerAsync(Console.Out.WriteLineAsync);
+            if(stopTask is not null)
+                await stopTask;
+
             Console.WriteLine($"OOB:Removing From iPairs");
             scpIPairs.TryRemove(guildId,out _);
         }
@@ -69,17 +73,21 @@ public class Bot(string token, DiscordSocketConfig? config = null, List<Moonfire
             var serverSuccess = mcIPairs.TryGetValue(guildId, out var server);
 
             if(!serverSuccess || server is null){
-                //terrible awful, never wait
                 Console.WriteLine($"OOB:UnregisteringClient");
-                CreditService.UnregisterClient(accountKey).Wait();
+
+                await CreditService.UnregisterClient(accountKey);
+
                 return;
             }
 
             mcIPairs[guildId] = server with {WorkingFlag = IServerWorker.WorkingFlag.STOPPING};
 
-            //terrible awful, never wait
             Console.WriteLine($"OOB:Stopping Server");
-            server?.Interface?.StopServerAsync(Console.Out.WriteLineAsync).Wait();
+
+            var stopTask = server?.Interface?.StopServerAsync(Console.Out.WriteLineAsync);
+            if(stopTask is not null)
+                await stopTask;
+
             Console.WriteLine($"OOB:Removing From iPairs");
             mcIPairs.TryRemove(guildId,out _);
             
