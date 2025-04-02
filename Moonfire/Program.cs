@@ -79,7 +79,12 @@ public class Program{
             while(true){
 
                 //action credit every loop
-                await CreditService.ActionCredit();
+                try{
+                    await CreditService.ActionCredit();
+
+                } catch (Exception e) {
+                    await Console.Out.WriteLineAsync($"[ERROR] \"ActioningCreditFailed\"\n{e}");
+                }
 
                 //3 minute delay to avoid excessive action 
                 await Task.Delay(180 * 1000);
