@@ -65,6 +65,16 @@ public class ComponentSorter
                     await DI.SendResponseAsync("Found No Consumable", component);
                 }
             }),
+
+            //TestSKU
+            /*"consume_1356906689462407168" => Task.Run(async() => {
+                var consumed = await bot.ConsumeEntitlement(component.User.Id, 1356906689462407168);
+                if(consumed){
+                    await DI.SendResponseAsync("Consumed", component);
+                } else {
+                    await DI.SendResponseAsync("Found No Consumable", component);
+                }
+            }),*/
             
             _ => DI.SendResponseAsync($"Caught {component.Data.CustomId} by component handler but found no case",component)
         };

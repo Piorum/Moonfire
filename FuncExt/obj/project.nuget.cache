@@ -1,10 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "pchG+B/cesk=",
+  "dgSpecHash": "WDYU6TvXakE=",
   "success": true,
   "projectFilePath": "/home/username/Documents/Singularity/Moonfire/FuncExt/FuncExt.csproj",
   "expectedPackageFiles": [
-    "/home/username/.nuget/packages/microsoft.aspnetcore.app.ref/9.0.3/microsoft.aspnetcore.app.ref.9.0.3.nupkg.sha512"
+    "/home/username/.nuget/packages/microsoft.aspnetcore.app.ref/9.0.4/microsoft.aspnetcore.app.ref.9.0.4.nupkg.sha512"
   ],
   "logs": []
 }

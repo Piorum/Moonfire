@@ -1,0 +1,88 @@
+{
+    "Quotas": 
+    [
+        {
+            "InternalRegion": "NA",
+            "Region": "centralus",
+            "RegionalQuota": 30,
+            "VmCategories": 
+            [
+                {
+                    "Category": "BS",
+                    "Quota": 10
+                },
+                {
+                    "Category": "Basv2",
+                    "Quota": 10
+                },
+                {
+                    "Category": "Fsv2",
+                    "Quota": 10
+                }
+            ]
+        },
+        {
+            "InternalRegion": "EU",
+            "Region": "uksouth",
+            "RegionalQuota": 10,
+            "VmCategories": 
+            [
+                {
+                    "Category": "BS",
+                    "Quota": 10
+                },
+                {
+                    "Category": "Fsv2",
+                    "Quota": 10
+                }
+            ]
+        }
+    ],
+    "AzureVmData": 
+    [
+        {
+            "CategoryName": "BS",
+            "AvailableSizes": 
+            [
+                {
+                    "VCpuCount": 1,
+                    "GiBRamCount": 1,
+                    "AzureVmSizeName": "Standard_B1s"
+                },
+                {
+                    "VCpuCount": 2,
+                    "GiBRamCount": 4,
+                    "AzureVmSizeName": "Standard_B2s"
+                },
+                {
+                    "VCpuCount": 2,
+                    "GiBRamCount": 8,
+                    "AzureVmSizeName": "Standard_B2ms"
+                }
+            ]
+        },
+        {
+            "CategoryName": "Basv2",
+            "AvailableSizes": 
+            [
+                {
+                    "VCpuCount": 4,
+                    "GiBRamCount": 8,
+                    "AzureVmSizeName": "Standard_B4als_v2"
+                }
+            ]
+        },
+        {
+            "CategoryName": "Fsv2",
+            "AvailableSizes": 
+            [
+                {
+                    "VCpuCount": 4,
+                    "GiBRamCount": 8,
+                    "AzureVmSizeName": "Standard_F4s_v2"
+                }
+            ]
+        }
+    ]
+}
+  

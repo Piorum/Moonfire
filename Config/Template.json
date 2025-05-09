@@ -1,0 +1,35 @@
+{
+    "Region": "NA",
+    "ImageReference": 
+    {
+        "Publisher": "Canonical",
+        "Offer": "ubuntu-24_10",
+        "Sku": "server",
+        "Version": "latest"
+    },
+    "VmSize": 
+    {
+        "VCpuCount": 2,
+        "GiBRamCount": 4
+    },
+    "SecurityRules": 
+    [
+        {
+            "Name": "AllowPort7777",
+            "Priority": 110,
+            "Access": "Allow",
+            "Direction": "Inbound",
+            "Protocol": "*",
+            "SourcePortRange": "*",
+            "DestinationPortRange": "7777",
+            "SourceAddressPrefix": "*",
+            "DestinationAddressPrefix": "*"
+        }
+    ],
+    "DataDisks": [
+        {
+            "Size": 10,
+            "Type": "Standard_LRS"
+        }
+    ]
+}

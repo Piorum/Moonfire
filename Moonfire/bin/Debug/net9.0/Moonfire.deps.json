@@ -10,34 +10,30 @@
         "dependencies": {
           "Azure.ResourceManager": "1.13.0",
           "AzureAllocator": "1.0.0",
-          "Discord.Net": "3.17.1",
+          "Discord.Net": "3.17.2",
           "FuncExt": "1.0.0"
         },
         "runtime": {
           "Moonfire.dll": {}
         }
       },
-      "Azure.Core/1.44.1": {
+      "Azure.Core/1.45.0": {
         "dependencies": {
           "Microsoft.Bcl.AsyncInterfaces": "6.0.0",
           "System.ClientModel": "1.2.1",
-          "System.Diagnostics.DiagnosticSource": "6.0.1",
           "System.Memory.Data": "6.0.0",
-          "System.Numerics.Vectors": "4.5.0",
-          "System.Text.Encodings.Web": "6.0.0",
-          "System.Text.Json": "6.0.10",
           "System.Threading.Tasks.Extensions": "4.5.4"
         },
         "runtime": {
-          "lib/net6.0/Azure.Core.dll": {
-            "assemblyVersion": "1.44.1.0",
-            "fileVersion": "1.4400.124.50905"
+          "lib/net8.0/Azure.Core.dll": {
+            "assemblyVersion": "1.45.0.0",
+            "fileVersion": "1.4500.25.10604"
           }
         }
       },
       "Azure.Data.Tables/12.10.0": {
         "dependencies": {
-          "Azure.Core": "1.44.1"
+          "Azure.Core": "1.45.0"
         },
         "runtime": {
           "lib/net8.0/Azure.Data.Tables.dll": {
@@ -48,7 +44,7 @@
       },
       "Azure.Identity/1.13.2": {
         "dependencies": {
-          "Azure.Core": "1.44.1",
+          "Azure.Core": "1.45.0",
           "Microsoft.Identity.Client": "4.67.2",
           "Microsoft.Identity.Client.Extensions.Msal": "4.67.2",
           "System.Memory": "4.5.5",
@@ -63,9 +59,9 @@
       },
       "Azure.ResourceManager/1.13.0": {
         "dependencies": {
-          "Azure.Core": "1.44.1",
+          "Azure.Core": "1.45.0",
           "System.ClientModel": "1.2.1",
-          "System.Text.Json": "6.0.10"
+          "System.Text.Json": "6.0.11"
         },
         "runtime": {
           "lib/netstandard2.0/Azure.ResourceManager.dll": {
@@ -74,26 +70,26 @@
           }
         }
       },
-      "Azure.ResourceManager.Compute/1.7.0": {
+      "Azure.ResourceManager.Compute/1.8.0": {
         "dependencies": {
-          "Azure.Core": "1.44.1",
+          "Azure.Core": "1.45.0",
           "Azure.ResourceManager": "1.13.0",
           "System.ClientModel": "1.2.1",
-          "System.Text.Json": "6.0.10"
+          "System.Text.Json": "6.0.11"
         },
         "runtime": {
           "lib/net8.0/Azure.ResourceManager.Compute.dll": {
-            "assemblyVersion": "1.7.0.0",
-            "fileVersion": "1.700.24.62402"
+            "assemblyVersion": "1.8.0.0",
+            "fileVersion": "1.800.25.12003"
           }
         }
       },
       "Azure.ResourceManager.Network/1.10.0": {
         "dependencies": {
-          "Azure.Core": "1.44.1",
+          "Azure.Core": "1.45.0",
           "Azure.ResourceManager": "1.13.0",
           "System.ClientModel": "1.2.1",
-          "System.Text.Json": "6.0.10"
+          "System.Text.Json": "6.0.11"
         },
         "runtime": {
           "lib/net8.0/Azure.ResourceManager.Network.dll": {
@@ -102,67 +98,66 @@
           }
         }
       },
-      "Azure.ResourceManager.Resources/1.9.0": {
+      "Azure.ResourceManager.Resources/1.9.1": {
         "dependencies": {
-          "Azure.Core": "1.44.1",
+          "Azure.Core": "1.45.0",
           "Azure.ResourceManager": "1.13.0",
           "System.ClientModel": "1.2.1",
-          "System.Text.Json": "6.0.10"
+          "System.Text.Json": "6.0.11"
         },
         "runtime": {
-          "lib/netstandard2.0/Azure.ResourceManager.Resources.dll": {
-            "assemblyVersion": "1.9.0.0",
-            "fileVersion": "1.900.24.47303"
+          "lib/net8.0/Azure.ResourceManager.Resources.dll": {
+            "assemblyVersion": "1.9.1.0",
+            "fileVersion": "1.900.125.16303"
           }
         }
       },
-      "Azure.Storage.Blobs/12.23.0": {
+      "Azure.Storage.Blobs/12.24.0": {
         "dependencies": {
-          "Azure.Storage.Common": "12.22.0",
-          "System.Text.Json": "6.0.10"
+          "Azure.Storage.Common": "12.23.0"
         },
         "runtime": {
-          "lib/net6.0/Azure.Storage.Blobs.dll": {
-            "assemblyVersion": "12.23.0.0",
-            "fileVersion": "12.2300.24.56203"
+          "lib/net8.0/Azure.Storage.Blobs.dll": {
+            "assemblyVersion": "12.24.0.0",
+            "fileVersion": "12.2400.25.16105"
           }
         }
       },
-      "Azure.Storage.Common/12.22.0": {
+      "Azure.Storage.Common/12.23.0": {
         "dependencies": {
-          "Azure.Core": "1.44.1",
+          "Azure.Core": "1.45.0",
           "System.IO.Hashing": "6.0.0"
         },
         "runtime": {
-          "lib/net6.0/Azure.Storage.Common.dll": {
-            "assemblyVersion": "12.22.0.0",
-            "fileVersion": "12.2200.24.56203"
+          "lib/net8.0/Azure.Storage.Common.dll": {
+            "assemblyVersion": "12.23.0.0",
+            "fileVersion": "12.2300.25.16105"
           }
         }
       },
-      "Discord.Net/3.17.1": {
+      "Discord.Net/3.17.2": {
         "dependencies": {
-          "Discord.Net.Commands": "3.17.1",
-          "Discord.Net.Core": "3.17.1",
-          "Discord.Net.Interactions": "3.17.1",
-          "Discord.Net.Rest": "3.17.1",
-          "Discord.Net.WebSocket": "3.17.1",
-          "Discord.Net.Webhook": "3.17.1"
+          "Discord.Net.Commands": "3.17.2",
+          "Discord.Net.Core": "3.17.2",
+          "Discord.Net.Interactions": "3.17.2",
+          "Discord.Net.Rest": "3.17.2",
+          "Discord.Net.WebSocket": "3.17.2",
+          "Discord.Net.Webhook": "3.17.2"
         }
       },
-      "Discord.Net.Commands/3.17.1": {
+      "Discord.Net.Commands/3.17.2": {
         "dependencies": {
-          "Discord.Net.Core": "3.17.1",
+          "Discord.Net.Core": "3.17.2",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.0"
         },
         "runtime": {
           "lib/net9.0/Discord.Net.Commands.dll": {
-            "assemblyVersion": "3.17.1.0",
-            "fileVersion": "3.17.1.0"
+            "assemblyVersion": "3.17.2.0",
+            "fileVersion": "3.17.2.0"
           }
         }
       },
-      "Discord.Net.Core/3.17.1": {
+      "Discord.Net.Core/3.17.2": {
         "dependencies": {
           "Newtonsoft.Json": "13.0.3",
           "System.Collections.Immutable": "8.0.0",
@@ -171,58 +166,58 @@
         },
         "runtime": {
           "lib/net9.0/Discord.Net.Core.dll": {
-            "assemblyVersion": "3.17.1.0",
-            "fileVersion": "3.17.1.0"
+            "assemblyVersion": "3.17.2.0",
+            "fileVersion": "3.17.2.0"
           }
         }
       },
-      "Discord.Net.Interactions/3.17.1": {
+      "Discord.Net.Interactions/3.17.2": {
         "dependencies": {
-          "Discord.Net.Core": "3.17.1",
-          "Discord.Net.Rest": "3.17.1",
+          "Discord.Net.Core": "3.17.2",
+          "Discord.Net.Rest": "3.17.2",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.0",
           "System.Collections.Immutable": "8.0.0",
           "System.Reactive": "6.0.1"
         },
         "runtime": {
           "lib/net9.0/Discord.Net.Interactions.dll": {
-            "assemblyVersion": "3.17.1.0",
-            "fileVersion": "3.17.1.0"
+            "assemblyVersion": "3.17.2.0",
+            "fileVersion": "3.17.2.0"
           }
         }
       },
-      "Discord.Net.Rest/3.17.1": {
+      "Discord.Net.Rest/3.17.2": {
         "dependencies": {
-          "Discord.Net.Core": "3.17.1"
+          "Discord.Net.Core": "3.17.2"
         },
         "runtime": {
           "lib/net9.0/Discord.Net.Rest.dll": {
-            "assemblyVersion": "3.17.1.0",
-            "fileVersion": "3.17.1.0"
+            "assemblyVersion": "3.17.2.0",
+            "fileVersion": "3.17.2.0"
           }
         }
       },
-      "Discord.Net.Webhook/3.17.1": {
+      "Discord.Net.Webhook/3.17.2": {
         "dependencies": {
-          "Discord.Net.Core": "3.17.1",
-          "Discord.Net.Rest": "3.17.1"
+          "Discord.Net.Core": "3.17.2",
+          "Discord.Net.Rest": "3.17.2"
         },
         "runtime": {
           "lib/net9.0/Discord.Net.Webhook.dll": {
-            "assemblyVersion": "3.17.1.0",
-            "fileVersion": "3.17.1.0"
+            "assemblyVersion": "3.17.2.0",
+            "fileVersion": "3.17.2.0"
           }
         }
       },
-      "Discord.Net.WebSocket/3.17.1": {
+      "Discord.Net.WebSocket/3.17.2": {
         "dependencies": {
-          "Discord.Net.Core": "3.17.1",
-          "Discord.Net.Rest": "3.17.1"
+          "Discord.Net.Core": "3.17.2",
+          "Discord.Net.Rest": "3.17.2"
         },
         "runtime": {
           "lib/net9.0/Discord.Net.WebSocket.dll": {
-            "assemblyVersion": "3.17.1.0",
-            "fileVersion": "3.17.1.0"
+            "assemblyVersion": "3.17.2.0",
+            "fileVersion": "3.17.2.0"
           }
         }
       },
@@ -387,7 +382,7 @@
       "System.ClientModel/1.2.1": {
         "dependencies": {
           "System.Memory.Data": "6.0.0",
-          "System.Text.Json": "6.0.10"
+          "System.Text.Json": "6.0.11"
         },
         "runtime": {
           "lib/net6.0/System.ClientModel.dll": {
@@ -435,7 +430,7 @@
       "System.Memory/4.5.5": {},
       "System.Memory.Data/6.0.0": {
         "dependencies": {
-          "System.Text.Json": "6.0.10"
+          "System.Text.Json": "6.0.11"
         },
         "runtime": {
           "lib/net6.0/System.Memory.Data.dll": {
@@ -444,7 +439,6 @@
           }
         }
       },
-      "System.Numerics.Vectors/4.5.0": {},
       "System.Reactive/6.0.1": {
         "runtime": {
           "lib/net6.0/System.Reactive.dll": {
@@ -470,29 +464,19 @@
           }
         }
       },
-      "System.Text.Encodings.Web/6.0.0": {
-        "dependencies": {
-          "System.Runtime.CompilerServices.Unsafe": "6.0.0"
-        }
-      },
-      "System.Text.Json/6.0.10": {
-        "dependencies": {
-          "System.Runtime.CompilerServices.Unsafe": "6.0.0",
-          "System.Text.Encodings.Web": "6.0.0"
-        }
-      },
+      "System.Text.Json/6.0.11": {},
       "System.Threading.Tasks.Extensions/4.5.4": {},
       "System.ValueTuple/4.5.0": {},
       "AzureAllocator/1.0.0": {
         "dependencies": {
-          "Azure.Core": "1.44.1",
+          "Azure.Core": "1.45.0",
           "Azure.Data.Tables": "12.10.0",
           "Azure.Identity": "1.13.2",
           "Azure.ResourceManager": "1.13.0",
-          "Azure.ResourceManager.Compute": "1.7.0",
+          "Azure.ResourceManager.Compute": "1.8.0",
           "Azure.ResourceManager.Network": "1.10.0",
-          "Azure.ResourceManager.Resources": "1.9.0",
-          "Azure.Storage.Blobs": "12.23.0",
+          "Azure.ResourceManager.Resources": "1.9.1",
+          "Azure.Storage.Blobs": "12.24.0",
           "FuncExt": "1.0.0",
           "Mono.Posix.NETStandard": "1.0.0",
           "Newtonsoft.Json": "13.0.3"
@@ -520,12 +504,12 @@
       "serviceable": false,
       "sha512": ""
     },
-    "Azure.Core/1.44.1": {
+    "Azure.Core/1.45.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-YyznXLQZCregzHvioip07/BkzjuWNXogJEVz9T5W6TwjNr17ax41YGzYMptlo2G10oLCuVPoyva62y0SIRDixg==",
-      "path": "azure.core/1.44.1",
-      "hashPath": "azure.core.1.44.1.nupkg.sha512"
+      "sha512": "sha512-a4ZZ8SHrYqDYqan0vUZrCoN2V09sSXWqsy5PwgyRDZWF/ZjYPUNqBcOOV01Mm7Rcd4Psf08GUBPOhGz+7onmPQ==",
+      "path": "azure.core/1.45.0",
+      "hashPath": "azure.core.1.45.0.nupkg.sha512"
     },
     "Azure.Data.Tables/12.10.0": {
       "type": "package",
@@ -548,12 +532,12 @@
       "path": "azure.resourcemanager/1.13.0",
       "hashPath": "azure.resourcemanager.1.13.0.nupkg.sha512"
     },
-    "Azure.ResourceManager.Compute/1.7.0": {
+    "Azure.ResourceManager.Compute/1.8.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-hQLZoS5xGUpxOZhcvez9dbKpz48339W9NcxHSbXbZXIosUfEylKsWweuoVq3QA5nDqCg1Nlaldnuyzek09mCaw==",
-      "path": "azure.resourcemanager.compute/1.7.0",
-      "hashPath": "azure.resourcemanager.compute.1.7.0.nupkg.sha512"
+      "sha512": "sha512-sdcYt5MfeOZLAqxiAvl1sA63MZN0P1xrXuC4KWW+b+rxCU/e7pF1v8yM49bdTgLUvnWkZB4teZpt6Yz4vBH+xw==",
+      "path": "azure.resourcemanager.compute/1.8.0",
+      "hashPath": "azure.resourcemanager.compute.1.8.0.nupkg.sha512"
     },
     "Azure.ResourceManager.Network/1.10.0": {
       "type": "package",
@@ -562,75 +546,75 @@
       "path": "azure.resourcemanager.network/1.10.0",
       "hashPath": "azure.resourcemanager.network.1.10.0.nupkg.sha512"
     },
-    "Azure.ResourceManager.Resources/1.9.0": {
+    "Azure.ResourceManager.Resources/1.9.1": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-AaGmoPM6UxEYtmf5ADkl26DRy1Ms9CIL9yqgUnoU6YhXYA8r/F52p16JQ9xEHSCzXhr+OO4x2ztujHtj1Eb+qw==",
-      "path": "azure.resourcemanager.resources/1.9.0",
-      "hashPath": "azure.resourcemanager.resources.1.9.0.nupkg.sha512"
+      "sha512": "sha512-6wg2dEf5gYzX9qGUlFPI05OdW4HEUCe8m/5e3lda1a/vRnxU1uqf2wbg+9r7iwLroka4GzPluA11Bz6rJvQQzw==",
+      "path": "azure.resourcemanager.resources/1.9.1",
+      "hashPath": "azure.resourcemanager.resources.1.9.1.nupkg.sha512"
     },
-    "Azure.Storage.Blobs/12.23.0": {
+    "Azure.Storage.Blobs/12.24.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-wokJ5KX/iViQQ32xyCu69+Ter0aR4B9QQ+oR9NCpc/WPIanxnDErrmFfdmE7K8ZdccjHkvE/wEnqJxaF1+5wFg==",
-      "path": "azure.storage.blobs/12.23.0",
-      "hashPath": "azure.storage.blobs.12.23.0.nupkg.sha512"
+      "sha512": "sha512-0SWiMtEYcemn5U69BqVPdqGDwcbl+lsF9L3WFPpqk1Db5g+ytr3L3GmUxMbvvdPNuFwTf03kKtWJpW/qW33T8A==",
+      "path": "azure.storage.blobs/12.24.0",
+      "hashPath": "azure.storage.blobs.12.24.0.nupkg.sha512"
     },
-    "Azure.Storage.Common/12.22.0": {
+    "Azure.Storage.Common/12.23.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-0Vm30bRpQ0fcswB0xQMhKAOSXnRygnF2f/029uPaIDLaj1/yfX4jmU0fFjJe9ojGEj/vlAmsApCEOyL9if6zHg==",
-      "path": "azure.storage.common/12.22.0",
-      "hashPath": "azure.storage.common.12.22.0.nupkg.sha512"
+      "sha512": "sha512-X/pe1LS3lC6s6MSL7A6FzRfnB6P72rNBt5oSuyan6Q4Jxr+KiN9Ufwqo32YLHOVfPcB8ESZZ4rBDketn+J37Rw==",
+      "path": "azure.storage.common/12.23.0",
+      "hashPath": "azure.storage.common.12.23.0.nupkg.sha512"
     },
-    "Discord.Net/3.17.1": {
+    "Discord.Net/3.17.2": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-xD8FiscFW4gT+G6pxjESEFiDAHFI6UbZCjMMBNVMOT68lvjP929tpchIrbvCBVNtHT+P2X9AZYiYYTOyL+VLLA==",
-      "path": "discord.net/3.17.1",
-      "hashPath": "discord.net.3.17.1.nupkg.sha512"
+      "sha512": "sha512-jDyclg2hLkzB+bjVQlNo55wQUisTDG5vDwAjTMyn69djR0xG72Glln0xgjWMLHvdjVER4zSgwl6uq2r5jljmGA==",
+      "path": "discord.net/3.17.2",
+      "hashPath": "discord.net.3.17.2.nupkg.sha512"
     },
-    "Discord.Net.Commands/3.17.1": {
+    "Discord.Net.Commands/3.17.2": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-2gR6hpl+lEsSIF2+BiXEHrQQZffnA9Ovb9/Z45lDK4ebE/1RZvCZbGvJvC6Hul5Y0b6BEkxJTaB1TJH6WxM2dg==",
-      "path": "discord.net.commands/3.17.1",
-      "hashPath": "discord.net.commands.3.17.1.nupkg.sha512"
+      "sha512": "sha512-carBI4BDwWwGogRnM1w4k6AZBqZ42jeMdY9O9/KqIRwX2e7B+Yt8bh99c/Ilrnonea17glQ3chsX3pwT4AzecA==",
+      "path": "discord.net.commands/3.17.2",
+      "hashPath": "discord.net.commands.3.17.2.nupkg.sha512"
     },
-    "Discord.Net.Core/3.17.1": {
+    "Discord.Net.Core/3.17.2": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-726zDgzftOfpdhcHp5PhM0Dy4Movct1N/vPIqA4fncsjQWZGyQt8X9a8QHiYdDBaZi2EsPlY3/3raIdkTQPemQ==",
-      "path": "discord.net.core/3.17.1",
-      "hashPath": "discord.net.core.3.17.1.nupkg.sha512"
+      "sha512": "sha512-mTjcgYqk0Qzd7Vq7m8fRmjjgAoravmxuIsxzbWGqYZYK30s6rDC//RFJYNTcBA3ZY9PSuX34S8gMo7nI4tqMVw==",
+      "path": "discord.net.core/3.17.2",
+      "hashPath": "discord.net.core.3.17.2.nupkg.sha512"
     },
-    "Discord.Net.Interactions/3.17.1": {
+    "Discord.Net.Interactions/3.17.2": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-KkLzB2gaQj8XggVnmbKzy8yHr8bG2ZypTfHbb/z88cEDu3440Ej+lVc/nr4WQVIR+VnlU5Q7cTS44IzwPJYBAQ==",
-      "path": "discord.net.interactions/3.17.1",
-      "hashPath": "discord.net.interactions.3.17.1.nupkg.sha512"
+      "sha512": "sha512-Cn8uKXSDZ5cmzaYmQUN3KaA9YKvfqb3H26HwDzZMU8WoKkLlbLa3Vmgf3BmMBCDoQGWuLHq9+r9OdR6rashluw==",
+      "path": "discord.net.interactions/3.17.2",
+      "hashPath": "discord.net.interactions.3.17.2.nupkg.sha512"
     },
-    "Discord.Net.Rest/3.17.1": {
+    "Discord.Net.Rest/3.17.2": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-dvkY/Or8pz82hEE7qyY8QCUm/tcbPrLaknoihKZcezFU0Hj8vxVrfBIUZ1CXhBeOR8DzpEM3yNg4WewU4Fiwpg==",
-      "path": "discord.net.rest/3.17.1",
-      "hashPath": "discord.net.rest.3.17.1.nupkg.sha512"
+      "sha512": "sha512-8aq2lja/OLPKoesQnethQ1UltsIvaHBKfwPFxWd/tojcAP9Fju0OOTK6I9U7Wkq7szGASjNKuAjE+YO+lyx5Yg==",
+      "path": "discord.net.rest/3.17.2",
+      "hashPath": "discord.net.rest.3.17.2.nupkg.sha512"
     },
-    "Discord.Net.Webhook/3.17.1": {
+    "Discord.Net.Webhook/3.17.2": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-ge7vTnUsuQLhy8ta63vlgHmycAWvDDVHS3EcgJU5l7f22x24stGk8hZYycaBTp+6qjKKjRvNvUSLCb5bZuPN3A==",
-      "path": "discord.net.webhook/3.17.1",
-      "hashPath": "discord.net.webhook.3.17.1.nupkg.sha512"
+      "sha512": "sha512-XcJ8wgvQ2gfMsWq9WuLfIpBIZN2Yji6G2QUqAD7D9FrxHBwcOxof9eVCukw+vU3wLT5r5cmjDax6FJMg2WhRBw==",
+      "path": "discord.net.webhook/3.17.2",
+      "hashPath": "discord.net.webhook.3.17.2.nupkg.sha512"
     },
-    "Discord.Net.WebSocket/3.17.1": {
+    "Discord.Net.WebSocket/3.17.2": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-S65fp0C+CedL3+4XtRifJnsdndC7G84jg7fw7e+WZ1inmMHRnaYaYvaMCM6D0rRAD0h5FHqG+K1vS+C+v576sw==",
-      "path": "discord.net.websocket/3.17.1",
-      "hashPath": "discord.net.websocket.3.17.1.nupkg.sha512"
+      "sha512": "sha512-yq/IfGJ3TfFa15dDzyoAOHEbXSDPRDf/HdNFxQj+P1h7Q95V5lIWSJqYHtgg01E8eRW6IFvWfBDhfcFatffe+Q==",
+      "path": "discord.net.websocket/3.17.2",
+      "hashPath": "discord.net.websocket.3.17.2.nupkg.sha512"
     },
     "Microsoft.Bcl.AsyncInterfaces/6.0.0": {
       "type": "package",
@@ -737,13 +721,6 @@
       "path": "system.memory.data/6.0.0",
       "hashPath": "system.memory.data.6.0.0.nupkg.sha512"
     },
-    "System.Numerics.Vectors/4.5.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-QQTlPTl06J/iiDbJCiepZ4H//BVraReU4O4EoRw1U02H5TLUIT7xn3GnDp9AXPSlJUDyFs4uWjWafNX6WrAojQ==",
-      "path": "system.numerics.vectors/4.5.0",
-      "hashPath": "system.numerics.vectors.4.5.0.nupkg.sha512"
-    },
     "System.Reactive/6.0.1": {
       "type": "package",
       "serviceable": true,
@@ -765,19 +742,12 @@
       "path": "system.security.cryptography.protecteddata/4.5.0",
       "hashPath": "system.security.cryptography.protecteddata.4.5.0.nupkg.sha512"
     },
-    "System.Text.Encodings.Web/6.0.0": {
+    "System.Text.Json/6.0.11": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-Vg8eB5Tawm1IFqj4TVK1czJX89rhFxJo9ELqc/Eiq0eXy13RK00eubyU6TJE6y+GQXjyV5gSfiewDUZjQgSE0w==",
-      "path": "system.text.encodings.web/6.0.0",
-      "hashPath": "system.text.encodings.web.6.0.0.nupkg.sha512"
-    },
-    "System.Text.Json/6.0.10": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-NSB0kDipxn2ychp88NXWfFRFlmi1bst/xynOutbnpEfRCT9JZkZ7KOmF/I/hNKo2dILiMGnqblm+j1sggdLB9g==",
-      "path": "system.text.json/6.0.10",
-      "hashPath": "system.text.json.6.0.10.nupkg.sha512"
+      "sha512": "sha512-xqC1HIbJMBFhrpYs76oYP+NAskNVjc6v73HqLal7ECRDPIp4oRU5pPavkD//vNactCn9DA2aaald/I5N+uZ5/g==",
+      "path": "system.text.json/6.0.11",
+      "hashPath": "system.text.json.6.0.11.nupkg.sha512"
     },
     "System.Threading.Tasks.Extensions/4.5.4": {
       "type": "package",

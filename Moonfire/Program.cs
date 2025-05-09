@@ -4,16 +4,23 @@ using Moonfire.Credit;
 namespace Moonfire;
 
 public class Program{
+    public static bool PREMIUM_ENABLED { get; private set; } = false;
     
     //entry point
     public static async Task Main(){
-        var CONFIG_PATH = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            nameof(Moonfire) //change in azure allocator program.cs
-        );
+        var CONFIG_PATH = Directory.GetCurrentDirectory();
         Environment.SetEnvironmentVariable(nameof(CONFIG_PATH),CONFIG_PATH,EnvironmentVariableTarget.Process);
 
-        //load .env
+        /*var cwd = Directory.GetCurrentDirectory();
+        Console.WriteLine($"{cwd}");
+        foreach(var file in Directory.GetFiles(cwd))
+            Console.WriteLine(" " + Path.GetFileName(file));
+
+        Console.WriteLine("Directories");
+        foreach(var dir in Directory.GetDirectories(cwd))
+            Console.WriteLine(" " + new DirectoryInfo(dir).Name);*/
+
+        /*//load .env
         var envPath = Path.Combine(
             Environment.GetEnvironmentVariable("CONFIG_PATH") ?? "",
             ".env"
@@ -23,7 +30,7 @@ public class Program{
             //From NAME="value" Env.Set(NAME,value,process)
             if(line[0]=='#') continue;
             Environment.SetEnvironmentVariable(line[0..line.IndexOf('=')], line[(line.IndexOf('=') + 2)..line.LastIndexOf('"')], EnvironmentVariableTarget.Process);
-        }
+        }*/
 
         var token = Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN") ?? "";
         var config = new DiscordSocketConfig

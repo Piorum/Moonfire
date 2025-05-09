@@ -1,0 +1,17 @@
+{
+    "Region": "NA",
+    "ImageReference": 
+    {
+        "Publisher": "Canonical",
+        "Offer": "ubuntu-24_10",
+        "Sku": "server",
+        "Version": "latest"
+    },
+    "VmSize": 
+    {
+        "VCpuCount": 2,
+        "GiBRamCount": 4
+    },
+    "SecurityRules": [],
+    "DataDisks": []
+}

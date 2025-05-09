@@ -23,7 +23,12 @@ public static class IServerWorker
         }
         //check for balance
         if (await CreditService.OutOfBalance(command.GuildId ?? 0)){
-            List<ulong> creditConsumableSkuIds = [1339100750487355446, 1345145487824785490, 1345145596549529763];
+            await Console.Out.WriteLineAsync("Tried to start server but not enough balance.");
+            List<ulong> creditConsumableSkuIds = [];
+            if(Program.PREMIUM_ENABLED)
+                creditConsumableSkuIds.AddRange([1339100750487355446, 1345145487824785490, 1345145596549529763]);
+
+            //1356906689462407168 - TestSKU
 
             var entitlements = await bot.GetUsersConsumableEntitlements(command.User.Id, creditConsumableSkuIds);
 
@@ -55,13 +60,17 @@ public static class IServerWorker
 
                 List<MoonfireButtonComponent> shopButtons = [];
 
-                shopButtons.Add(new(label: "Shop", style: ButtonStyle.Link, url: "https://discord.com/discovery/applications/1077479824093888522/store"));
+                if(Program.PREMIUM_ENABLED)
+                    shopButtons.Add(new(label: "Shop", style: ButtonStyle.Link, url: "https://discord.com/discovery/applications/1077479824093888522/store"));
                 
-                foreach(var skuId in creditConsumableSkuIds){
+                //NO LONGER WORKS???
+                //"BUTTON_COMPONENT_INVALID_APPLICATION: The application for this SKU does not exists or does not match the message author"
+                /*foreach(var skuId in creditConsumableSkuIds){
                     shopButtons.Add(new(style: ButtonStyle.Premium, skuId: skuId));
-                }
+                }*/
 
-                await DI.ModifyComponentsAsync(new(buttons: shopButtons), command);
+                if(shopButtons.Count != 0)
+                    await DI.ModifyComponentsAsync(new(buttons: shopButtons), command);
 
             }
             return;

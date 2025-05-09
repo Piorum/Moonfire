@@ -50,7 +50,7 @@
           "dependencies": {
             "Azure.Core": {
               "target": "Package",
-              "version": "[1.44.1, )"
+              "version": "[1.45.0, )"
             },
             "Azure.Data.Tables": {
               "target": "Package",
@@ -66,7 +66,7 @@
             },
             "Azure.ResourceManager.Compute": {
               "target": "Package",
-              "version": "[1.7.0, )"
+              "version": "[1.8.0, )"
             },
             "Azure.ResourceManager.Network": {
               "target": "Package",
@@ -74,11 +74,11 @@
             },
             "Azure.ResourceManager.Resources": {
               "target": "Package",
-              "version": "[1.9.0, )"
+              "version": "[1.9.1, )"
             },
             "Azure.Storage.Blobs": {
               "target": "Package",
-              "version": "[12.23.0, )"
+              "version": "[12.24.0, )"
             },
             "Mono.Posix.NETStandard": {
               "target": "Package",
@@ -103,7 +103,7 @@
           "downloadDependencies": [
             {
               "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[9.0.3, 9.0.3]"
+              "version": "[9.0.4, 9.0.4]"
             }
           ],
           "frameworkReferences": {
@@ -111,7 +111,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.104/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.105/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
@@ -168,7 +168,7 @@
           "downloadDependencies": [
             {
               "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[9.0.3, 9.0.3]"
+              "version": "[9.0.4, 9.0.4]"
             }
           ],
           "frameworkReferences": {
@@ -176,7 +176,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.104/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.105/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
@@ -233,7 +233,7 @@
             },
             "Discord.Net": {
               "target": "Package",
-              "version": "[3.17.1, )"
+              "version": "[3.17.2, )"
             }
           },
           "imports": [
@@ -250,7 +250,7 @@
           "downloadDependencies": [
             {
               "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[9.0.3, 9.0.3]"
+              "version": "[9.0.4, 9.0.4]"
             }
           ],
           "frameworkReferences": {
@@ -258,7 +258,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.104/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.105/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

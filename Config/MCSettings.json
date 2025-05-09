@@ -1,0 +1,41 @@
+{
+    "Region": "NA",
+    "ImageReference": 
+    {
+        "Publisher": "Canonical",
+        "Offer": "ubuntu-24_10",
+        "Sku": "server",
+        "Version": "latest"
+    },
+    "VmSize": 
+    {
+        "VCpuCount": 2,
+        "GiBRamCount": 8
+    },
+    "SecurityRules": 
+    [
+        {
+            "Name": "AllowPort25565",
+            "Priority": 110,
+            "Access": "Allow",
+            "Direction": "Inbound",
+            "Protocol": "*",
+            "SourcePortRange": "*",
+            "DestinationPortRange": "25565",
+            "SourceAddressPrefix": "*",
+            "DestinationAddressPrefix": "*"
+        },
+        {
+            "Name": "AllowPort19132",
+            "Priority": 120,
+            "Access": "Allow",
+            "Direction": "Inbound",
+            "Protocol": "*",
+            "SourcePortRange": "*",
+            "DestinationPortRange": "19132",
+            "SourceAddressPrefix": "*",
+            "DestinationAddressPrefix": "*"
+        }
+    ],
+    "DataDisks": []
+}

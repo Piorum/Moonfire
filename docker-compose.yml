@@ -1,0 +1,16 @@
+services:
+  moonfire:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: moonfire
+    environment:
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+      - AZURE_SUBSCRIPTION_ID=${AZURE_SUBSCRIPTION_ID}
+      - BOT_OWNER_SERVER_ID=1317677680392667197
+      - BOT_ALERTS_CHANNEL_ID=1339056160526827625
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+      - MOONFIRE_STORAGE_STRING=${MOONFIRE_STORAGE_STRING}
+    restart: unless-stopped
