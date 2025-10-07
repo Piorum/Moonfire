@@ -1,1 +1,1 @@
-Discord Bot frontend for SCP:SL server.
+Scuffed discord bot for deploying SCP:SL servers to Azure VMs, Abandoned
