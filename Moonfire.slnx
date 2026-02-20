@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="Moonfire.Ansi/Moonfire.Ansi.csproj" />
+  <Project Path="Moonfire.Glyph/Moonfire.Glyph.csproj" />
+  <Project Path="Moonfire.Logging/Moonfire.Logging.csproj" />
+  <Project Path="Moonfire.Rendering/Moonfire.Rendering.csproj" />
+  <Project Path="Moonfire.Shared/Moonfire.Shared.csproj" />
+</Solution>

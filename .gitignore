@@ -1,0 +1,4 @@
+*.txt
+*.env
+bin/
+obj/
