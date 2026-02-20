@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace Moonfire.Shared;
 
-public class PrecisionDelay(int spinIterations = 20)
+public class PrecisionTimer(int spinIterations = 20)
 {
     public Task Delay(TimeSpan timeSpan, CancellationToken token = default)
     {

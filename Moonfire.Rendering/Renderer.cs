@@ -34,7 +34,7 @@ public class Renderer
     public async Task EnqueueActionPostRender(Func<Task> action) =>
         await renderQueue.EnqueueActionPostRender(action);
 
-    public async Task Start(CancellationToken token)
+    public async Task Run(CancellationToken token)
     {
         if(!resizeHelper.Registered)
             await resizeHelper.RegisterResizeEvent();
