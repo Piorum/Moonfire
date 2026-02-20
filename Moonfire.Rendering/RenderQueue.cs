@@ -1,5 +1,6 @@
 using System.Threading.Channels;
 using Moonfire.Logging;
+using Moonfire.Shared;
 
 namespace Moonfire.Rendering;
 
@@ -7,6 +8,7 @@ internal class RenderQueue
 {
     private readonly Channel<Func<Task>> renderQueue = Channel.CreateUnbounded<Func<Task>>();
 
+    private readonly PrecisionDelay precisionDelay = new();
     private readonly List<Task> runningTasks = [];
 
     internal readonly List<(int x, int y, int w, int h)> clearTasks = [];
@@ -16,32 +18,18 @@ internal class RenderQueue
     {
         runningTasks.Clear();
 
-        //Get first action and start batch timer
+        //Wait for first action
         var firstAction = await renderQueue.Reader.ReadAsync(token);
+        await TryAddAction(runningTasks, firstAction);
 
-        try { runningTasks.Add(firstAction()); }
-        catch (Exception ex) { await Logger.Error(nameof(Rendering), $"Action Failed To Start\n{ex}"); }
+        //Wait for batch timeout
+        await precisionDelay.Delay(batchTimeout, token);
 
-        var batchTimer = Task.Delay(batchTimeout, token);
+        //Drain queue
+        while (renderQueue.Reader.TryRead(out var action))
+            await TryAddAction(runningTasks, action);
 
-        while (true)
-        {
-            //Read any available actions
-            while (renderQueue.Reader.TryRead(out var action))
-                try { runningTasks.Add(action()); }
-                catch (Exception ex) { await Logger.Error(nameof(Rendering), $"Action Failed To Start\n{ex}"); }
-
-            //Wait for more actions or for batch timer to end
-            var waitForMoreActions = renderQueue.Reader.WaitToReadAsync(token).AsTask();
-            var completedTask = await Task.WhenAny(waitForMoreActions, batchTimer);
-
-            //Exit if batch timer is done, loop if not (more actions were queued)
-            if (completedTask == batchTimer)
-                break;
-        }
-
-
-        await AwaitAndCatchTasks(runningTasks);
+        await TryAwaitTasks(runningTasks);
 
         return runningTasks.Count > 0 && !token.IsCancellationRequested;
     }
@@ -53,18 +41,30 @@ internal class RenderQueue
             List<Task> tasks = [];
 
             foreach(var task in postRenderTasks)
-                try { tasks.Add(task()); }
-                catch (Exception ex) { await Logger.Error(nameof(Rendering), $"Action Failed To Start\n{ex}"); }
+                await TryAddAction(tasks, task);
 
-            await AwaitAndCatchTasks(tasks);
+            await TryAwaitTasks(tasks);
 
             postRenderTasks.Clear();
 
         }
     }
 
-    private async Task AwaitAndCatchTasks(List<Task> tasks)
+    private async static Task TryAddAction(List<Task> tasks, Func<Task> action)
     {
+        //Sync async tasks will start immediately, this will protect the render from errors thrown here.
+        try { 
+            tasks.Add(action()); 
+            }
+        catch (Exception ex) 
+        { 
+            await Logger.Error(nameof(Rendering), $"Action Failed To Start\n{ex}"); 
+        }
+    }
+
+    private async Task TryAwaitTasks(List<Task> tasks)
+    {
+        //Catch and log exceptions but don't crash the renderer
         try
         {
             await Task.WhenAll(tasks);

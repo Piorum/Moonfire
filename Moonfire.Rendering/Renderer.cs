@@ -50,10 +50,12 @@ public class Renderer
         {
             try
             {
+                var shouldRender = await renderQueue.WaitAndRun(_batchTimeout, token);
+
                 await Logger.Debug(nameof(Rendering), $"[Starting New Render Cycle]");
                 var renderStartTime = DateTime.Now;
                 
-                if(await renderQueue.WaitAndRun(_batchTimeout, token))
+                if(shouldRender)
                     await Render(asb, rs);
 
                 await renderQueue.RunPostRenderTasks();
