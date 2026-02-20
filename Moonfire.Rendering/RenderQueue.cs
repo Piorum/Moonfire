@@ -3,7 +3,7 @@ using Moonfire.Logging;
 
 namespace Moonfire.Rendering;
 
-internal class RenderQueueManager
+internal class RenderQueue
 {
     private readonly Channel<Func<Task>> renderQueue = Channel.CreateUnbounded<Func<Task>>();
 
