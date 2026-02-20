@@ -18,10 +18,10 @@ public class Renderer
     private readonly RootView _rootView;
     private readonly TimeSpan _batchTimeout;
 
-    public Renderer(RootView rootView, TimeSpan batchTimeout)
+    public Renderer(RootView rootView, TimeSpan? batchTimeout = null)
     {
         _rootView = rootView;
-        _batchTimeout = batchTimeout;
+        _batchTimeout = batchTimeout ?? TimeSpan.FromMicroseconds(100);
 
         resizeHelper= new(this);
         buffer = DoubleBuffer.New(_rootView.SizeX, _rootView.SizeY);
