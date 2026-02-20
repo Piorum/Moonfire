@@ -1,12 +1,7 @@
-using Moonfire.Rendering.Terminal.Platforms.Linux;
+using Moonfire.Rendering.Interfaces;
+using Moonfire.Rendering.Platforms.Linux;
 
-namespace Moonfire.Rendering.Terminal;
-
-public interface IWindowResizer
-{
-    Task RegisterResizeEvent(Renderer root);
-    bool Registered { get; }
-}
+namespace Moonfire.Rendering.Factories;
 
 internal static class WindowResizerFactory
 {

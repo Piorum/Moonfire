@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
+using Moonfire.Rendering.Interfaces;
 
-namespace Moonfire.Rendering.Terminal.Platforms.Linux;
+namespace Moonfire.Rendering.Platforms.Linux;
 
 [System.Runtime.Versioning.SupportedOSPlatform("linux")]
 public class LinuxWindowResizer : IWindowResizer

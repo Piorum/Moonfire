@@ -1,6 +1,7 @@
 using Moonfire.Ansi.Registries;
 using Moonfire.Logging;
-using Moonfire.Rendering.Terminal;
+using Moonfire.Rendering.Factories;
+using Moonfire.Rendering.Interfaces;
 
 namespace Moonfire.Rendering;
 
