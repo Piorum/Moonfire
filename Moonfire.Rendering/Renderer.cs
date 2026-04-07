@@ -44,7 +44,7 @@ public class Renderer
         await EnqueueAction(_rootView.Invalidate);
 
         AnsiStringBuilder asb = new();
-        RenderState rs = new(2048);
+        RenderState rs = new();
 
         while(!token.IsCancellationRequested)
         {
@@ -117,28 +117,37 @@ public class Renderer
                     rs.OutputStart = (x,y);
                 }
 
-                var cluster = GlyphFactory.Get(cell.GlyphId);
-                var text = cluster.GraphemeCluster.AsSpan();
+                var glyph = GlyphFactory.Get(cell.GlyphId);
+                x += glyph.VisualWidth;
 
-                text.CopyTo(rs.OutputBuffer.AsSpan(rs.OutputIndex));
-                rs.OutputIndex += text.Length;
-                rs.CursorMovement += cluster.VisualWidth;
+                //Fallback to space if 2 wide glyph will be out of bounds.
+                if(x > _rootView.SizeX)
+                {
+                    rs.OutputBuffer[rs.OutputIndex++] = (byte)' ';
+                    rs.CursorMovement++;
+                    continue;
+                }
+
+                var bytes = glyph.GraphemeCluster.AsSpan();
+
+                bytes.CopyTo(rs.OutputBuffer.AsSpan(rs.OutputIndex));
+
+                rs.OutputIndex += bytes.Length;
+                rs.CursorMovement += glyph.VisualWidth;
 
                 //Add extra space to "Fake" 2 wide characters
-                if(cluster.VisualWidth > 1 && cluster.RealWidth < cluster.VisualWidth)
-                    rs.OutputBuffer[rs.OutputIndex++] = ' ';
-
-                x += cluster.VisualWidth;
+                if(glyph.VisualWidth > 1 && glyph.RealWidth < glyph.VisualWidth)
+                    rs.OutputBuffer[rs.OutputIndex++] = (byte)' ';
             }
             rs.FlushToAsb(asb);
         }
         //Append final escape codes like resetting properties
         asb.ResetProperties();
 
-        await writer.Write(asb.ToString());
+        await writer.Write(asb);
 
         //Swap back buffer to front, clear back buffer
-        (buffer.BackBuffer, buffer.FrontBuffer) = (buffer.FrontBuffer, buffer.BackBuffer);
+        buffer.Swap();
         buffer.BackBuffer.Clear();
     }
 

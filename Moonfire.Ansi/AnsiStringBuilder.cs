@@ -4,82 +4,126 @@ using Moonfire.Ansi.Registries;
 
 namespace Moonfire.Ansi;
 
-public class AnsiStringBuilder()
+public class AnsiStringBuilder(int bufferSize = 2<<15)
 {
-    private readonly StringBuilder sb = new();
+    private byte[] buffer = new byte[bufferSize];
+    private int position = 0;
     private AnsiStyleData currentState = new();
 
-    private readonly static (AnsiProperty, string, string)[] modifierActionsLookup =
-    [
-        (AnsiProperty.Bold, AnsiRegistry.Bold, AnsiRegistry.DisableBold),
-        (AnsiProperty.Italic, AnsiRegistry.Italic, AnsiRegistry.DisableItalic),
-        (AnsiProperty.Underline, AnsiRegistry.Underline, AnsiRegistry.DisableUnderline),
-        (AnsiProperty.Highlight, AnsiRegistry.ReverseVideoMode, AnsiRegistry.DisableReverseVideoMode),
-        (AnsiProperty.Strikethrough, AnsiRegistry.Strikethrough, AnsiRegistry.DisableStrikethrough)
-    ];
+    public bool IsEmpty => position == 0;
     
     public AnsiStringBuilder Append(string text, AnsiStyleData desiredState, (int X, int Y)? desiredCursorPos) =>
-        Append(text.AsSpan(), desiredState, desiredCursorPos);
+        Append(Encoding.UTF8.GetBytes(text) , desiredState, desiredCursorPos);
 
-    public AnsiStringBuilder Append(ReadOnlySpan<char> text, AnsiStyleData desiredState, (int X, int Y)? desiredCursorPos)
+    public AnsiStringBuilder Append(ReadOnlySpan<byte> text, AnsiStyleData desiredState, (int X, int Y)? desiredCursorPos)
     {
         UpdateStyle(desiredState, desiredCursorPos);
+
         if (text.Length > 0)
-            sb.Append(text);
+        {
+            EnsureCapacity(text.Length);
+            text.CopyTo(buffer.AsSpan(position));
+            position += text.Length;
+        }
 
         return this;
+    }
+    private void AppendRaw(byte utf8Data)
+    {
+        EnsureCapacity(1);
+        buffer[position++] = utf8Data;
+    }
+    private void AppendRaw(ReadOnlySpan<byte> utf8Data)
+    {
+        EnsureCapacity(utf8Data.Length);
+        utf8Data.CopyTo(buffer.AsSpan(position));
+        position += utf8Data.Length;
     }
 
     private void UpdateStyle(AnsiStyleData desiredState, (int X, int Y)? desiredCursorPos)
     {
         if (desiredCursorPos is { } pos)
-            sb.Append(AnsiRegistry.MoveCursor(pos.Y, pos.X));
-
+        {
+            EnsureCapacity(AnsiRegistry.MaxMoveCursorBytes);
+            position += AnsiRegistry.MoveCursor(buffer.AsSpan(position), pos.Y, pos.X);
+        }
         if (currentState.ForegroundColor != desiredState.ForegroundColor)
-            sb.Append(AnsiRegistry.SetForegroundColor(desiredState.ForegroundColor));
+        {
+            EnsureCapacity(AnsiRegistry.MaxSetColorBytes);
+            position += AnsiRegistry.SetForegroundColor(buffer.AsSpan(position), desiredState.ForegroundColor);
+        }
         if (currentState.BackgroundColor != desiredState.BackgroundColor)
-            sb.Append(AnsiRegistry.SetBackgroundColor(desiredState.BackgroundColor));
+        {
+            EnsureCapacity(AnsiRegistry.MaxSetColorBytes);
+            position += AnsiRegistry.SetBackgroundColor(buffer.AsSpan(position), desiredState.BackgroundColor);
+        }
 
         var removedProperties = currentState.Properties & ~desiredState.Properties;
         var addedProperties = desiredState.Properties & ~currentState.Properties;
 
-        foreach (var (modifier, onCode, offCode) in modifierActionsLookup)
-            if (addedProperties.HasFlag(modifier))
-                sb.Append(onCode);
-            else if (removedProperties.HasFlag(modifier))
-                sb.Append(offCode);
+        if(addedProperties.HasFlag(AnsiProperty.Bold))
+            AppendRaw(AnsiRegistry.BoldBytes);
+        else if (removedProperties.HasFlag(AnsiProperty.Bold))
+            AppendRaw(AnsiRegistry.DisableBoldBytes);
+
+        if(addedProperties.HasFlag(AnsiProperty.Italic))
+            AppendRaw(AnsiRegistry.ItalicBytes);
+        else if (removedProperties.HasFlag(AnsiProperty.Italic))
+            AppendRaw(AnsiRegistry.DisableItalicBytes);
+
+        if(addedProperties.HasFlag(AnsiProperty.Underline))
+            AppendRaw(AnsiRegistry.UnderlineBytes);
+        else if (removedProperties.HasFlag(AnsiProperty.Underline))
+            AppendRaw(AnsiRegistry.DisableUnderlineBytes);
+
+        if(addedProperties.HasFlag(AnsiProperty.Highlight))
+            AppendRaw(AnsiRegistry.ReverseVideoModeBytes);
+        else if (removedProperties.HasFlag(AnsiProperty.Highlight))
+            AppendRaw(AnsiRegistry.DisableReverseVideoModeBytes);
+
+        if(addedProperties.HasFlag(AnsiProperty.Strikethrough))
+            AppendRaw(AnsiRegistry.StrikethroughBytes);
+        else if (removedProperties.HasFlag(AnsiProperty.Strikethrough))
+            AppendRaw(AnsiRegistry.DisableStrikethroughBytes);
 
         currentState = desiredState;
     }
 
     public AnsiStringBuilder ShowCursor()
     {
-        sb.Append(AnsiRegistry.ShowCursor);
+        AppendRaw(AnsiRegistry.ShowCursorBytes);
         return this;
     }
     public AnsiStringBuilder HideCursor()
     {
-        sb.Append(AnsiRegistry.HideCursor);
+        AppendRaw(AnsiRegistry.HideCursorBytes);
         return this;
     }
 
     public AnsiStringBuilder ResetProperties()
     {
-        sb.Append(AnsiRegistry.ResetProperties);
+        AppendRaw(AnsiRegistry.ResetPropertiesBytes);
         return this;
     }
     public AnsiStringBuilder ResetPropertiesNewLine()
     {
-        sb.Append('\n');
-        sb.Append(AnsiRegistry.ResetProperties);
+        AppendRaw((byte)'\n');
+        AppendRaw(AnsiRegistry.ResetPropertiesBytes);
         return this;
     }
 
-    public override string ToString() => sb.ToString();
+    private void EnsureCapacity(int needed)
+    {
+        if (position + needed > buffer.Length)
+            Array.Resize(ref buffer, Math.Max(buffer.Length * 2, position + needed));
+    }
+
+    public ReadOnlyMemory<byte> ToBuffer() => buffer.AsMemory(0, position);
+    public override string ToString() => Encoding.UTF8.GetString(buffer.AsSpan(0, position));
 
     public void Clear()
     {
-        sb.Clear();
+        position = 0;
         currentState = new();
     }
 }

@@ -1,12 +1,12 @@
 using Moonfire.Ansi;
 using Moonfire.Ansi.Models;
 
-namespace Moonfire.Rendering.Models;
+namespace Moonfire.Rendering;
 
-internal class RenderState(int bufferSize)
+internal class RenderState(int bufferSize = 4096)
 {
     //Oversized to allow for DWC, ZWC, etc...
-    internal char[] OutputBuffer = new char[bufferSize];
+    internal byte[] OutputBuffer = new byte[bufferSize];
     internal int OutputIndex;
     internal int CursorMovement;
 

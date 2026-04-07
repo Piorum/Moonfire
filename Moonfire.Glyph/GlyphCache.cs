@@ -1,4 +1,5 @@
-﻿using Wcwidth;
+﻿using System.Text;
+using Wcwidth;
 using Moonfire.Glyph.Models;
 using Moonfire.Shared;
 
@@ -8,7 +9,7 @@ public class GlyphCache : IdIndexedCache<string , byte?, GlyphData, (int id, byt
 {
     protected override GlyphData CreateObject(string cluster, byte? overrideWidth){
         var realWidth = MeasureGramphemeCluster(cluster);
-        GlyphData newData = new(cluster, realWidth, overrideWidth is null ? realWidth : overrideWidth.Value);
+        GlyphData newData = new(Encoding.UTF8.GetBytes(cluster), realWidth, overrideWidth is null ? realWidth : overrideWidth.Value);
 
         return newData;
     }
