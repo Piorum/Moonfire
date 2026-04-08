@@ -13,12 +13,12 @@ public readonly struct TerminalContext
     public readonly uint H;
 
     private readonly TerminalBuffer Buffer;
-    
+
     [DoesNotReturn]
     private static void CreationOutOfBounds(int x,int y, int w, int h, TerminalContext context) => 
         throw new($"SVContext region is out of bounds for the existing SVContext [Parameters] X:\"{x}\" | Y:\"{y}\" | W:\"{w}\" | H:\"{h}\" : [Context Dimensions] W:\"{context.W}\" | H:\"{context.H}\"");
     [DoesNotReturn]
-    private static void AccessOutOfBounds(int X, int Y, int W, int H, int x, int y) => 
+    private static void AccessOutOfBounds(int X, int Y, uint W, uint H, int x, int y) => 
         throw new($"Coordinate out of bounds for the current SVContext X:\"{X}\" | Y:\"{Y}\" | W:\"{W}\" | H:\"{H}\" : Coordinate:({x},{y})");
 
     /// <param name="x">X coordinate of new origin.</param>
@@ -59,7 +59,7 @@ public readonly struct TerminalContext
         get
         {
             if((uint)x >= W || (uint)y >= H)
-                AccessOutOfBounds(X,Y,(int)W,(int)H,x,y);
+                AccessOutOfBounds(X,Y,W,H,x,y);
 
             return ref Buffer[X + x, Y + y];
         }
