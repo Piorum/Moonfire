@@ -5,8 +5,27 @@ namespace Moonfire.Ansi.Registries;
 
 public static class AnsiRegistry
 {
+    //Commands added through builder calls
+    //Reset
     public const string ResetProperties = "\x1B[0m";
     public static ReadOnlySpan<byte> ResetPropertiesBytes => "\x1B[0m"u8;
+
+    //Cursor
+    public const string HideCursor = "\x1B[?25l";
+    public static ReadOnlySpan<byte> HideCursorBytes => "\x1B[?25l"u8;
+    public const string ShowCursor = "\x1B[?25h";
+    public static ReadOnlySpan<byte> ShowCursorBytes => "\x1B[?25h"u8;
+
+    //Screen
+    public const string EnterAlternateScreen = "\x1b[?1049h";
+    public static ReadOnlySpan<byte> EnterAlternateScreenBytes => "\x1b[?1049h"u8;
+    public const string ExitAlternateScreen = "\x1b[?1049l";
+    public static ReadOnlySpan<byte> ExitAlternateScreenBytes => "\x1b[?1049l"u8;
+    public const string ClearScreen = "\x1b[2J";
+    public static ReadOnlySpan<byte> ClearScreenBytes => "\x1b[2J"u8;
+
+    //Commands added through style updates
+    //Color
     public const string ResetForegroundColor = "\x1b[39m";
     public static ReadOnlySpan<byte> ResetForegroundColorBytes => "\x1b[39m"u8;
     public const string ResetBackgroundColor = "\x1b[49m";
@@ -41,19 +60,6 @@ public static class AnsiRegistry
     public static ReadOnlySpan<byte> StrikethroughBytes => "\x1b[9m"u8;
     public const string DisableStrikethrough = "\x1b[29m";
     public static ReadOnlySpan<byte> DisableStrikethroughBytes => "\x1b[29m"u8;
-
-    //CursorVisible
-    public const string HideCursor = "\x1B[?25l";
-    public static ReadOnlySpan<byte> HideCursorBytes => "\x1B[?25l"u8;
-    public const string ShowCursor = "\x1B[?25h";
-    public static ReadOnlySpan<byte> ShowCursorBytes => "\x1B[?25h"u8;
-
-    public const string EnterAlternateScreen = "\x1b[?1049h";
-    public static ReadOnlySpan<byte> EnterAlternateScreenBytes => "\x1b[?1049h"u8;
-    public const string ExitAlternateScreen = "\x1b[?1049l";
-    public static ReadOnlySpan<byte> ExitAlternateScreenBytes => "\x1b[?1049l"u8;
-    public const string ClearScreen = "\x1b[2J";
-    public static ReadOnlySpan<byte> ClearScreenBytes => "\x1b[2J"u8;
 
     private static ReadOnlySpan<byte> AnsiStartBytes => "\x1B["u8;
     private const byte AnsiSeparatorByte = (byte)';';

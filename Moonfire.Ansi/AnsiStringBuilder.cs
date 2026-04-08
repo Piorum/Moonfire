@@ -28,17 +28,53 @@ public class AnsiStringBuilder(int bufferSize = 2<<15)
 
         return this;
     }
-    private void AppendRaw(byte utf8Data)
+
+    public AnsiStringBuilder ShowCursor()
     {
-        EnsureCapacity(1);
-        buffer[position++] = utf8Data;
+        AppendRaw(AnsiRegistry.ShowCursorBytes);
+        return this;
     }
-    private void AppendRaw(ReadOnlySpan<byte> utf8Data)
+    public AnsiStringBuilder HideCursor()
     {
-        EnsureCapacity(utf8Data.Length);
-        utf8Data.CopyTo(buffer.AsSpan(position));
-        position += utf8Data.Length;
+        AppendRaw(AnsiRegistry.HideCursorBytes);
+        return this;
     }
+    public AnsiStringBuilder EnterAlternateScreen()
+    {
+        AppendRaw(AnsiRegistry.EnterAlternateScreenBytes);
+        return this;
+    }
+    public AnsiStringBuilder ExitAlternateScreen()
+    {
+        AppendRaw(AnsiRegistry.ExitAlternateScreenBytes);
+        return this;
+    }
+    public AnsiStringBuilder ClearScreen()
+    {
+        AppendRaw(AnsiRegistry.ClearScreenBytes);
+        return this;
+    }
+    public AnsiStringBuilder ResetProperties()
+    {
+        AppendRaw(AnsiRegistry.ResetPropertiesBytes);
+        return this;
+    }
+    public AnsiStringBuilder ResetPropertiesNewLine()
+    {
+        AppendRaw((byte)'\n');
+        AppendRaw(AnsiRegistry.ResetPropertiesBytes);
+        return this;
+    }
+
+    public ReadOnlyMemory<byte> ToBuffer() => 
+        buffer.AsMemory(0, position);
+
+    public override string ToString() => 
+        Encoding.UTF8.GetString(buffer.AsSpan(0, position));
+
+    public void Clear() =>
+        (position, currentState) = (0, new());
+
 
     private void UpdateStyle(AnsiStyleData desiredState, (int X, int Y)? desiredCursorPos)
     {
@@ -88,42 +124,20 @@ public class AnsiStringBuilder(int bufferSize = 2<<15)
 
         currentState = desiredState;
     }
-
-    public AnsiStringBuilder ShowCursor()
-    {
-        AppendRaw(AnsiRegistry.ShowCursorBytes);
-        return this;
-    }
-    public AnsiStringBuilder HideCursor()
-    {
-        AppendRaw(AnsiRegistry.HideCursorBytes);
-        return this;
-    }
-
-    public AnsiStringBuilder ResetProperties()
-    {
-        AppendRaw(AnsiRegistry.ResetPropertiesBytes);
-        return this;
-    }
-    public AnsiStringBuilder ResetPropertiesNewLine()
-    {
-        AppendRaw((byte)'\n');
-        AppendRaw(AnsiRegistry.ResetPropertiesBytes);
-        return this;
-    }
-
     private void EnsureCapacity(int needed)
     {
         if (position + needed > buffer.Length)
             Array.Resize(ref buffer, Math.Max(buffer.Length * 2, position + needed));
     }
-
-    public ReadOnlyMemory<byte> ToBuffer() => buffer.AsMemory(0, position);
-    public override string ToString() => Encoding.UTF8.GetString(buffer.AsSpan(0, position));
-
-    public void Clear()
+    private void AppendRaw(byte utf8Data)
     {
-        position = 0;
-        currentState = new();
+        EnsureCapacity(1);
+        buffer[position++] = utf8Data;
+    }
+    private void AppendRaw(ReadOnlySpan<byte> utf8Data)
+    {
+        EnsureCapacity(utf8Data.Length);
+        utf8Data.CopyTo(buffer.AsSpan(position));
+        position += utf8Data.Length;
     }
 }
