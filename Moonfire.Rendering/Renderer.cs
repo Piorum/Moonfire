@@ -36,15 +36,17 @@ public class Renderer
 
     public async Task Run(CancellationToken token)
     {
+        AnsiStringBuilder asb = new();
+        RenderState rs = new();
+
         if(!resizeHelper.Registered)
             await resizeHelper.RegisterResizeEvent();
 
-        await writer.Write(AnsiRegistry.EnterAlternateScreen);
+        asb.EnterAlternateScreen().HideCursor();
+        await writer.Write(asb);
         
         await EnqueueAction(_rootView.Invalidate);
 
-        AnsiStringBuilder asb = new();
-        RenderState rs = new();
 
         while(!token.IsCancellationRequested)
         {
@@ -65,8 +67,9 @@ public class Renderer
             catch (OperationCanceledException) {} //Expected
         }
 
-        await writer.Write(AnsiRegistry.ExitAlternateScreen);
-        await writer.Write(AnsiRegistry.ShowCursor);
+        asb.Clear();
+        asb.ExitAlternateScreen().ShowCursor();
+        await writer.Write(asb);
     }
 
     private async Task Render(AnsiStringBuilder asb, RenderState rs)
@@ -89,7 +92,6 @@ public class Renderer
 
         //Clear builder, ensure cursor is hidden for draw, reset state
         asb.Clear();
-        asb.HideCursor();
         rs.Reset();
 
         for (int y = 0; y < _rootView.SizeY; y++)
