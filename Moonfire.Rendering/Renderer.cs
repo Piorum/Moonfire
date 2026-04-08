@@ -88,7 +88,7 @@ public class Renderer
         }
 
         //Draw to back buffer
-        await _rootView.Draw(new TerminalContext(0, 0, buffer.BackBuffer));
+        await _rootView.Draw(new TerminalContext(buffer.BackBuffer));
 
         //Clear builder, ensure cursor is hidden for draw, reset state
         asb.Clear();
