@@ -1,5 +1,4 @@
 ﻿using Moonfire.Ansi;
-using Moonfire.Ansi.Registries;
 using Moonfire.Glyph;
 using Moonfire.Logging;
 using Moonfire.Rendering.Models;
