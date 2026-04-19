@@ -7,29 +7,26 @@ using Moonfire.Logging.Sinks;
 
 namespace Moonfire.Tui;
 
-public class TuiApp
+public class TuiApp(IMoonfireView rootView, TuiAppOptions? options = null)
 {
-    public InputHandler InputHandler = new();
-    public Renderer Renderer;
+    public InputHandler InputHandler = new(options?.SequenceKeybindsTimeoutMs);
+    public Renderer Renderer = new(new() { View = rootView }, options?.RendererBatchTimeout);
 
-    public TuiApp(IMoonfireView rootView)
-    {
-        Renderer = new(new() { View = rootView });
-    }
+    private readonly CancellationTokenSource cts = new();
 
     public static async Task InitLogging(List<LogLevel> logLevels) =>
         await Logger.AddSink(new(new BufferSink(), [.. logLevels]));
 
     public async Task Run(bool dumpLogs = true)
     {
-        CancellationTokenSource cts = new();
+        cts.TryReset();
 
         var inputTask = InputHandler.Run(cts.Token);
         var renderTask = Renderer.Run(cts.Token);
 
         _ = await Task.WhenAny(inputTask, renderTask);
 
-        await Stop(cts);
+        await Stop();
 
         try
         {
@@ -47,7 +44,7 @@ public class TuiApp
             await Logger.StopAndFlush();
     }
 
-    private static async Task Stop(CancellationTokenSource cts)
+    public async Task Stop()
     {
         if(cts is not null)
             try

@@ -1,23 +1,15 @@
 namespace Moonfire.Input.Models;
 
-public class InputData
+public readonly record struct InputData(
+    char? UTFChar = null,
+    int? X = null,
+    int? Y = null,
+    int? ScrollDelta = null
+)
 {
-    public char? UTFChar { get; } = null;
-    public int? X { get; } = null;
-    public int? Y { get; } = null;
-    public int? ScrollDelta { get; } = null;
-
-    private InputData(char? utfChar = null, int? x = null, int? y = null, int? scrollDelta = null)
-    {
-        UTFChar = utfChar;
-
-        X = x;
-        Y = y;
-        ScrollDelta = scrollDelta;
-    }
-
     public static InputData KeyboardData(char utfChar) =>
-        new(utfChar: utfChar);
+        new(UTFChar: utfChar);
+
     public static InputData MouseData(int x, int y, int? scrollDelta = null) =>
-        new(x: x, y: y, scrollDelta: scrollDelta);
+        new(X: x, Y: y, ScrollDelta: scrollDelta);
 }

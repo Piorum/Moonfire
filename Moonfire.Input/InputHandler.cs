@@ -1,15 +1,14 @@
-﻿using System.Threading.Channels;
-using Moonfire.Input.Models;
+﻿using Moonfire.Input.Models;
 using Moonfire.Logging;
 
 namespace Moonfire.Input;
 
-public class InputHandler(int sequenceTimeoutMs = 1000)
+public class InputHandler(int? sequenceTimeoutMs = null)
 {
     private readonly IInputTranslator inputTranslator = InputTraslatorFactory.Create();
 
     internal readonly Dictionary<InputKey, Bind> indifferentBinds = [];
-    internal readonly SequenceState sequenceState = new(sequenceTimeoutMs);
+    internal readonly SequenceState sequenceState = new(sequenceTimeoutMs ?? 1000);
 
     private RawInputChannel? rawInputChannel = null;
 
@@ -50,6 +49,25 @@ public class InputHandler(int sequenceTimeoutMs = 1000)
 
     private async Task HandleBind(TerminalInput evt, CancellationToken token)
     {
+        await Logger.Debug(nameof(Input), $"[Key Received]");
+        
+        await Logger.Debug(nameof(Input), evt.Key.InputType switch
+        {
+            Enums.InputType.Mouse => $" - (Key: {evt.Key.MouseKey}, Modifiers: {evt.Key.Modifiers})",
+            Enums.InputType.Keyboard => $" - (Key: {evt.Key.KeyboardKey}, Modifiers: {evt.Key.Modifiers})",
+            _ => " - None"
+        });
+        await Logger.Debug(nameof(Input), evt.Key.InputType switch
+        {
+            Enums.InputType.Mouse => (evt.InputData.ScrollDelta is null) switch
+                {
+                    true => $" - (X: {evt.InputData.X}, Y: {evt.InputData.Y})",
+                    false => $" - (X: {evt.InputData.X}, Y: {evt.InputData.Y}, ScrollDelta: {evt.InputData.ScrollDelta})"
+                },
+            Enums.InputType.Keyboard => $" - (UTFChar: {evt.InputData.UTFChar})",
+            _ => " - None"
+        });
+
         if(rawInputChannel is not null)
         {
             await rawInputChannel.Writer.WriteAsync(evt, token);
@@ -69,6 +87,8 @@ public class InputHandler(int sequenceTimeoutMs = 1000)
 
     private async Task SafeExecuteBind(Bind bind, InputData inputData)
     {
+        await Logger.Debug(nameof(Input), $"[Bind Received]");
+
         try
         {
             await bind.Task(inputData);
@@ -76,35 +96,6 @@ public class InputHandler(int sequenceTimeoutMs = 1000)
         catch (Exception ex)
         {
             await Logger.Error(nameof(Input), $"Binding Failed\n{ex.Message}");
-        }
-    }
-
-    public class RawInputChannel() : IDisposable
-    {
-        private volatile bool _disposed = false;
-
-        private Channel<TerminalInput>? channel = Channel.CreateUnbounded<TerminalInput>(new UnboundedChannelOptions()
-        {
-            SingleReader = true,
-            SingleWriter = true
-        });
-        public ChannelReader<TerminalInput> Reader => _disposed 
-            ? throw new ObjectDisposedException(nameof(RawInputChannel)) 
-            : channel!.Reader;
-
-        internal ChannelWriter<TerminalInput> Writer => _disposed 
-            ? throw new ObjectDisposedException(nameof(RawInputChannel)) 
-            : channel!.Writer;
-
-        public void Dispose()
-        {
-            if(Interlocked.Exchange(ref _disposed, true) == false)
-            {
-                channel!.Writer.TryComplete();
-                channel = null;
-            }
-
-            GC.SuppressFinalize(this);
         }
     }
 }

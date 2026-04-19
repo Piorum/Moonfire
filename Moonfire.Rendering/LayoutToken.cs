@@ -28,7 +28,7 @@ public class LayoutToken(IEnumerable<IMoonfireView> views)
                 var r1 = map.Value[i].Region;
                 var r2 = map.Value[j].Region;
 
-                if(r2.Y >= r1.Y + r1.H)
+                if(r2.X >= r1.X + r1.W)
                     continue; //Early Exit
 
                 //AABB collision check

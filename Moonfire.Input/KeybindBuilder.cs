@@ -39,7 +39,7 @@ public class KeybindBuilder(InputHandler inputHandler)
 
     private void RegisterIndifferent()
     {
-        inputHandler.indifferentBinds[keys.First()] = _bind!.Value;
+        inputHandler.indifferentBinds.Add(keys.First(), _bind!.Value);
     }
 
     private void RegisterSequence()
@@ -62,5 +62,4 @@ public class KeybindBuilder(InputHandler inputHandler)
 
         currentNode.Binding = _bind;
     }
-
 }
