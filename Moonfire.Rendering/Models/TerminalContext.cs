@@ -85,7 +85,7 @@ public readonly struct TerminalContext
         private int _y;
 
         public TerminalContextEnumerator(TerminalContext context) =>
-            (_context, _x, _y) = (context, 0, 0);
+            (_context, _x, _y) = (context, -1, 0);
 
         public bool MoveNext()
         {

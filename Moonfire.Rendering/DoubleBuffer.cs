@@ -10,11 +10,11 @@ internal class DoubleBuffer
     private DoubleBuffer(TerminalBuffer frontBuffer, TerminalBuffer backBuffer) =>
         (FrontBuffer, BackBuffer) = (frontBuffer, backBuffer);
 
-    internal static DoubleBuffer New(int startX, int startY) =>
-        new(new(startX,startY), new(startX,startY));
+    internal static DoubleBuffer New(int width, int height) =>
+        new(new(width,height), new(width,height));
 
-    internal async Task Resize(int x, int y) =>
-        (FrontBuffer, BackBuffer) = (new(x, y), new(x,y));
+    internal async Task Resize(int width, int height) =>
+        (FrontBuffer, BackBuffer) = (new(width, height), new(width,height));
 
     internal void Swap() => 
         (BackBuffer, FrontBuffer) = (FrontBuffer, BackBuffer);
