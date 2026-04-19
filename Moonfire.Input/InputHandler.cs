@@ -32,7 +32,9 @@ public class InputHandler(int sequenceTimeoutMs = 1000)
     public RawInputChannel OpenRaw()
     {
         RawInputChannel newRawInputChannel = new();
-        Interlocked.Exchange(ref rawInputChannel, newRawInputChannel);
+        var existingRawInputChannel = Interlocked.Exchange(ref rawInputChannel, newRawInputChannel);
+
+        existingRawInputChannel?.Dispose();
 
         return newRawInputChannel;
     }
@@ -79,9 +81,13 @@ public class InputHandler(int sequenceTimeoutMs = 1000)
 
     public class RawInputChannel() : IDisposable
     {
-        private bool _disposed;
+        private volatile bool _disposed = false;
 
-        private Channel<TerminalInput>? channel = Channel.CreateUnbounded<TerminalInput>();
+        private Channel<TerminalInput>? channel = Channel.CreateUnbounded<TerminalInput>(new UnboundedChannelOptions()
+        {
+            SingleReader = true,
+            SingleWriter = true
+        });
         public ChannelReader<TerminalInput> Reader => _disposed 
             ? throw new ObjectDisposedException(nameof(RawInputChannel)) 
             : channel!.Reader;
