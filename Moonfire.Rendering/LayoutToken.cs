@@ -2,7 +2,6 @@ using System.Buffers.Binary;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.IO.Hashing;
-using System.Diagnostics.CodeAnalysis;
 using Moonfire.Rendering.Models;
 using Moonfire.Rendering.Interfaces;
 
@@ -15,7 +14,6 @@ public class LayoutToken(IEnumerable<IMoonfireView> views)
     private readonly ImmutableArray<IMoonfireView> _views = [.. views];
     private ImmutableArray<RegionBorrow>? map;
     
-    [DoesNotReturn]
     private void InvalidLayout() => 
         throw new($"Layout map attempted with overlapping regions.\n(X,Y) | (W,H)\n{string.Join('\n', _views.Select(v => $"({v.OriginX},{v.OriginY}) | ({v.SizeX},{v.SizeY})"))}");
 
