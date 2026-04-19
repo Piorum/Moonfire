@@ -7,6 +7,10 @@ namespace Moonfire.Glyph;
 
 public class GlyphCache : IdIndexedCache<string , byte?, GlyphData, (int id, byte width)>
 {
+    //Ensure valid blank glyph is at Id 0
+    public GlyphCache() =>
+        GetOrAdd(" ", null);
+
     protected override GlyphData CreateObject(string cluster, byte? overrideWidth){
         var realWidth = MeasureGramphemeCluster(cluster);
         GlyphData newData = new(Encoding.UTF8.GetBytes(cluster), realWidth, overrideWidth is null ? realWidth : overrideWidth.Value);

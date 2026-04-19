@@ -5,22 +5,28 @@ using Moonfire.Glyph;
 
 namespace Moonfire.Rendering.Models;
 
-[StructLayout(LayoutKind.Sequential, Size = 8)]
+[StructLayout(LayoutKind.Explicit)]
 public readonly struct TerminalCell(ulong value)
 {
+    [FieldOffset(0)]
     public readonly ulong Value = value;
-    
-    private const int GlyphIdBits = 24;
-    private const int WidthBits = 8;
 
-    private const ulong glyphIdMask = (1UL << GlyphIdBits) - 1;
-    private const ulong widthMask = (1UL << WidthBits) - 1;
+    [FieldOffset(0)]
+    private readonly uint _lowerBits;
 
-    public readonly int GlyphId => (int)(Value & glyphIdMask);
-    public readonly byte Width => (byte)((Value >> GlyphIdBits) & widthMask);
-    public readonly int StyleId => (int)(Value >> (GlyphIdBits + WidthBits));
+    [FieldOffset(4)]
+    public readonly int StyleId;
 
-    public TerminalCell(int glyphId, byte width, int styleId) : this(((ulong)(uint)styleId << 32) | ((ulong)width << 24) | (uint)glyphId) { }
+    public readonly int GlyphId => (int)(_lowerBits & 0x7FFFFFFFUL);
+    public readonly byte Width => (byte)((_lowerBits >> 31) + 1);
+
+    public TerminalCell(int glyphId, byte width, int styleId)
+        //Store style id in lower 32 bits
+        : this(((ulong)(uint)styleId << 32)
+            //Take 2nd bit from width, we add one on lookup, 0 -> 1, 1 -> 1, 2 -> 2 3 -> 2, others effectively clamped to 1 or 2 safely.
+            | ((ulong)(width & 2) << 31)
+            //Store glyphId in top-1 31 bits
+            | ((uint)glyphId & 0x7FFFFFFFUL)) { }
 
     public bool Equals(TerminalCell other) => Value == other.Value;
     public override bool Equals(object? obj) => obj is TerminalCell other && Equals(other);
