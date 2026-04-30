@@ -8,7 +8,6 @@ internal class RenderQueue
 {
     private readonly Channel<Func<Task>> renderQueue = Channel.CreateUnbounded<Func<Task>>();
 
-    private readonly PrecisionTimer timer = new();
     private readonly List<Task> runningTasks = [];
 
     internal readonly List<(int x, int y, int w, int h)> clearTasks = [];
@@ -23,7 +22,7 @@ internal class RenderQueue
         await TryAddAction(runningTasks, firstAction);
 
         //Wait for batch timeout
-        await timer.Delay(batchTimeout, token);
+        PrecisionTimer.SpinWait(batchTimeout, 20, token);
 
         //Drain queue
         while (renderQueue.Reader.TryRead(out var action))

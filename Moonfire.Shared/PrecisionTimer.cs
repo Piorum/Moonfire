@@ -2,16 +2,18 @@ using System.Diagnostics;
 
 namespace Moonfire.Shared;
 
-public class PrecisionTimer(int spinIterations = 20)
+public static class PrecisionTimer
 {
-    public Task Delay(TimeSpan timeSpan, CancellationToken token = default)
+    public static void SpinWait(TimeSpan timeSpan, int spinIterations = 20, CancellationToken token = default)
     {
-        var sw = Stopwatch.StartNew();
-        double targetTicks = timeSpan.TotalMicroseconds * Stopwatch.Frequency / 1_000_000.0;
+        if(token.IsCancellationRequested)
+            return;
 
-        while(sw.ElapsedTicks < targetTicks && !token.IsCancellationRequested)
+        var startTick = Stopwatch.GetTimestamp();
+        long waitTicks = (long)(timeSpan.TotalSeconds * Stopwatch.Frequency);
+        long targetTick = startTick + waitTicks;
+
+        while(Stopwatch.GetTimestamp() < targetTick)
             Thread.SpinWait(spinIterations);
-
-        return Task.CompletedTask;
     }
 }
