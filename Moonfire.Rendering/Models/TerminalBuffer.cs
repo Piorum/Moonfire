@@ -11,6 +11,9 @@ public class TerminalBuffer(int width, int height)
         get => ref cells[y * Width + x];
     }
 
+    public Span<TerminalCell> AsSpan() =>
+        cells.AsSpan();
+
     public void Clear((int x, int y, int w, int h) area)
     {
         for(int i = area.y; i < area.y + area.h; i++)

@@ -36,6 +36,8 @@ internal class ResizeHelper
             //Writes clear screen ANSI command
             await writer.Write(asb);
             await buffer.Resize(newWidth, newHeight);
+
+            (rootView.SizeX, rootView.SizeY) = (newWidth, newHeight);
             await rootView.Invalidate();
         });
     }

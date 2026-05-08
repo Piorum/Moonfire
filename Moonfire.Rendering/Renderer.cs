@@ -93,14 +93,19 @@ public class Renderer
         asb.Clear();
         rs.Reset();
 
+        var frontBuffer = buffer.FrontBuffer.AsSpan();
+        var backBuffer = buffer.BackBuffer.AsSpan();
+        var width = _rootView.SizeX;
+
         for (int y = 0; y < _rootView.SizeY; y++)
         {
             int x = 0;
-            while(x < _rootView.SizeX)
+            var offset = y * width;
+            while(x < width)
             {
-                var cell = buffer.BackBuffer[x,y];
+                var cell = backBuffer[offset + x];
                 
-                if(cell == buffer.FrontBuffer[x,y])
+                if(cell == frontBuffer[offset + x])
                 {
                     rs.FlushToAsb(asb);
 
@@ -122,7 +127,7 @@ public class Renderer
                 x += glyph.VisualWidth;
 
                 //Fallback to space if 2 wide glyph will be out of bounds.
-                if(x > _rootView.SizeX)
+                if(x > width)
                 {
                     rs.OutputBuffer[rs.OutputIndex++] = (byte)' ';
                     rs.CursorMovement++;
