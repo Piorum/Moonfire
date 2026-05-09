@@ -22,7 +22,7 @@ public class Renderer
         _rootView = rootView;
         _batchTimeout = batchTimeout ?? TimeSpan.FromMicroseconds(100);
 
-        resizeHelper= new(this);
+        resizeHelper = new(this);
         buffer = DoubleBuffer.New(_rootView.SizeX, _rootView.SizeY);
     }
 
@@ -45,7 +45,6 @@ public class Renderer
         await writer.Write(asb);
         
         await EnqueueAction(_rootView.Invalidate);
-
 
         while(!token.IsCancellationRequested)
         {
@@ -89,7 +88,7 @@ public class Renderer
         //Draw to back buffer
         await _rootView.Draw(new TerminalContext(buffer.BackBuffer));
 
-        //Clear builder, ensure cursor is hidden for draw, reset state
+        //Clear builder, reset state
         asb.Clear();
         rs.Reset();
 
