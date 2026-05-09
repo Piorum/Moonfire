@@ -13,7 +13,7 @@ public readonly struct TerminalContext
     private readonly TerminalBuffer Buffer;
 
     private static void CreationOutOfBounds(int x,int y, int w, int h, TerminalContext context) => 
-        throw new($"SVContext region is out of bounds for the existing SVContext [Parameters] X:\"{x}\" | Y:\"{y}\" | W:\"{w}\" | H:\"{h}\" : [Context Dimensions] X:\"{context.X}\" | Y: \"{context.Y}\" | W:\"{context.W}\" | H:\"{context.H}\"");
+        throw new($"TerminalContext region is out of bounds for the existing TerminalContext [Parameters] X:\"{x}\" | Y:\"{y}\" | W:\"{w}\" | H:\"{h}\" : [Context Dimensions] X:\"{context.X}\" | Y: \"{context.Y}\" | W:\"{context.W}\" | H:\"{context.H}\"");
     private static void AccessOutOfBounds(int X, int Y, uint W, uint H, int x, int y) => 
         throw new($"Coordinate out of bounds for the current SVContext X:\"{X}\" | Y:\"{Y}\" | W:\"{W}\" | H:\"{H}\" : Coordinate:({x},{y})");
     private static void CopyTooLarge(uint sW, uint sH, uint dW, uint dH) => 
