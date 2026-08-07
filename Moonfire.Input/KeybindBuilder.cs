@@ -3,7 +3,7 @@ using Moonfire.Input.Models;
 
 namespace Moonfire.Input;
 
-public class KeybindBuilder(InputHandler inputHandler)
+public class KeybindBuilder(BindResolver bindResolver)
 {
     private readonly List<InputKey> keys = [];
     private Bind? _bind;
@@ -40,12 +40,12 @@ public class KeybindBuilder(InputHandler inputHandler)
 
     private void RegisterIndifferent()
     {
-        inputHandler.indifferentBinds.Add(keys.First(), _bind!.Value);
+        bindResolver.indifferentBinds.Add(keys.First(), _bind!.Value);
     }
 
     private void RegisterSequence()
     {
-        var sequenceState = inputHandler.sequenceState;
+        var sequenceState = bindResolver.sequenceState;
         var currentNode = sequenceState.rootNode;
 
         foreach(var key in keys)

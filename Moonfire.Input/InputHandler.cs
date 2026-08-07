@@ -6,16 +6,13 @@ namespace Moonfire.Input;
 public class InputHandler(int? sequenceTimeoutMs = null)
 {
     private readonly IInputTranslator inputTranslator = InputTraslatorFactory.Create();
-
-    internal readonly Dictionary<InputKey, Bind> indifferentBinds = [];
-    internal readonly SequenceState sequenceState = new(sequenceTimeoutMs ?? 1000);
+    internal readonly BindResolver bindResolver = new(sequenceTimeoutMs);
 
     private RawInputChannel? rawInputChannel = null;
 
     public async Task Run(CancellationToken token)
     {
-        //Move to background thread
-        await Task.Run(async () =>
+        var inputWorker = Task.Run(async () =>
         {
             try
             {
@@ -26,6 +23,18 @@ public class InputHandler(int? sequenceTimeoutMs = null)
             }
             catch (OperationCanceledException) {}
         }, CancellationToken.None);
+
+        var bindWorker = Task.Run(async () =>
+        {
+            try
+            {
+                await foreach(var (bind, data) in bindResolver.BindReader.ReadAllAsync(token))
+                    await SafeExecuteBind(bind, data);
+            }
+            catch (OperationCanceledException) {}
+        }, CancellationToken.None);
+
+        await Task.WhenAll(inputWorker, bindWorker);
     }
 
     public RawInputChannel OpenRaw()
@@ -45,7 +54,7 @@ public class InputHandler(int? sequenceTimeoutMs = null)
     }
 
     public KeybindBuilder Bind() =>
-        new(this);
+        new(bindResolver);
 
     private async Task HandleBind(TerminalInput evt, CancellationToken token)
     {
@@ -74,15 +83,7 @@ public class InputHandler(int? sequenceTimeoutMs = null)
             return;
         }
 
-        var sequenceBind = sequenceState.Step(evt);
-        if(sequenceBind is not null)
-        {
-            await SafeExecuteBind(sequenceBind.Value, evt.InputData);
-            return;
-        }
-
-        if(indifferentBinds.TryGetValue(evt.Key, out var indifferentBind))
-            await SafeExecuteBind(indifferentBind, evt.InputData);
+        await bindResolver.Process(evt, token);
     }
 
     private async Task SafeExecuteBind(Bind bind, InputData inputData)

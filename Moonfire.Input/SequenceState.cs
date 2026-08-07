@@ -20,7 +20,7 @@ internal class SequenceState
         sequenceTimeoutTimer.Elapsed += (source, e) => ResetSequence();
     }
 
-    internal Bind? Step(TerminalInput evt)
+    internal Bind? Process(TerminalInput evt)
     {
         ResetTimeout();
 
