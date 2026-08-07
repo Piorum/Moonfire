@@ -41,7 +41,7 @@ public class Renderer
         if(!resizeHelper.Registered)
             await resizeHelper.RegisterResizeEvent();
 
-        asb.EnterAlternateScreen().HideCursor();
+        asb.EnterAlternateScreen().HideCursor().ClearScreen();
         await writer.Write(asb);
         
         await EnqueueAction(_rootView.Invalidate);
