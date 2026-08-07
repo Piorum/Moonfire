@@ -24,7 +24,7 @@ public readonly struct TerminalCell(ulong value)
         //Store style id in lower 32 bits
         : this(((ulong)(uint)styleId << 32)
             //Take 2nd bit from width, we add one on lookup, 0 -> 1, 1 -> 1, 2 -> 2 3 -> 2, others effectively clamped to 1 or 2 safely.
-            | ((ulong)(width & 2) << 31)
+            | (((ulong)(width >> 1) & 1) << 31)
             //Store glyphId in top-1 31 bits
             | ((uint)glyphId & 0x7FFFFFFFUL)) { }
 

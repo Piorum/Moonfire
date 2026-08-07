@@ -1,12 +1,12 @@
-using Moonfire.Input.DataStructures;
+using Moonfire.Shared.DataStructures;
 using Moonfire.Input.Models;
 
 namespace Moonfire.Input;
 
 internal class SequenceState
 {
-    internal readonly TrieNode rootNode = new();
-    private TrieNode currentNode;
+    internal readonly TrieNode<InputKey, Bind?> rootNode = new();
+    private TrieNode<InputKey, Bind?> currentNode;
 
     //private readonly List<InputKey> currentSequence = [];
 
@@ -40,7 +40,7 @@ internal class SequenceState
             return null;
 
         ResetSequence();
-        return node.Binding;
+        return node.Result;
     }
 
     private void ResetTimeout()

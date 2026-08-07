@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../Moonfire.Logging/Moonfire.Logging.csproj" />
+    <ProjectReference Include="../Moonfire.Shared/Moonfire.Shared.csproj" />
   </ItemGroup>
 
 </Project>

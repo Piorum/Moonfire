@@ -1,3 +1,4 @@
+
 using Moonfire.Input.Models;
 
 namespace Moonfire.Input;
@@ -60,6 +61,6 @@ public class KeybindBuilder(InputHandler inputHandler)
             }
         }
 
-        currentNode.Binding = _bind;
+        currentNode.Result = _bind;
     }
 }
