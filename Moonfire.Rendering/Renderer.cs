@@ -161,8 +161,8 @@ public class Renderer
             renderQueue.clearTasks.Clear();
         }
 
-        //Swap back buffer to front, copies new front buffer to new back buffer
-        buffer.Swap();
+        //Copies back buffer to front buffer
+        buffer.UpdateFrontBuffer();
     }
 
     internal async Task Resize() =>
