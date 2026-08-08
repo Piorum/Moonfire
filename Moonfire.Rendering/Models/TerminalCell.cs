@@ -35,6 +35,7 @@ public readonly struct TerminalCell(ulong value)
     public static bool operator !=(TerminalCell left, TerminalCell right) => left.Value != right.Value;
 
     public static readonly TerminalCell Blank;
+    public static readonly TerminalCell Junk;
 
     static TerminalCell()
     {
@@ -42,5 +43,6 @@ public readonly struct TerminalCell(ulong value)
         var styleId = AnsiStyleFactory.GetStyleId((null, null, AnsiProperty.None));
 
         Blank = new(id, width, styleId);
+        Junk = new(0,1,-1);
     }
 }

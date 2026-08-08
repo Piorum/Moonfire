@@ -16,7 +16,10 @@ internal class DoubleBuffer
     internal async Task Resize(int width, int height) =>
         (FrontBuffer, BackBuffer) = (new(width, height), new(width,height));
 
-    internal void Swap() => 
+    internal void Swap()
+    {
         (BackBuffer, FrontBuffer) = (FrontBuffer, BackBuffer);
 
+        FrontBuffer.CopyTo(BackBuffer);
+    }
 }

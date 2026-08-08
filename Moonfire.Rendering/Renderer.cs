@@ -76,17 +76,16 @@ public class Renderer
         if (!await _rootView.Arrange())
             return;
 
-        //Force invalidation of front buffer
-        if(renderQueue.clearTasks.Count != 0)
-        {
-            foreach(var clearTask in renderQueue.clearTasks)
-                buffer.FrontBuffer.Clear(clearTask);
-                
-            renderQueue.clearTasks.Clear();
-        }
-
         //Draw to back buffer
         await _rootView.Draw(new TerminalContext(buffer.BackBuffer));
+
+        //Excute manual clear tasks
+        if(renderQueue.clearTasks.Count != 0)
+            foreach(var clearTask in renderQueue.clearTasks)
+            {
+                buffer.FrontBuffer.Fill(clearTask, TerminalCell.Junk);
+                buffer.BackBuffer.Fill(clearTask, TerminalCell.Blank);
+            }
 
         //Clear builder, reset state
         asb.Clear();
@@ -151,9 +150,19 @@ public class Renderer
 
         await writer.Write(asb);
 
-        //Swap back buffer to front, clear back buffer
+        //Persist any clear tasks
+        if(renderQueue.clearTasks.Count != 0)
+        {
+            foreach(var clearTask in renderQueue.clearTasks)
+            {
+                buffer.BackBuffer.Fill(clearTask, TerminalCell.Junk);
+            }
+            
+            renderQueue.clearTasks.Clear();
+        }
+
+        //Swap back buffer to front, copies new front buffer to new back buffer
         buffer.Swap();
-        buffer.BackBuffer.Clear();
     }
 
     internal async Task Resize() =>

@@ -14,12 +14,42 @@ public class TerminalBuffer(int width, int height)
     public Span<TerminalCell> AsSpan() =>
         cells.AsSpan();
 
-    public void Clear((int x, int y, int w, int h) area)
-    {
-        for(int i = area.y; i < area.y + area.h; i++)
-            Array.Clear(cells, i * Width + area.x, area.w);
+    [System.Diagnostics.CodeAnalysis.DoesNotReturn]
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    private static void InvalidFill(int Width, int Height, int x, int y, int w, int h) =>
+            throw new ArgumentException($"Invalid use of {nameof(TerminalBuffer)} {nameof(Fill)} method. Given invalid clear dimensions for the current size.\n[Width] : {Width}\n[Height] : {Height}\n[X] : {x}\n[Y] : {y}\n[W] : {w}\n[H] : {h}\n");
+
+    [System.Diagnostics.CodeAnalysis.DoesNotReturn]
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    private static void InvalidCopyTo(TerminalCell[] source, TerminalCell[] destination) =>
+            throw new ArgumentException($"Invalid use of {nameof(TerminalBuffer)} {nameof(CopyTo)} method, given mismatched sized buffers.\n[Source] : {source.Length}\n[Destination] : {destination.Length}\n");
+
+    internal void CopyTo(TerminalBuffer destination){
+        if(destination.cells.Length != cells.Length)
+            InvalidCopyTo(cells, destination.cells);
+            
+        cells.CopyTo(destination.cells);
     }
 
-    public void Clear() =>
-        Array.Clear(cells);
+    public void Fill((int x, int y, int w, int h) area, TerminalCell cell)
+    {
+        var (x, y, w, h) = area;
+
+        if((uint)x > (uint)Width || (uint)y > (uint)Height || (uint)w > (uint)(Width - x) || (uint)h > (uint)(Height - y))
+            InvalidFill(Width, Height, x, y, w, h);
+
+        //Contiguous Path
+        if(x == 0 && w == Width)
+        {
+            cells.AsSpan(y * Width, Width * h).Fill(cell);
+            return;
+        }
+
+        var endY = y+h;
+        var span = AsSpan();
+        for(int i = y; i < endY; i++)
+        {
+            span.Slice(i * Width + x, w).Fill(cell);
+        }
+    }
 }
