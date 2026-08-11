@@ -16,7 +16,7 @@ public static class GlyphFactory
         var enumerator = StringInfo.GetTextElementEnumerator(text);
         while(enumerator.MoveNext())
         {
-            var cluster = enumerator.Current.ToString();
+            var cluster = enumerator.GetTextElement();
 
             if(string.IsNullOrEmpty(cluster))
                 continue;
