@@ -82,10 +82,7 @@ public class Renderer
         //Excute manual clear tasks
         if(renderQueue.clearTasks.Count != 0)
             foreach(var clearTask in renderQueue.clearTasks)
-            {
                 buffer.FrontBuffer.Fill(clearTask, TerminalCell.Junk);
-                buffer.BackBuffer.Fill(clearTask, TerminalCell.Blank);
-            }
 
         //Clear builder, reset state
         asb.Clear();
@@ -149,17 +146,6 @@ public class Renderer
         asb.ResetProperties();
 
         await writer.Write(asb);
-
-        //Persist any clear tasks
-        if(renderQueue.clearTasks.Count != 0)
-        {
-            foreach(var clearTask in renderQueue.clearTasks)
-            {
-                buffer.BackBuffer.Fill(clearTask, TerminalCell.Junk);
-            }
-            
-            renderQueue.clearTasks.Clear();
-        }
 
         //Copies back buffer to front buffer
         buffer.UpdateFrontBuffer();
