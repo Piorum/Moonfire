@@ -6,7 +6,7 @@ namespace Moonfire.Rendering;
 
 internal class RenderQueue
 {
-    private readonly Channel<Func<Task>> renderQueue = Channel.CreateUnbounded<Func<Task>>();
+    private readonly Channel<Func<Task>> renderQueue = Channel.CreateUnbounded<Func<Task>>(new() { SingleReader = true });
 
     private readonly List<Task> runningTasks = [];
 
@@ -52,9 +52,10 @@ internal class RenderQueue
     private async static Task TryAddAction(List<Task> tasks, Func<Task> action)
     {
         //Sync async tasks will start immediately, this will protect the render from errors thrown here.
-        try { 
+        try 
+        { 
             tasks.Add(action()); 
-            }
+        }
         catch (Exception ex) 
         { 
             await Logger.Error(nameof(Rendering), $"Action Failed To Start\n{ex}"); 

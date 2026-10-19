@@ -8,7 +8,7 @@ public class BindResolver(int? sequenceTimeoutMs = null)
     internal readonly Dictionary<InputKey, Bind> indifferentBinds = [];
     internal readonly SequenceState sequenceState = new(sequenceTimeoutMs ?? 1000);
 
-    private readonly Channel<(Bind bind, InputData data)> bindChannel = Channel.CreateUnbounded<(Bind bind, InputData data)>();
+    private readonly Channel<(Bind bind, InputData data)> bindChannel = Channel.CreateUnbounded<(Bind bind, InputData data)>(new() { SingleReader = true, SingleWriter = true });
     public ChannelReader<(Bind bind, InputData data)> BindReader => bindChannel.Reader;
 
     public async Task Process(TerminalInput evt, CancellationToken token)

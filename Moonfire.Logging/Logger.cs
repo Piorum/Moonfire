@@ -8,7 +8,7 @@ public static class Logger
 {
     private static readonly List<SinkConfiguration> sinks = [];
 
-    private static readonly Channel<LogMessage> channel = Channel.CreateUnbounded<LogMessage>();
+    private static readonly Channel<LogMessage> channel = Channel.CreateUnbounded<LogMessage>(new() { SingleReader = true });
 
     private static readonly Task logTask;
     private static readonly CancellationTokenSource cts;

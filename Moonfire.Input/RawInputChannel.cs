@@ -7,11 +7,8 @@ public class RawInputChannel() : IDisposable
 {
     private volatile bool _disposed = false;
 
-    private Channel<TerminalInput>? channel = Channel.CreateUnbounded<TerminalInput>(new UnboundedChannelOptions()
-    {
-        SingleReader = true,
-        SingleWriter = true
-    });
+    private Channel<TerminalInput>? channel = Channel.CreateUnbounded<TerminalInput>(new() { SingleReader = true, SingleWriter = true });
+    
     public ChannelReader<TerminalInput> Reader => _disposed 
         ? throw new ObjectDisposedException(nameof(RawInputChannel)) 
         : channel!.Reader;

@@ -8,7 +8,7 @@ public class FallbackInputTranslator : IInputTranslator
 {
     public ChannelReader<TerminalInput> PollInput(CancellationToken token)
     {
-        Channel<TerminalInput> inputChannel = Channel.CreateUnbounded<TerminalInput>();
+        Channel<TerminalInput> inputChannel = Channel.CreateUnbounded<TerminalInput>(new() { SingleReader = true, SingleWriter = true });
 
         _ = Task.Run(async () =>
         {
