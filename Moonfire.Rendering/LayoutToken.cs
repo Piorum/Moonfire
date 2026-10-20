@@ -62,17 +62,7 @@ public class LayoutToken(IEnumerable<IMoonfireView> views)
         if(map is null)
             throw new("Attempted Draw on unmapped Layout");
 
-        var tasks = new Task[map.Value.Length];
-
-        for(int i = 0; i < map.Value.Length; i++)
-        {
-            var e = map.Value[i];
-            var r = e.Region;
-
-            tasks[i] = e.View.Draw(new(r.X, r.Y, r.W, r.H, context));
-        }
-
-        await Task.WhenAll(tasks);
+        await Task.WhenAll(map.Value.Select(e => e.View.Draw(new(e.Region.X, e.Region.Y, e.Region.W, e.Region.H, context))));
     }
 
     public bool Equals(LayoutToken other) => Hash == other.Hash;
@@ -84,7 +74,7 @@ public class LayoutToken(IEnumerable<IMoonfireView> views)
     private static UInt128 HashLayout(IEnumerable<IMoonfireView> views)
     {
         var hasher = new XxHash128();
-        Span<byte> buffer = new byte[16];
+        Span<byte> buffer = stackalloc byte[16];
 
         BinaryPrimitives.WriteInt32LittleEndian(buffer, RuntimeHelpers.GetHashCode(views));
         
