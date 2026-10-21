@@ -14,8 +14,8 @@ internal class ResizeHelper
     internal readonly IWindowResizer windowResizer = WindowResizerFactory.Create();
     internal bool Registered => windowResizer.Registered;
 
-    internal async Task RegisterResizeEvent() =>
-        await windowResizer.RegisterResizeEvent(renderer);
+    internal void RegisterResizeEvent() =>
+        windowResizer.RegisterResizeEvent(renderer);
 
     internal ResizeHelper(Renderer renderer)
     {
@@ -25,20 +25,20 @@ internal class ResizeHelper
         this.renderer = renderer;
     }
 
-    internal async Task Resize(RootView rootView, DoubleBuffer buffer, RenderQueue renderQueue, TerminalWriter writer)
+    internal void Resize(RootView rootView, DoubleBuffer buffer, RenderQueue renderQueue, TerminalWriter writer)
     {
-        await renderQueue.EnqueueAction(async () =>
+        renderQueue.EnqueueAction(async () =>
         {
             var newWidth = Console.BufferWidth;
             var newHeight = Console.BufferHeight;
-            await Logger.Debug(nameof(Rendering), $"[Resizing] ({rootView.SizeX},{rootView.SizeY}) -> ({newWidth},{newHeight})");
+            Logger.Debug(nameof(Rendering), $"[Resizing] ({rootView.SizeX},{rootView.SizeY}) -> ({newWidth},{newHeight})");
 
             //Writes clear screen ANSI command
-            await writer.Write(asb);
-            await buffer.Resize(newWidth, newHeight);
+            writer.Write(asb);
+            buffer.Resize(newWidth, newHeight);
 
             (rootView.SizeX, rootView.SizeY) = (newWidth, newHeight);
-            await rootView.Invalidate();
+            rootView.Invalidate();
         });
     }
 }

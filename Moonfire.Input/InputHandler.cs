@@ -10,38 +10,58 @@ public class InputHandler(int? sequenceTimeoutMs = null)
 
     private RawInputChannel? rawInputChannel = null;
 
-    public async Task Run(CancellationToken token)
+    public void Run(CancellationToken token)
     {
-        var inputWorker = Task.Run(async () =>
+        inputTranslator.Start(token);
+
+        Thread routerThread = new(() =>
         {
             try
             {
-                var inputChannel = inputTranslator.PollInput(token);
-
-                await foreach(var evt in inputChannel.ReadAllAsync(token))
-                    await HandleBind(evt, token);
+                while (!token.IsCancellationRequested)
+                {
+                    var evt = inputTranslator.Take(token);
+                    HandleBind(evt);
+                }
             }
             catch (OperationCanceledException) {}
-        }, CancellationToken.None);
+        })
+        {
+            IsBackground = true,
+            Name = "MoonfireInputRouter"
+        };
 
-        var bindWorker = Task.Run(async () =>
+        Thread executorThread = new(() =>
         {
             try
             {
-                await foreach(var (bind, data) in bindResolver.BindReader.ReadAllAsync(token))
-                    await SafeExecuteBind(bind, data);
+                while (!token.IsCancellationRequested)
+                {
+                    var (bind, data) = bindResolver.Take(token);
+                    SafeExecuteBind(bind, data);
+                }
             }
             catch (OperationCanceledException) {}
-        }, CancellationToken.None);
+        })
+        {
+            IsBackground = true,
+            Name = "MoonfireBindExecutor"
+        };
 
-        await Task.WhenAll(inputWorker, bindWorker);
+        routerThread.Start();
+        executorThread.Start();
     }
 
     public RawInputChannel OpenRaw()
     {
-        RawInputChannel newRawInputChannel = new();
-        var existingRawInputChannel = Interlocked.Exchange(ref rawInputChannel, newRawInputChannel);
+        RawInputChannel newRawInputChannel = null!;
 
+        newRawInputChannel = new RawInputChannel(() =>
+        {
+            Interlocked.CompareExchange(ref rawInputChannel, null, newRawInputChannel);
+        });
+
+        var existingRawInputChannel = Interlocked.Exchange(ref rawInputChannel, newRawInputChannel);
         existingRawInputChannel?.Dispose();
 
         return newRawInputChannel;
@@ -56,17 +76,17 @@ public class InputHandler(int? sequenceTimeoutMs = null)
     public KeybindBuilder Bind() =>
         new(bindResolver);
 
-    private async Task HandleBind(TerminalInput evt, CancellationToken token)
+    private void HandleBind(TerminalInput evt)
     {
-        await Logger.Debug(nameof(Input), $"[Key Received]");
+        Logger.Debug(nameof(Input), $"[Key Received]");
         
-        await Logger.Debug(nameof(Input), evt.Key.InputType switch
+        Logger.Debug(nameof(Input), evt.Key.InputType switch
         {
             Enums.InputType.Mouse => $" - (Key: {evt.Key.MouseKey}, Modifiers: {evt.Key.Modifiers})",
             Enums.InputType.Keyboard => $" - (Key: {evt.Key.KeyboardKey}, Modifiers: {evt.Key.Modifiers})",
             _ => " - None"
         });
-        await Logger.Debug(nameof(Input), evt.Key.InputType switch
+        Logger.Debug(nameof(Input), evt.Key.InputType switch
         {
             Enums.InputType.Mouse => (evt.InputData.ScrollDelta is null) switch
                 {
@@ -77,26 +97,27 @@ public class InputHandler(int? sequenceTimeoutMs = null)
             _ => " - None"
         });
 
-        if(rawInputChannel is not null)
+        var raw = Volatile.Read(ref rawInputChannel);
+        if(raw is not null && !raw.IsDisposed)
         {
-            await rawInputChannel.Writer.WriteAsync(evt, token);
-            return;
+            if(raw.Write(evt))
+                return;
         }
 
-        await bindResolver.Process(evt, token);
+        bindResolver.Process(evt);
     }
 
-    private async Task SafeExecuteBind(Bind bind, InputData inputData)
+    private void SafeExecuteBind(Bind bind, InputData inputData)
     {
-        await Logger.Debug(nameof(Input), $"[Bind Received]");
+        Logger.Debug(nameof(Input), $"[Bind Received]");
 
         try
         {
-            await bind.Task(inputData);
+            bind.Action(inputData);
         }
         catch (Exception ex)
         {
-            await Logger.Error(nameof(Input), $"Binding Failed\n{ex.Message}");
+            Logger.Error(nameof(Input), $"Binding Failed\n{ex.Message}");
         }
     }
 }

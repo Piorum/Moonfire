@@ -13,7 +13,7 @@ internal class DoubleBuffer
     internal static DoubleBuffer New(int width, int height) =>
         new(new(width,height), new(width,height));
 
-    internal async Task Resize(int width, int height) =>
+    internal void Resize(int width, int height) =>
         (FrontBuffer, BackBuffer) = (new(width, height), new(width,height));
 
     internal void UpdateFrontBuffer()

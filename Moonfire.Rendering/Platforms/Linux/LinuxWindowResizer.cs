@@ -10,23 +10,19 @@ public class LinuxWindowResizer : IWindowResizer
     private PosixSignalRegistration? sigwinchRegistration;
     public bool Registered { get; private set; } = false;
 
-    public Task RegisterResizeEvent(Renderer renderer)
+    public void RegisterResizeEvent(Renderer renderer)
     {
         sigwinchRegistration = PosixSignalRegistration.Create(PosixSignal.SIGWINCH, sig =>
         {
-            Task.Run(async () =>
+            try
             {
-                try
-                {
-                    await renderer.Resize();
-                }
-                catch (Exception ex)
-                {
-                    Console.Error.WriteLine($"{ex}");
-                }
-            });
+                renderer.Resize();
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"{ex}");
+            }
         });
         Registered = true;
-        return Task.CompletedTask;
     }
 }

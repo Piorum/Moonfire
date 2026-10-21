@@ -1,4 +1,4 @@
-using System.Threading.Channels;
+using System.Collections.Concurrent;
 using Moonfire.Input.Models;
 
 namespace Moonfire.Input;
@@ -8,19 +8,20 @@ public class BindResolver(int? sequenceTimeoutMs = null)
     internal readonly Dictionary<InputKey, Bind> indifferentBinds = [];
     internal readonly SequenceState sequenceState = new(sequenceTimeoutMs ?? 1000);
 
-    private readonly Channel<(Bind bind, InputData data)> bindChannel = Channel.CreateUnbounded<(Bind bind, InputData data)>(new() { SingleReader = true, SingleWriter = true });
-    public ChannelReader<(Bind bind, InputData data)> BindReader => bindChannel.Reader;
+    private readonly BlockingCollection<(Bind bind, InputData data)> bindQueue = [];
+    internal (Bind bind, InputData data) Take(CancellationToken token) => 
+        bindQueue.Take(token);
 
-    public async Task Process(TerminalInput evt, CancellationToken token)
+    internal void Process(TerminalInput evt)
     {
         var sequenceBind = sequenceState.Process(evt);
         if(sequenceBind is not null)
         {
-            await bindChannel.Writer.WriteAsync((sequenceBind.Value, evt.InputData), token);
+            bindQueue.Add((sequenceBind.Value, evt.InputData));
             return;
         }
 
         if(indifferentBinds.TryGetValue(evt.Key, out var indifferentBind))
-            await bindChannel.Writer.WriteAsync((indifferentBind, evt.InputData), token);
+            bindQueue.Add((indifferentBind, evt.InputData));
     }
 }

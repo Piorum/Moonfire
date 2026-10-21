@@ -1,4 +1,4 @@
-using System.Threading.Channels;
+using System.Collections.Concurrent;
 using Moonfire.Logging;
 using Moonfire.Shared;
 
@@ -6,83 +6,72 @@ namespace Moonfire.Rendering;
 
 internal class RenderQueue
 {
-    private readonly Channel<Func<Task>> renderQueue = Channel.CreateUnbounded<Func<Task>>(new() { SingleReader = true });
+    // BlockingCollection replaces Channel for synchronous producer-consumer queuing
+    private readonly BlockingCollection<Action> renderQueue = [];
 
-    private readonly List<Task> runningTasks = [];
+    private readonly List<Action> runningActions = [];
 
     internal readonly List<(int x, int y, int w, int h)> clearTasks = [];
-    internal readonly List<Func<Task>> postRenderTasks = [];
+    internal readonly List<Action> postRenderTasks = [];
 
-    internal async Task<bool> WaitAndRun(TimeSpan batchTimeout, CancellationToken token)
+    internal bool WaitAndRun(TimeSpan batchTimeout, CancellationToken token)
     {
-        runningTasks.Clear();
+        runningActions.Clear();
 
-        //Wait for first action
-        var firstAction = await renderQueue.Reader.ReadAsync(token);
-        await TryAddAction(runningTasks, firstAction);
+        // Wait for the first action to arrive (blocks synchronously until an item is available or canceled)
+        var firstAction = renderQueue.Take(token);
+        runningActions.Add(firstAction);
 
-        //Wait for batch timeout
+        // Wait for batch timeout to allow near-simultaneous render commands to arrive
         PrecisionTimer.SpinWait(batchTimeout, 20, token);
 
-        //Drain queue
-        while (renderQueue.Reader.TryRead(out var action))
-            await TryAddAction(runningTasks, action);
+        // Drain any actions that arrived during the wait
+        while (renderQueue.TryTake(out var action))
+        {
+            runningActions.Add(action);
+        }
 
-        await TryAwaitTasks(runningTasks);
+        // Execute all batched actions
+        foreach (var action in runningActions)
+        {
+            ExecuteAction(action);
+        }
 
-        return runningTasks.Count > 0 && !token.IsCancellationRequested;
+        return runningActions.Count > 0 && !token.IsCancellationRequested;
     }
 
-    internal async Task RunPostRenderTasks()
+    internal void RunPostRenderTasks()
     {
-        if(postRenderTasks.Count > 0)
+        if (postRenderTasks.Count > 0)
         {
-            List<Task> tasks = [];
-
-            foreach(var task in postRenderTasks)
-                await TryAddAction(tasks, task);
-
-            await TryAwaitTasks(tasks);
+            foreach (var action in postRenderTasks)
+            {
+                ExecuteAction(action);
+            }
 
             postRenderTasks.Clear();
-
         }
     }
 
-    private async static Task TryAddAction(List<Task> tasks, Func<Task> action)
+    private static void ExecuteAction(Action action)
     {
-        //Sync async tasks will start immediately, this will protect the render from errors thrown here.
-        try 
-        { 
-            tasks.Add(action()); 
-        }
-        catch (Exception ex) 
-        { 
-            await Logger.Error(nameof(Rendering), $"Action Failed To Start\n{ex}"); 
-        }
-    }
-
-    private async Task TryAwaitTasks(List<Task> tasks)
-    {
-        //Catch and log exceptions but don't crash the renderer
+        // Catch and log exceptions so an error in one action doesn't crash the renderer
         try
         {
-            await Task.WhenAll(tasks);
+            action();
         }
         catch (Exception ex)
         {
-            var exs = ex is AggregateException ae ? ae.InnerExceptions : (IEnumerable<Exception>)[ex];
-            foreach(var ie in exs)
-                _ = Logger.Error(nameof(Rendering), $"Render Task Failed\n{ex}");
+            Logger.Error(nameof(Rendering), $"Render Action Failed\n{ex}");
         }
     }
-    
-    internal async Task EnqueueAction(Func<Task> action) =>
-        await renderQueue.Writer.WriteAsync(action);
-    internal async Task EnqueueActionClear(int x, int y, int w, int h) =>
-        await EnqueueAction(async () => clearTasks.Add((x, y, w, h)));
-    internal async Task EnqueueActionPostRender(Func<Task> action) =>
-        await EnqueueAction(async () => postRenderTasks.Add(action));
 
+    internal void EnqueueAction(Action action) =>
+        renderQueue.Add(action);
 
+    internal void EnqueueActionClear(int x, int y, int w, int h) =>
+        EnqueueAction(() => clearTasks.Add((x, y, w, h)));
+
+    internal void EnqueueActionPostRender(Action action) =>
+        EnqueueAction(() => postRenderTasks.Add(action));
 }

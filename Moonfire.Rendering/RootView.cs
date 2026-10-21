@@ -19,39 +19,37 @@ public class RootView(int? sizeX = null, int? sizeY = null) : IMoonfireView
 
     required public IMoonfireView View;
 
-    public async Task<bool> Arrange()
+    public bool Arrange()
     {
         //Tracking wasDirty to avoid resizing edge case
         bool wasDirty = false;
         if (Dirty)
         {
-            await OnArrange();
+            OnArrange();
             Dirty = false;
             wasDirty = true;
         }
 
-        var workDone = await View.Arrange();
+        var workDone = View.Arrange();
 
         return workDone || wasDirty;
     }
 
-    private Task OnArrange()
+    private void OnArrange()
     {
         View.OriginX = 0;
         View.OriginY = 0;
 
         View.SizeX = SizeX;
         View.SizeY = SizeY;
-
-        return Task.CompletedTask;
     }
 
-    public async Task Draw(TerminalContext context) =>
-        await View.Draw(context);
+    public void Draw(TerminalContext context) =>
+        View.Draw(context);
 
-    public async Task Invalidate()
+    public void Invalidate()
     {
         Dirty = true;
-        await View.Invalidate();
+        View.Invalidate();
     }
 }

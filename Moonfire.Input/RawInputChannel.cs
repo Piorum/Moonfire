@@ -1,28 +1,48 @@
-using System.Threading.Channels;
+using System.Collections.Concurrent;
 using Moonfire.Input.Models;
 
 namespace Moonfire.Input;
 
-public class RawInputChannel() : IDisposable
+public class RawInputChannel(Action? onDispose = null) : IDisposable
 {
-    private volatile bool _disposed = false;
+    private readonly BlockingCollection<TerminalInput> queue = [];
+    private bool _disposed = false;
 
-    private Channel<TerminalInput>? channel = Channel.CreateUnbounded<TerminalInput>(new() { SingleReader = true, SingleWriter = true });
+    public bool IsDisposed => Volatile.Read(ref _disposed) != false;
     
-    public ChannelReader<TerminalInput> Reader => _disposed 
-        ? throw new ObjectDisposedException(nameof(RawInputChannel)) 
-        : channel!.Reader;
+    public TerminalInput Take(CancellationToken token = default)
+    {
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
+        return queue.Take(token);
+    }
+    internal bool Write(TerminalInput input)
+    {
+        if(IsDisposed)
+            return false;
 
-    internal ChannelWriter<TerminalInput> Writer => _disposed 
-        ? throw new ObjectDisposedException(nameof(RawInputChannel)) 
-        : channel!.Writer;
+        try
+        {
+            return queue.TryAdd(input);
+        }
+        catch
+        {
+            return false;
+        }
+    }
 
     public void Dispose()
     {
         if(Interlocked.Exchange(ref _disposed, true) == false)
         {
-            channel!.Writer.TryComplete();
-            channel = null;
+            try
+            {
+                queue.CompleteAdding();
+            }
+            catch (ObjectDisposedException) { }
+            
+            queue.Dispose();
+
+            onDispose?.Invoke();
         }
 
         GC.SuppressFinalize(this);

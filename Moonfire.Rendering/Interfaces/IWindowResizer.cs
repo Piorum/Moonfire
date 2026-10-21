@@ -2,6 +2,6 @@ namespace Moonfire.Rendering.Interfaces;
 
 public interface IWindowResizer
 {
-    Task RegisterResizeEvent(Renderer root);
+    void RegisterResizeEvent(Renderer root);
     bool Registered { get; }
 }

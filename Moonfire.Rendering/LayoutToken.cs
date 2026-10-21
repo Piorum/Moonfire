@@ -19,7 +19,11 @@ public class LayoutToken(IEnumerable<IMoonfireView> views)
 
     public void MapRegionsHorizontalSweep()
     {
-        map = _views.OrderBy(e => e.OriginX).Select(e => new RegionBorrow(new(e.OriginX, e.OriginY, e.SizeX, e.SizeY), e)).ToImmutableArray();
+        map = _views
+            .Where(e => e.SizeX > 0 && e.SizeY > 0)
+            .OrderBy(e => e.OriginX)
+            .Select(e => new RegionBorrow(new(e.OriginX, e.OriginY, e.SizeX, e.SizeY), e))
+            .ToImmutableArray();
 
         for(var i = 0; i < map.Value.Length; i++)
         {
@@ -39,7 +43,11 @@ public class LayoutToken(IEnumerable<IMoonfireView> views)
     }
     public void MapRegionsVerticalSweep()
     {
-        map = _views.OrderBy(e => e.OriginY).Select(e => new RegionBorrow(new(e.OriginX, e.OriginY, e.SizeX, e.SizeY), e)).ToImmutableArray();
+        map = _views
+            .Where(e => e.SizeX > 0 && e.SizeY > 0)
+            .OrderBy(e => e.OriginY)
+            .Select(e => new RegionBorrow(new(e.OriginX, e.OriginY, e.SizeX, e.SizeY), e))
+            .ToImmutableArray();
 
         for(var i = 0; i < map.Value.Length; i++)
         {
@@ -57,12 +65,21 @@ public class LayoutToken(IEnumerable<IMoonfireView> views)
             }
         }
     }
-    public async Task Draw(TerminalContext context)
+    public void Draw(TerminalContext context)
     {
         if(map is null)
             throw new("Attempted Draw on unmapped Layout");
 
-        await Task.WhenAll(map.Value.Select(e => e.View.Draw(new(e.Region.X, e.Region.Y, e.Region.W, e.Region.H, context))));
+        var entries = map.Value;
+
+        Parallel.For(0, entries.Length, i =>
+        {
+            var r = entries[i].Region;
+            if (r.W <= 0 || r.H <= 0)
+                return;
+
+            entries[i].View.Draw(new(r.X, r.Y, r.W, r.H, context));
+        });
     }
 
     public bool Equals(LayoutToken other) => Hash == other.Hash;

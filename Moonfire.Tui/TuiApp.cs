@@ -14,44 +14,65 @@ public class TuiApp(IMoonfireView rootView, TuiAppOptions? options = null)
 
     private readonly CancellationTokenSource cts = new();
 
-    public static async Task InitLogging(List<LogLevel> logLevels) =>
-        await Logger.AddSink(new(new BufferSink(), [.. logLevels]));
+    public static void InitLogging(List<LogLevel> logLevels) =>
+        Logger.AddSink(new(new BufferSink(), [.. logLevels]));
 
-    public async Task Run(bool dumpLogs = true)
+    public void Run(bool dumpLogs = true)
     {
-        cts.TryReset();
-
-        var inputTask = InputHandler.Run(cts.Token);
-        var renderTask = Renderer.Run(cts.Token);
-
-        _ = await Task.WhenAny(inputTask, renderTask);
-
-        await Stop();
+        void cancelHandler(object? _, ConsoleCancelEventArgs e)
+        {
+            e.Cancel = true;
+            Stop();
+        }
+        Console.CancelKeyPress += (_, e) =>
+        {
+            e.Cancel = true;
+            Stop();
+        };;
 
         try
         {
-            await Task.WhenAll(inputTask, renderTask);
+            InputHandler.Run(cts.Token);
+
+            var renderThread = new Thread(() =>
+            {
+                try
+                {
+                    Renderer.Run(cts.Token);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(nameof(Tui), $"Renderer Crash:\n{ex}");
+                }
+            })
+            {
+                IsBackground = true,
+                Name = "MoonfireRenderer"
+            };
+
+            renderThread.Start();
+            renderThread.Join();
         }
-        catch (Exception ex)
+        finally
         {
-            var exs = ex is AggregateException ae ? ae.InnerExceptions : (IEnumerable<Exception>)[ex];
-            foreach(var ie in exs)
-                await Logger.Error(nameof(Tui), $"Major Exception:\n{ex}");
+            Console.CancelKeyPress -= cancelHandler;
+            Stop();
         }
 
-        await Logger.Debug(nameof(Tui), "[Shutdown]");
+        Logger.Debug(nameof(Tui), "[Shutdown]");
         if(dumpLogs)
-            await Logger.StopAndFlush();
+            Logger.StopAndFlush();
     }
 
-    public async Task Stop()
+    public void Stop()
     {
-        if(cts is not null)
+        if(!cts.IsCancellationRequested)
+        {
             try
             {
-                await cts.CancelAsync();
-                cts.Dispose();
+                cts.Cancel();
             }
             catch (ObjectDisposedException) { }
+        }
     }
 }

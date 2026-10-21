@@ -26,58 +26,58 @@ public class Renderer
         buffer = DoubleBuffer.New(_rootView.SizeX, _rootView.SizeY);
     }
 
-    public async Task EnqueueAction(Func<Task> action) =>
-        await renderQueue.EnqueueAction(action);
-    public async Task EnqueueActionClear(int x, int y, int w, int h) =>
-        await renderQueue.EnqueueActionClear(x, y, w, h);
-    public async Task EnqueueActionPostRender(Func<Task> action) =>
-        await renderQueue.EnqueueActionPostRender(action);
+    public void EnqueueAction(Action action) =>
+        renderQueue.EnqueueAction(action);
+    public void EnqueueActionClear(int x, int y, int w, int h) =>
+        renderQueue.EnqueueActionClear(x, y, w, h);
+    public void EnqueueActionPostRender(Action action) =>
+        renderQueue.EnqueueActionPostRender(action);
 
-    public async Task Run(CancellationToken token)
+    public void Run(CancellationToken token)
     {
         AnsiStringBuilder asb = new();
         RenderState rs = new();
 
         if(!resizeHelper.Registered)
-            await resizeHelper.RegisterResizeEvent();
+            resizeHelper.RegisterResizeEvent();
 
         asb.EnterAlternateScreen().HideCursor().ClearScreen();
-        await writer.Write(asb);
+        writer.Write(asb);
         
-        await EnqueueAction(_rootView.Invalidate);
+        EnqueueAction(_rootView.Invalidate);
 
         while(!token.IsCancellationRequested)
         {
             try
             {
-                var shouldRender = await renderQueue.WaitAndRun(_batchTimeout, token);
+                var shouldRender = renderQueue.WaitAndRun(_batchTimeout, token);
 
-                await Logger.Debug(nameof(Rendering), $"[Starting New Render Cycle]");
+                Logger.Debug(nameof(Rendering), $"[Starting New Render Cycle]");
                 var renderStartTime = DateTime.Now;
                 
                 if(shouldRender)
-                    await Render(asb, rs);
+                    Render(asb, rs);
 
-                await renderQueue.RunPostRenderTasks();
+                renderQueue.RunPostRenderTasks();
 
-                await Logger.Debug(nameof(Rendering), $" - (Total:    {(DateTime.Now - renderStartTime).TotalMicroseconds}us)");
+                Logger.Debug(nameof(Rendering), $" - (Total:    {(DateTime.Now - renderStartTime).TotalMicroseconds}us)");
             }
             catch (OperationCanceledException) {} //Expected
         }
 
         asb.Clear();
         asb.ExitAlternateScreen().ShowCursor();
-        await writer.Write(asb);
+        writer.Write(asb);
     }
 
-    private async Task Render(AnsiStringBuilder asb, RenderState rs)
+    private void Render(AnsiStringBuilder asb, RenderState rs)
     {
         //Rearrange, returns true if something was changed
-        if (!await _rootView.Arrange())
+        if (!_rootView.Arrange())
             return;
 
         //Draw to back buffer
-        await _rootView.Draw(new TerminalContext(buffer.BackBuffer));
+        _rootView.Draw(new TerminalContext(buffer.BackBuffer));
 
         //Excute manual clear tasks
         if(renderQueue.clearTasks.Count != 0)
@@ -149,13 +149,13 @@ public class Renderer
         //Append final escape codes like resetting properties
         asb.ResetProperties();
 
-        await writer.Write(asb);
+        writer.Write(asb);
 
         //Copies back buffer to front buffer
         buffer.UpdateFrontBuffer();
     }
 
-    internal async Task Resize() =>
-        await resizeHelper.Resize(_rootView, buffer, renderQueue, writer);
+    internal void Resize() =>
+        resizeHelper.Resize(_rootView, buffer, renderQueue, writer);
 
 }

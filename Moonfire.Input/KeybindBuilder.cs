@@ -24,6 +24,8 @@ public class KeybindBuilder(BindResolver bindResolver)
         _bind = bind;
         return this;
     }
+    public KeybindBuilder WithBind(Action action) => WithBind(new Bind(_ => action()));
+    public KeybindBuilder WithBind(Action<InputData> action) => WithBind(new Bind(action));
 
     public void Register()
     {

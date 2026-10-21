@@ -3,11 +3,11 @@ namespace Moonfire.Input.Models;
 public readonly record struct Bind
 {
     public Guid Id { get; }
-    public Func<InputData, Task> Task { get; }
+    public Action<InputData> Action { get; }
 
-    public Bind(Func<InputData, Task> task)
+    public Bind(Action<InputData> action)
     {
         Id = Guid.NewGuid();
-        Task = task;
+        Action = action;
     }
 }

@@ -1,4 +1,4 @@
-using System.Threading.Channels;
+using System.Collections.Concurrent;
 using Moonfire.Input.Enums;
 using Moonfire.Input.Models;
 
@@ -6,54 +6,50 @@ namespace Moonfire.Input.Platform.Fallback;
 
 public class FallbackInputTranslator : IInputTranslator
 {
-    public ChannelReader<TerminalInput> PollInput(CancellationToken token)
-    {
-        Channel<TerminalInput> inputChannel = Channel.CreateUnbounded<TerminalInput>(new() { SingleReader = true, SingleWriter = true });
+    private readonly BlockingCollection<TerminalInput> inputQueue = [];
+    private int started;
 
-        _ = Task.Run(async () =>
+    public void Start(CancellationToken token)
+    {
+        if(Interlocked.Exchange(ref started, 1) == 1)
+            return;
+
+        var thread = new Thread(() =>
         {
-            while (!token.IsCancellationRequested)
+            while(!token.IsCancellationRequested)
             {
                 try
                 {
-                    var key = await ReadKeyAsync(token);
-                    var inputEvent = await Translate(key);
+                    var key = Console.ReadKey(true);
 
-                    await inputChannel.Writer.WriteAsync(inputEvent, token);
+                    if(token.IsCancellationRequested)
+                        break;
+
+                    var inputEvent = Translate(key);
+                    inputQueue.Add(inputEvent);
                 }
-                catch (OperationCanceledException) { }
+                catch (InvalidOperationException)
+                {
+                    break;
+                }
             }
-        }, token);
 
-        return inputChannel.Reader;
-    }
-
-    private static Task<ConsoleKeyInfo> ReadKeyAsync(CancellationToken token)
-    {
-        var tcs = new TaskCompletionSource<ConsoleKeyInfo>();
-        var cancellationRegistration = token.Register(() => tcs.TrySetCanceled(token));
-
-        _ = Task.Run(() =>
+            inputQueue.CompleteAdding();
+        })
         {
-            try
-            {
-                var key = Console.ReadKey(true);
+            IsBackground = true,
+            Name = "SunfireFallbackInputReader"
+        };
 
-                tcs.TrySetResult(key);
-            }
-            catch (InvalidOperationException)
-            {
-                tcs.TrySetCanceled();
-            }
-        }, CancellationToken.None);
-
-        return tcs.Task;
+        thread.Start();
     }
 
-    private static Task<TerminalInput> Translate(ConsoleKeyInfo keyInfo)
+    public TerminalInput Take(CancellationToken token) => inputQueue.Take(token);
+
+    private static TerminalInput Translate(ConsoleKeyInfo keyInfo)
     {
         var terminalInput = TerminalInput.KeyboardInput(keyInfo.Key, keyInfo.KeyChar, (InputModifier)keyInfo.Modifiers);
 
-        return Task.FromResult(terminalInput);
+        return terminalInput;
     }
 }

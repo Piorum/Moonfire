@@ -76,18 +76,18 @@ public interface IMoonfireView
     /// Should arrange subviews NOT itself then propogate to subviews.
     /// </summary>
     /// <returns>True if work done, otherwise False</returns>
-    Task<bool> Arrange();
+    bool Arrange();
 
     /// <summary>
     /// Code that will be called when container view is done drawing.
     /// Should draw itself then propogate subviews.
     /// </summary>
     /// <param name="context">Context in which view lives wherein (0,0) is equal to (View.OriginX,View.OriginY)</param>
-    Task Draw(TerminalContext context);
+    void Draw(TerminalContext context);
 
     /// <summary>
     /// Code that will be called when the container view is dirtied.
     /// Should dirty itself then propogate to subviews.
     /// </summary>
-    Task Invalidate();
+    void Invalidate();
 }
